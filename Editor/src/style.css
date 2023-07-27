@@ -1,0 +1,15 @@
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 60%;
+  height: 100%;
+}
+
+#menu {
+  position: fixed;
+  left: 62.5%;
+  top: 2.5%;
+  width: 35%;
+  height: 95%;
+}
