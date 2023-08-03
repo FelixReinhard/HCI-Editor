@@ -6,6 +6,14 @@ canvas {
   height: 100%;
 }
 
+#preview {
+  position: fixed;
+  top: 2.5%;
+  left: 48.5%;
+  width: 10%;
+  height: 20%;
+}
+
 #menu {
   position: fixed;
   left: 62.5%;
