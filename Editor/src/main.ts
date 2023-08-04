@@ -8,7 +8,7 @@ import './style.css'
 import * as Three from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
-import {generate_rect, generate_object, PlacedObject} from './generate.ts';
+import {generate_object, Cell, create_basic1d} from './generate.ts';
 
 // controls the speed you can drag the camera with in editing mode.
 const DRAG_SPEED = .25;
@@ -17,9 +17,8 @@ const EDITING_MODE_DEFAULT_DIST = 15.0;
 // State 
 var mode: String = "inspect"
 var editing_mode: String = "drag"; // drag, put, scale
-var current_object: PlacedObject = null;
-var current_preview_obj
-
+var current_object: Cell = null;
+var cells: Cell[] = []
 
 // Positions are in mm
 const scene = new Three.Scene();
@@ -109,6 +108,12 @@ document.addEventListener("keydown", function(event) {
   }
 });
 
+function place_current_selected_cell(position: Three.Vector3) {
+  if (current_object == null) return;
+  current_object.mesh.position.copy(position);
+  scene.add(current_object.mesh);
+}
+
 var last_pos = {'x': 0, 'y': 0}
 var mouse_pressed = 0;
 document.addEventListener("mouseup", function() {
@@ -119,10 +124,29 @@ document.addEventListener("mouseup", function() {
 document.addEventListener("mousedown", function(event) {
   ++mouse_pressed
   last_pos = {'x': event.clientX, 'y': event.clientY}
-  if (editing_mode == "place" && mode == "editing") {
-    console.log(current_object.mesh)
-    scene.add(current_object.mesh);
+})
+
+
+const raycaster = new Three.Raycaster();
+const canvas = document.querySelector("canvas");
+
+canvas.addEventListener("click", function(event) {
+  if (!(editing_mode == "place" && mode == "editing")) {
+    return;
   }
+  const mouse = new Three.Vector2();
+  mouse.x = ( event.clientX / canvas?.offsetWidth) * 2 - 1;
+	mouse.y = - ( event.clientY / canvas?.offsetHeight) * 2 + 1;
+
+  raycaster.setFromCamera( mouse, camera );
+  
+  // check if selected
+
+  const plane = new Three.Plane( new Three.Vector3( 0, 1, 0 ), 0 );
+
+  var intersects = new Three.Vector3();
+	raycaster.ray.intersectPlane(plane, intersects);
+  place_current_selected_cell(intersects);
 })
 
 // editing mode drag camera
@@ -130,7 +154,6 @@ document.addEventListener("mousemove", function(event) {
   if (mouse_pressed && mode == "editing" && editing_mode == "move") {
     const dir = {'x': event.clientX - last_pos.x, 'y': event.clientY - last_pos.y}
     const zoom = orbitControl.target.distanceTo(camera.position) / EDITING_MODE_DEFAULT_DIST * DRAG_SPEED;
-    console.log(zoom);
     moveX(-dir.x * 0.1 * zoom)
     moveY(-dir.y * 0.1 * zoom)
     last_pos = {'x': event.clientX, 'y': event.clientY}
@@ -139,8 +162,7 @@ document.addEventListener("mousemove", function(event) {
 
 // Setup buttons 
 document.getElementById("basic1d")?.addEventListener("click", function () {
-  console.log("gnerate");
-  current_object = generate_object(generate_rect(10, 10), new Three.Color(1, 0, 0))
+  if (current_object == null) current_object = create_basic1d(10);
 })
 
 animate();
