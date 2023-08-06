@@ -16,9 +16,10 @@ const EDITING_MODE_DEFAULT_DIST = 15.0;
 
 // State 
 var mode: String = "inspect"
-var editing_mode: String = "drag"; // drag, put, scale
-var current_object: Cell = null;
+var current_object: Cell = create_basic1d(200);
 var cells: Cell[] = []
+// Which type of thing is currently selected, changed with the buttons on the left.
+var selected_type = "basic1d"; // basic1d
 
 // Positions are in mm
 const scene = new Three.Scene();
@@ -52,11 +53,11 @@ function switch_mode(new_mode: String) {
     case "editing":
       orbitControl.enablePan = false
       orbitControl.enableRotate = false
-      camera.position.set(orbitControl.target.x, EDITING_MODE_DEFAULT_DIST, orbitControl.target.z);
+      const zoom = camera.position.distanceTo(orbitControl.target);
+      camera.position.set(orbitControl.target.x, zoom, orbitControl.target.z);
  
       last_camera_rotation = {'x': camera.rotation.x, 'y': camera.rotation.y, 'z': camera.rotation.z}
       camera.rotation.set(0, -Math.PI / 2, 0)
-      editing_mode = "move";
       break;
     case "inspect":
       camera.rotation.set(last_camera_rotation.x, last_camera_rotation.y, last_camera_rotation.z)
@@ -99,9 +100,6 @@ document.addEventListener("keydown", function(event) {
       moveX(-1)
       break;
     case " ": 
-      if (mode == "editing") {
-        editing_mode = (editing_mode == "move") ? "place" : "move"; 
-      }
       break;
     default:
       break;
@@ -110,8 +108,9 @@ document.addEventListener("keydown", function(event) {
 
 function place_current_selected_cell(position: Three.Vector3) {
   if (current_object == null) return;
-  current_object.mesh.position.copy(position);
-  scene.add(current_object.mesh);
+  current_object.mesh_flat.position.copy(position);
+  scene.add(current_object.mesh_flat);
+  cells.push(current_object);
 }
 
 var last_pos = {'x': 0, 'y': 0}
@@ -126,14 +125,14 @@ document.addEventListener("mousedown", function(event) {
   last_pos = {'x': event.clientX, 'y': event.clientY}
 })
 
+document.getElementById("add")?.addEventListener("click", function (event) {
+  place_current_selected_cell(orbitControl.target);
+})
 
 const raycaster = new Three.Raycaster();
 const canvas = document.querySelector("canvas");
 
-canvas.addEventListener("click", function(event) {
-  if (!(editing_mode == "place" && mode == "editing")) {
-    return;
-  }
+canvas?.addEventListener("click", function(event) {
   const mouse = new Three.Vector2();
   mouse.x = ( event.clientX / canvas?.offsetWidth) * 2 - 1;
 	mouse.y = - ( event.clientY / canvas?.offsetHeight) * 2 + 1;
@@ -141,17 +140,16 @@ canvas.addEventListener("click", function(event) {
   raycaster.setFromCamera( mouse, camera );
   
   // check if selected
-
-  const plane = new Three.Plane( new Three.Vector3( 0, 1, 0 ), 0 );
-
-  var intersects = new Three.Vector3();
-	raycaster.ray.intersectPlane(plane, intersects);
-  place_current_selected_cell(intersects);
+  const intersects = raycaster.intersectObjects(scene.children);
+  if (intersects.length > 0) {
+    // The ray intersects with one or more objects
+    console.log('Mouse clicked on object:', intersects[0].object);
+  }
 })
 
 // editing mode drag camera
 document.addEventListener("mousemove", function(event) {
-  if (mouse_pressed && mode == "editing" && editing_mode == "move") {
+  if (mouse_pressed && mode == "editing") {
     const dir = {'x': event.clientX - last_pos.x, 'y': event.clientY - last_pos.y}
     const zoom = orbitControl.target.distanceTo(camera.position) / EDITING_MODE_DEFAULT_DIST * DRAG_SPEED;
     moveX(-dir.x * 0.1 * zoom)
@@ -162,7 +160,12 @@ document.addEventListener("mousemove", function(event) {
 
 // Setup buttons 
 document.getElementById("basic1d")?.addEventListener("click", function () {
-  if (current_object == null) current_object = create_basic1d(10);
+  current_object = create_basic1d(10);
 })
+
+const amplitude_slider = document.getElementById("amplitude")!;
+amplitude_slider.oninput = function () {
+  console.log(amplitude_slider.value);
+}
 
 animate();

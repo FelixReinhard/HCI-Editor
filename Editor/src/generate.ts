@@ -2,7 +2,7 @@ import * as Three from 'three';
 
   
 export function create_basic1d(amplitude: number): Cell {
-  const vertices = generate_basic1d(amplitude, 10);
+  const vertices = generate_basic1d(amplitude, amplitude);
   
   return new Cell(vertices, vertices, new Three.Vector3(0, 0, 0));
 }
@@ -17,7 +17,16 @@ export function create_basic1d(amplitude: number): Cell {
 //          width_right,
 //    ]
 //          
-function compute_values_from_amplitude_basic1d(amplitude: number): number[] {
+const c1 = [-0.050187499999999934, 0.6711875000000004, 1.1248749999999932,
+              0.11856250000000003, 1.2491875000000001, 1.2176250000000017 ]
+function compute_values_from_amplitude_basic1d_flat(amplitude: number, width: number): number[] {
+
+  // taken from the formuala provided
+  const c = amplitude;
+  const d = width;
+
+  const b = (c1[4]*c - c[1]*d) / (c[0]*c[4] - c[1]*c[3]);
+  const a = (c - c[0]*b - c[2]) / c[1];
   return [
     2,
     4,
@@ -41,15 +50,15 @@ function rect(width: number, height: number, offset: number[] = [0, 0]): number[
   ]
 }
 
-function generate_basic1d(amplitude: number, scale: number): number[] {
+function generate_basic1d(amplitude: number, width: number): number[] {
   
-  const vals = compute_values_from_amplitude_basic1d(amplitude);
+  const vals = compute_values_from_amplitude_basic1d_flat(amplitude ,width);
 
   const vertices = [
-    ...rect(vals[0], scale),
-    ...rect(vals[2], scale, [vals[1], 0]),
-    ...rect(vals[4], scale, [vals[3], 0]),
-    ...rect(vals[6], scale, [vals[5], 0]),
+    ...rect(vals[0], width),
+    ...rect(vals[2], width, [vals[1], 0]),
+    ...rect(vals[4], width, [vals[3], 0]),
+    ...rect(vals[6], width, [vals[5], 0]),
   ]
 
   return vertices;
@@ -101,5 +110,21 @@ export class Cell {
 
     this.mesh = generate_object(vertices, COLOR_MESH);
     this.mesh_flat = generate_object(vertices_flat, COLOR_FLAT_MESH);
+  }
+
+  width() {
+    var max = 0;
+    for (let i = 0; i < this.vertices_flat.length; i += 3) {
+      max = Math.max(max, this.vertices_flat[i]);
+    }
+    return max;
+  }
+
+  height() {
+    var max = 0;
+    for (let i = 2; i < this.vertices_flat.length; i += 3) {
+      max = Math.max(max, this.vertices_flat[i]);
+    }
+    return max;
   }
 }
