@@ -8,71 +8,52 @@ export function create_basic1d(amplitude: number, width: number): Cell {
   return new Cell(vertices_flat, vertices, new Three.Vector3(0, 0, 0));
 }
 
-// returns [
-//          width_left_most_rect, 
-//          offset_left_middle, 
-//          width_left_midlle,
-//          offset_right_middle,
-//          width_right_middle,
-//          offset_right,
-//          width_right,
-//    ]
-//          
+const DEFAULT_SIZE = 2; // 2mm
+// basic1d formuala params
 const c1 = [-0.050187499999999934, 0.6711875000000004, 1.1248749999999932,
               0.11856250000000003, 1.2491875000000001, 1.2176250000000017 ]
-function compute_values_from_amplitude_basic1d_flat(amplitude: number, width: number): number[] {
 
+function generate_basic1d_flat(amplitude: number, width: number): number[] {
   // taken from the formuala provided
   const c = amplitude;
   const d = width;
 
   const b = (c1[4]*c - c1[1]*d) / (c1[0]*c1[4] - c1[1]*c1[3]);
   const a = (c - c1[0]*b - c1[2]) / c1[1];
-  return [
-    2,
-    4,
-    a,
-    a + 6,
-    a,
-    2*a + 8,
-    2,
-    a,
-    b
+
+  const vertices = [
+    ...rect(DEFAULT_SIZE, b),
+    ...rect(a, b, [DEFAULT_SIZE*2, 0]),
+    ...rect(a, b, [DEFAULT_SIZE*3 + a, 0]),
+    ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a, 0]),
   ]
+
+  return vertices;
 }
 
-// returns [
-//          width_left_most_rect, 
-//
-//          left_middle_bottom_point_front, 
-//          left_middle_top_point_front
-//          right_middle_bottom_point_front, 
-//
-//          offset_right,
-//          width_right,
-//          b
-//
-//    ]
-//          
-function compute_values_from_amplitude_basic1d(amplitude: number, width: number): number[] {
-  return [
-    2,
 
-    4,
-    0.5*width + 4,
-    width + 4,
+function generate_basic1d(amplitude: number, width: number): number[] {
+  const c = amplitude;
+  const d = width;
 
-    width + 6,
-    2,
+  const b = (c1[4]*c - c1[1]*d) / (c1[0]*c1[4] - c1[1]*c1[3]);
+  const a = (c - c1[0]*b - c1[2]) / c1[1];
+  
+  const center = DEFAULT_SIZE*2.5 + a;
 
-    (c1[4]*amplitude - c1[1]*width) / (c1[0]*c1[4] - c1[1]*c1[3])
+  const vertices = [
+    ...rect(DEFAULT_SIZE, b, [center - DEFAULT_SIZE*2 - d/2.0, 0]),
+    ...quad(
+      [center - d/2.0, 0, 0], [center, -c, 0],
+      [center - d/2.0, 0, b], [center, -c, b],
+    ),
+    ...quad(
+      [center, -c, 0], [center + d/2.0, 0, 0], 
+      [center, -c, b], [center + d/2.0, 0, b], 
+    ),
+    ...rect(DEFAULT_SIZE, b, [center + DEFAULT_SIZE + d/2.0, 0])
   ]
-}
-
-function quad(x1: number[], x2: number[], x3: number[]): number[] {
-  return [
-
-  ]
+  return vertices;
 }
 
 function rect(width: number, height: number, offset: number[] = [0, 0]): number[] {
@@ -87,32 +68,19 @@ function rect(width: number, height: number, offset: number[] = [0, 0]): number[
   ]
 }
 
-function generate_basic1d_flat(amplitude: number, width: number): number[] {
-  
-  const vals = compute_values_from_amplitude_basic1d_flat(amplitude ,width);
-  console.log("Vals", vals);
+function quad(x1: number[], x2: number[], x3: number[], x4: number[]): number[] {
+  return [
+    x1[0], x1[1], x1[2],
+    x2[0], x2[1], x2[2],
+    x3[0], x3[1], x3[2],
 
-  const vertices = [
-    ...rect(vals[0], vals[8]),
-    ...rect(vals[2], vals[8], [vals[1], 0]),
-    ...rect(vals[4], vals[8], [vals[3], 0]),
-    ...rect(vals[6], vals[8], [vals[5], 0]),
+    x2[0], x2[1], x2[2],
+    x3[0], x3[1], x3[2],
+    x4[0], x4[1], x4[2],
   ]
-
-  return vertices;
 }
 
-function generate_basic1d(amplitude: number, width: number): number[] {
-  const vals = compute_values_from_amplitude_basic1d(amplitude, width);
-  
-  const vertices = [
-    ...rect(vals[0], vals[7]),
-    ...quad([ vals[1], 0], [ vals[2], 0], [ vals[2], vals[7] ]),
-    ...quad( [ vals[2], 0], [ vals[2], vals[7] ], [vals[3], 0] ),
-    ...rect( vals[5], vals[7], [vals[4], 0]),
-  ]
-  return vertices;
-}
+
 
 function generate_object(vertices: number[], color: Three.Color): Three.Mesh {
   const verticesFloat32Array = new Float32Array(vertices);
@@ -133,7 +101,7 @@ function generate_object(vertices: number[], color: Three.Color): Three.Mesh {
 const DEFAULT_ELASTIC_D = 20; // mm
 const DEFAULT_ELASTIC_X = 20; // mm
 const DEFAULT_SCALE = 1;
-const COLOR_MESH = new Three.Color(0, 0, 0);
+const COLOR_MESH = new Three.Color(0.23, 0.23, 0.23);
 const COLOR_FLAT_MESH = new Three.Color(0.75, 0.75, 0.75);
 
 export class Cell {
@@ -180,8 +148,8 @@ export class Cell {
 
   regenerate(amplitude: number, width: number) {
 
-    const vertices = generate_basic1d_flat(amplitude, width);
-    const vertices_flat = vertices; // temp TODO
+    const vertices_flat = generate_basic1d_flat(amplitude, width);
+    const vertices = generate_basic1d(amplitude, width); 
     
     // flat
     this.mesh_flat.geometry.dispose();

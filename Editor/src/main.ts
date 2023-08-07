@@ -13,8 +13,8 @@ import {generate_object, Cell, create_basic1d} from './generate.ts';
 // controls the speed you can drag the camera with in editing mode.
 const DRAG_SPEED = .25;
 const EDITING_MODE_DEFAULT_DIST = 15.0;
-const AMPLITUDE_RANGE = [1, 50];
-const WIDTH_RANGE = [2, 80];
+const AMPLITUDE_RANGE = [4, 20];
+const WIDTH_RANGE = [4, 20];
 
 // State 
 var mode: String = "inspect"
@@ -114,6 +114,8 @@ document.addEventListener("keydown", function(event) {
 function place_current_selected_cell(position: Three.Vector3) {
   if (current_object == null) return;
   current_object.mesh_flat.position.copy(position);
+  current_object.mesh.position.copy(position);
+  current_object.mesh.position.y += 0.1;
   scene.add(current_object.mesh_flat);
   scene.add(current_object.mesh);
   cells.push(current_object);
