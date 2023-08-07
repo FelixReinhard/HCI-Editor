@@ -13,13 +13,18 @@ import {generate_object, Cell, create_basic1d} from './generate.ts';
 // controls the speed you can drag the camera with in editing mode.
 const DRAG_SPEED = .25;
 const EDITING_MODE_DEFAULT_DIST = 15.0;
+const AMPLITUDE_RANGE = [1, 50];
+const WIDTH_RANGE = [2, 80];
 
 // State 
 var mode: String = "inspect"
-var current_object: Cell = create_basic1d(200);
 var cells: Cell[] = []
 // Which type of thing is currently selected, changed with the buttons on the left.
 var selected_type = "basic1d"; // basic1d
+var amplitude_value = AMPLITUDE_RANGE[1]/2.0;
+var width_value = WIDTH_RANGE[1]/2.0;
+var current_object: Cell = create_basic1d(amplitude_value, width_value);
+console.log(amplitude_value, width_value);
 
 // Positions are in mm
 const scene = new Three.Scene();
@@ -110,7 +115,16 @@ function place_current_selected_cell(position: Three.Vector3) {
   if (current_object == null) return;
   current_object.mesh_flat.position.copy(position);
   scene.add(current_object.mesh_flat);
+  scene.add(current_object.mesh);
   cells.push(current_object);
+}
+
+function update_current_cell_amplitude() {
+  if (current_object != null) current_object.regenerate(amplitude_value, width_value);
+}
+
+function update_current_cell_width() {
+  if (current_object != null) current_object.regenerate(amplitude_value, width_value);
 }
 
 var last_pos = {'x': 0, 'y': 0}
@@ -149,7 +163,7 @@ canvas?.addEventListener("click", function(event) {
 
 // editing mode drag camera
 document.addEventListener("mousemove", function(event) {
-  if (mouse_pressed && mode == "editing") {
+  if (mouse_pressed && mode == "editing" && event.clientX <= window.innerWidth * .6) {
     const dir = {'x': event.clientX - last_pos.x, 'y': event.clientY - last_pos.y}
     const zoom = orbitControl.target.distanceTo(camera.position) / EDITING_MODE_DEFAULT_DIST * DRAG_SPEED;
     moveX(-dir.x * 0.1 * zoom)
@@ -165,7 +179,14 @@ document.getElementById("basic1d")?.addEventListener("click", function () {
 
 const amplitude_slider = document.getElementById("amplitude")!;
 amplitude_slider.oninput = function () {
-  console.log(amplitude_slider.value);
+  amplitude_value = AMPLITUDE_RANGE[0] + amplitude_slider.value / 100.0 * (AMPLITUDE_RANGE[1] - AMPLITUDE_RANGE[0]);
+  update_current_cell_amplitude();
+}
+
+const width_slider = document.getElementById("width")!;
+width_slider.oninput = function () {
+  width_value = WIDTH_RANGE[0] + width_slider.value / 100.0 * (WIDTH_RANGE[1] - WIDTH_RANGE[0]);
+  update_current_cell_width();
 }
 
 animate();

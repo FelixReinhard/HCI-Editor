@@ -1,10 +1,11 @@
 import * as Three from 'three';
 
   
-export function create_basic1d(amplitude: number): Cell {
-  const vertices = generate_basic1d(amplitude, amplitude);
+export function create_basic1d(amplitude: number, width: number): Cell {
+  const vertices = generate_basic1d(amplitude, width);
+  const vertices_flat = generate_basic1d_flat(amplitude, width);
   
-  return new Cell(vertices, vertices, new Three.Vector3(0, 0, 0));
+  return new Cell(vertices_flat, vertices, new Three.Vector3(0, 0, 0));
 }
 
 // returns [
@@ -25,16 +26,52 @@ function compute_values_from_amplitude_basic1d_flat(amplitude: number, width: nu
   const c = amplitude;
   const d = width;
 
-  const b = (c1[4]*c - c[1]*d) / (c[0]*c[4] - c[1]*c[3]);
-  const a = (c - c[0]*b - c[2]) / c[1];
+  const b = (c1[4]*c - c1[1]*d) / (c1[0]*c1[4] - c1[1]*c1[3]);
+  const a = (c - c1[0]*b - c1[2]) / c1[1];
   return [
     2,
     4,
-    10,
-    16,
-    10,
-    28,
+    a,
+    a + 6,
+    a,
+    2*a + 8,
     2,
+    a,
+    b
+  ]
+}
+
+// returns [
+//          width_left_most_rect, 
+//
+//          left_middle_bottom_point_front, 
+//          left_middle_top_point_front
+//          right_middle_bottom_point_front, 
+//
+//          offset_right,
+//          width_right,
+//          b
+//
+//    ]
+//          
+function compute_values_from_amplitude_basic1d(amplitude: number, width: number): number[] {
+  return [
+    2,
+
+    4,
+    0.5*width + 4,
+    width + 4,
+
+    width + 6,
+    2,
+
+    (c1[4]*amplitude - c1[1]*width) / (c1[0]*c1[4] - c1[1]*c1[3])
+  ]
+}
+
+function quad(x1: number[], x2: number[], x3: number[]): number[] {
+  return [
+
   ]
 }
 
@@ -50,17 +87,30 @@ function rect(width: number, height: number, offset: number[] = [0, 0]): number[
   ]
 }
 
-function generate_basic1d(amplitude: number, width: number): number[] {
+function generate_basic1d_flat(amplitude: number, width: number): number[] {
   
   const vals = compute_values_from_amplitude_basic1d_flat(amplitude ,width);
+  console.log("Vals", vals);
 
   const vertices = [
-    ...rect(vals[0], width),
-    ...rect(vals[2], width, [vals[1], 0]),
-    ...rect(vals[4], width, [vals[3], 0]),
-    ...rect(vals[6], width, [vals[5], 0]),
+    ...rect(vals[0], vals[8]),
+    ...rect(vals[2], vals[8], [vals[1], 0]),
+    ...rect(vals[4], vals[8], [vals[3], 0]),
+    ...rect(vals[6], vals[8], [vals[5], 0]),
   ]
 
+  return vertices;
+}
+
+function generate_basic1d(amplitude: number, width: number): number[] {
+  const vals = compute_values_from_amplitude_basic1d(amplitude, width);
+  
+  const vertices = [
+    ...rect(vals[0], vals[7]),
+    ...quad([ vals[1], 0], [ vals[2], 0], [ vals[2], vals[7] ]),
+    ...quad( [ vals[2], 0], [ vals[2], vals[7] ], [vals[3], 0] ),
+    ...rect( vals[5], vals[7], [vals[4], 0]),
+  ]
   return vertices;
 }
 
@@ -126,5 +176,34 @@ export class Cell {
       max = Math.max(max, this.vertices_flat[i]);
     }
     return max;
+  }
+
+  regenerate(amplitude: number, width: number) {
+
+    const vertices = generate_basic1d_flat(amplitude, width);
+    const vertices_flat = vertices; // temp TODO
+    
+    // flat
+    this.mesh_flat.geometry.dispose();
+    const verticesFloat32Array = new Float32Array(vertices_flat);
+    // Create the BufferGeometry
+    const geometry = new Three.BufferGeometry();
+
+    // Set the custom vertex attribute 'position'
+    const positionAttribute = new Three.BufferAttribute(verticesFloat32Array, 3);
+    geometry.setAttribute('position', positionAttribute);
+    this.mesh_flat.geometry = geometry;
+  
+    // normal
+    this.mesh.geometry.dispose();
+
+    const verticesFloat32Array2 = new Float32Array(vertices);
+    // Create the BufferGeometry
+    const geometry2 = new Three.BufferGeometry();
+
+    // Set the custom vertex attribute 'position'
+    const positionAttribute2 = new Three.BufferAttribute(verticesFloat32Array2, 3);
+    geometry2.setAttribute('position', positionAttribute2);
+    this.mesh.geometry = geometry2;
   }
 }
