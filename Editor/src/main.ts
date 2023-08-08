@@ -126,7 +126,8 @@ function place_current_selected_cell(position: Three.Vector3) {
   scene.add(current_object.selected_mesh);
 
   current_object.mesh.visible = mode == "inspect";
-  cells.push(current_object);
+  current_object.position.copy(position);
+  if (!cells.includes(current_object)) cells.push(current_object);
 }
 
 // warning always when generating flat
@@ -146,14 +147,29 @@ function update_current_cell_width() {
 
 var last_pos = {'x': 0, 'y': 0}
 var mouse_pressed = 0;
+var clicked_on_cell = false;
+
 document.addEventListener("mouseup", function() {
   --mouse_pressed
   last_pos = {'x': 0, 'y': 0}
+  clicked_on_cell = false;
 })
 
 document.addEventListener("mousedown", function(event) {
   ++mouse_pressed
   last_pos = {'x': event.clientX, 'y': event.clientY}
+  const intersects = get_clicked_on(event.clientX, event.clientY);
+  if (intersects.length > 0) {
+
+    const cell = get_cell_by_mesh_uuid(intersects[0].object.userData);
+    if (cell != null && cell == current_object) {
+      clicked_on_cell = true;
+      const mouseInWorld = get_mouse_in_world(event.clientX, event.clientY);
+      move_offset = current_object.position.clone().sub(mouseInWorld);
+      return;
+    } 
+  } 
+  clicked_on_cell = false;
 })
 
 document.getElementById("add")?.addEventListener("click", function (event) {
@@ -164,22 +180,46 @@ const raycaster = new Three.Raycaster();
 const canvas = document.querySelector("canvas");
 
 canvas?.addEventListener("click", function(event) {
-  const mouse = new Three.Vector2();
-  mouse.x = ( event.clientX / canvas?.offsetWidth) * 2 - 1;
-	mouse.y = - ( event.clientY / canvas?.offsetHeight) * 2 + 1;
-
-  raycaster.setFromCamera( mouse, camera );
+	//raycaster.ray.intersectPlane(plane, intersects);
+  const intersects = get_clicked_on(event.clientX, event.clientY);
   
-  // check if selected
-  const intersects = raycaster.intersectObjects(scene.children);
   if (intersects.length > 0) {
     // The ray intersects with one or more objects
     const cell = get_cell_by_mesh_uuid(intersects[0].object.userData);
+    clicked_on_cell = cell != null;
     if (cell != null) {
       set_current_object(cell);
     }
+  } else {
+    clicked_on_cell = false;
   }
 })
+
+function get_clicked_on(clientX: number, clientY: number) {
+
+  const mouse = new Three.Vector2();
+  mouse.x = ( clientX / canvas?.offsetWidth) * 2 - 1;
+	mouse.y = - ( clientY / canvas?.offsetHeight) * 2 + 1;
+
+  raycaster.setFromCamera( mouse, camera );
+
+  //var intersects = new Three.Vector3();
+	//raycaster.ray.intersectPlane(plane, intersects);
+  return raycaster.intersectObjects(scene.children);
+}
+
+function get_mouse_in_world(clientX, clientY): Three.Vector3 {
+  const mouse = new Three.Vector2();
+  mouse.x = ( clientX / canvas?.offsetWidth) * 2 - 1;
+  mouse.y = - ( clientY / canvas?.offsetHeight) * 2 + 1;
+
+  raycaster.setFromCamera( mouse, camera );
+  const plane = new Three.Plane( new Three.Vector3( 0, 1, 0 ), 0 );
+
+  var intersects = new Three.Vector3();
+  raycaster.ray.intersectPlane(plane, intersects);
+  return intersects;
+}
 
 function set_current_object(newObj: Cell) {
   if (current_object != null) {
@@ -205,15 +245,23 @@ function get_cell_by_mesh_uuid(id): Cell | null {
   return null;
 }
 
+var move_offset: Three.Vector3 = new Three.Vector3(0, 0, 0);
+
+function move_cell(mousePos) {
+  place_current_selected_cell(mousePos.add(move_offset));
+}
+
 // editing mode drag camera
 document.addEventListener("mousemove", function(event) {
-  if (mouse_pressed && mode == "editing" && event.clientX <= window.innerWidth * .6) {
+  if (mouse_pressed && mode == "editing" && event.clientX <= window.innerWidth * .6 && clicked_on_cell) { 
+    move_cell(get_mouse_in_world(event.clientX, event.clientY));
+  } else if (mouse_pressed && mode == "editing" && event.clientX <= window.innerWidth * .6) {
     const dir = {'x': event.clientX - last_pos.x, 'y': event.clientY - last_pos.y}
     const zoom = orbitControl.target.distanceTo(camera.position) / EDITING_MODE_DEFAULT_DIST * DRAG_SPEED;
     moveX(-dir.x * 0.1 * zoom)
     moveY(-dir.y * 0.1 * zoom)
     last_pos = {'x': event.clientX, 'y': event.clientY}
-  }
+  } 
 })
 
 // Setup buttons 
