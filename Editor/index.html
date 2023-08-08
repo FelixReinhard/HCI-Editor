@@ -23,11 +23,11 @@
               <!-- Add content for the first column here -->
               <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
                 <button type="button" id="basic1d" class="btn btn-dark" data-mdb-toggle="button">
-                  <svg width="60" height="20" xmlns="http://www.w3.org/2000/svg">
-                    <rect rx="2" x="0" y="0" width="4" height="20" fill="white" />
-                    <rect rx="2" x="8" y="0" width="20" height="20" fill="white" />
-                    <rect rx="2" x="32" y="0" width="20" height="20" fill="white" />
-                    <rect rx="2" x="56" y="0" width="4" height="20" fill="white" />
+                  <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+                    <rect rx="2" x="0" y="20" width="4" height="20" fill="white" />
+                    <rect rx="2" x="8" y="20" width="20" height="20" fill="white" />
+                    <rect rx="2" x="32" y="20" width="20" height="20" fill="white" />
+                    <rect rx="2" x="56" y="20" width="4" height="20" fill="white" />
                   </svg>
                 </button>
                 <!-- second button -->
@@ -72,6 +72,9 @@
             <div class="mgn-20 d-row gap-2 container d-flex justify-content-center align-items-center">
               <button id="add" type="button" class="btn btn-dark btn-rounded"> <i class="v-35 fas fa-plus"></i></button>
             </div>
+            <p class="text-center mgn-20" id="warningText" style="display: none; color: red; font-weight: bold;">
+              Combination of Width and Height lead to negative height. Try changing the sliders.
+            </p>
           </div>
         </div>
       </div>

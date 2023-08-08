@@ -9,12 +9,13 @@ import * as Three from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
 import {generate_object, Cell, create_basic1d} from './generate.ts';
+import {make_3d_mesh_visible} from "./utils.ts";
 
 // controls the speed you can drag the camera with in editing mode.
 const DRAG_SPEED = .25;
 const EDITING_MODE_DEFAULT_DIST = 15.0;
 const AMPLITUDE_RANGE = [4, 20];
-const WIDTH_RANGE = [4, 20];
+const WIDTH_RANGE = [8, 40];
 
 // State 
 var mode: String = "inspect"
@@ -24,7 +25,6 @@ var selected_type = "basic1d"; // basic1d
 var amplitude_value = AMPLITUDE_RANGE[1]/2.0;
 var width_value = WIDTH_RANGE[1]/2.0;
 var current_object: Cell = create_basic1d(amplitude_value, width_value);
-console.log(amplitude_value, width_value);
 
 // Positions are in mm
 const scene = new Three.Scene();
@@ -63,11 +63,13 @@ function switch_mode(new_mode: String) {
  
       last_camera_rotation = {'x': camera.rotation.x, 'y': camera.rotation.y, 'z': camera.rotation.z}
       camera.rotation.set(0, -Math.PI / 2, 0)
+      make_3d_mesh_visible(false, cells);
       break;
     case "inspect":
       camera.rotation.set(last_camera_rotation.x, last_camera_rotation.y, last_camera_rotation.z)
       orbitControl.enablePan = true 
       orbitControl.enableRotate = true 
+      make_3d_mesh_visible(true, cells);
       break;
     default:
       break;
@@ -118,8 +120,16 @@ function place_current_selected_cell(position: Three.Vector3) {
   current_object.mesh.position.y += 0.1;
   scene.add(current_object.mesh_flat);
   scene.add(current_object.mesh);
+  current_object.mesh.visible = mode == "inspect";
   cells.push(current_object);
 }
+
+// warning always when generating flat
+export function warning(visible: boolean, message: string = "") {
+  const elem = document.getElementById("warningText")!;
+  elem.style.display = visible ? "block" : "none";
+  elem.textContent = message;
+} 
 
 function update_current_cell_amplitude() {
   if (current_object != null) current_object.regenerate(amplitude_value, width_value);
@@ -159,9 +169,32 @@ canvas?.addEventListener("click", function(event) {
   const intersects = raycaster.intersectObjects(scene.children);
   if (intersects.length > 0) {
     // The ray intersects with one or more objects
-    console.log('Mouse clicked on object:', intersects[0].object);
+    const cell = get_cell_by_mesh_uuid(intersects[0].object.userData);
+    if (cell != null) {
+      set_current_object(cell);
+    }
   }
 })
+
+function set_current_object(newObj: Cell) {
+  current_object = newObj;
+  amplitude_slider.value = (newObj.amplitude - AMPLITUDE_RANGE[0]) / (AMPLITUDE_RANGE[1] - AMPLITUDE_RANGE[0]) * 100.0;
+  width_slider.value = (newObj.width - WIDTH_RANGE[0]) / (WIDTH_RANGE[1] - WIDTH_RANGE[0]) * 100.0;
+  
+  amplitude_value = newObj.amplitude;
+  width_value = newObj.width;
+  amplitude_slider.dispatchEvent(new Event("input"));
+  width_slider.dispatchEvent(new Event("input"));
+}
+
+function get_cell_by_mesh_uuid(id): Cell | null {
+  for (const item of cells) {
+    if (item.mesh.userData == id || item.mesh_flat.userData == id) {
+      return item;
+    }
+  }
+  return null;
+}
 
 // editing mode drag camera
 document.addEventListener("mousemove", function(event) {
@@ -176,7 +209,7 @@ document.addEventListener("mousemove", function(event) {
 
 // Setup buttons 
 document.getElementById("basic1d")?.addEventListener("click", function () {
-  current_object = create_basic1d(10);
+  current_object = create_basic1d(amplitude_value, width_value);
 })
 
 const amplitude_slider = document.getElementById("amplitude")!;

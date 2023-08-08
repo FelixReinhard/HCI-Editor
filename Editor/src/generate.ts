@@ -1,11 +1,15 @@
 import * as Three from 'three';
-
+import {warning} from './main.ts';
   
+const WARNING_STRING = "Combination of amplitude and width lead to negative Dimensions. Try changing the sliders.";
+
+var id = 0;
+
 export function create_basic1d(amplitude: number, width: number): Cell {
   const vertices = generate_basic1d(amplitude, width);
   const vertices_flat = generate_basic1d_flat(amplitude, width);
   
-  return new Cell(vertices_flat, vertices, new Three.Vector3(0, 0, 0));
+  return new Cell(vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width);
 }
 
 const DEFAULT_SIZE = 2; // 2mm
@@ -20,6 +24,12 @@ function generate_basic1d_flat(amplitude: number, width: number): number[] {
 
   const b = (c1[4]*c - c1[1]*d) / (c1[0]*c1[4] - c1[1]*c1[3]);
   const a = (c - c1[0]*b - c1[2]) / c1[1];
+  
+  if (a < 0 || b < 0) {
+    warning(true, WARNING_STRING);
+  } else {
+    warning(false);
+  }
 
   const vertices = [
     ...rect(DEFAULT_SIZE, b),
@@ -94,6 +104,7 @@ function generate_object(vertices: number[], color: Three.Color): Three.Mesh {
 
   const material = new Three.MeshBasicMaterial( { side: Three.DoubleSide ,color: color} );
   const mesh = new Three.Mesh( geometry, material );
+  mesh.userData = ++id;
   mesh.rotateX(-Math.PI )
   return mesh;
 }
@@ -115,11 +126,15 @@ export class Cell {
   elastic: boolean;
   elastic_d: number;
   elastic_x: number;
+  amplitude: number;
+  width: number;
 
-  constructor(vertices_flat: number[], vertices: number[], position: Three.Vector3) {
+  constructor(vertices_flat: number[], vertices: number[], position: Three.Vector3, amplitude: number, width: number) {
     this.vertices = vertices;
     this.vertices_flat = vertices_flat;
     this.position = position;
+    this.width = width;
+    this.amplitude = amplitude;
 
     this.elastic = false;
     this.scale = DEFAULT_SCALE;
@@ -147,7 +162,8 @@ export class Cell {
   }
 
   regenerate(amplitude: number, width: number) {
-
+    this.amplitude = amplitude;
+    this.width = width;
     const vertices_flat = generate_basic1d_flat(amplitude, width);
     const vertices = generate_basic1d(amplitude, width); 
     
@@ -173,5 +189,7 @@ export class Cell {
     const positionAttribute2 = new Three.BufferAttribute(verticesFloat32Array2, 3);
     geometry2.setAttribute('position', positionAttribute2);
     this.mesh.geometry = geometry2;
+    this.amplitude = amplitude;
+    this.width = width;
   }
 }
