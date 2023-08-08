@@ -1,0 +1,6 @@
+Todo: 
+  # elastic slider
+  # selected effect
+  # selected area x, and "elastic".
+  - move cell.
+  - basic 2d

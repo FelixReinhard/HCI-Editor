@@ -2,13 +2,12 @@
  * Positions in mm 
  */
 
-
 import './style.css'
 
 import * as Three from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
-import {generate_object, Cell, create_basic1d} from './generate.ts';
+import {Cell, create_basic1d} from './generate.ts';
 import {make_3d_mesh_visible} from "./utils.ts";
 
 // controls the speed you can drag the camera with in editing mode.
@@ -117,9 +116,15 @@ function place_current_selected_cell(position: Three.Vector3) {
   if (current_object == null) return;
   current_object.mesh_flat.position.copy(position);
   current_object.mesh.position.copy(position);
+  current_object.selected_mesh.position.copy(position);
+  current_object.selected_mesh.position.x -= 1;
+  current_object.selected_mesh.position.z += 1;
   current_object.mesh.position.y += 0.1;
+
   scene.add(current_object.mesh_flat);
   scene.add(current_object.mesh);
+  scene.add(current_object.selected_mesh);
+
   current_object.mesh.visible = mode == "inspect";
   cells.push(current_object);
 }
@@ -177,7 +182,11 @@ canvas?.addEventListener("click", function(event) {
 })
 
 function set_current_object(newObj: Cell) {
+  if (current_object != null) {
+    current_object.selected_mesh.visible = false;
+  }
   current_object = newObj;
+  current_object.selected_mesh.visible = true;
   amplitude_slider.value = (newObj.amplitude - AMPLITUDE_RANGE[0]) / (AMPLITUDE_RANGE[1] - AMPLITUDE_RANGE[0]) * 100.0;
   width_slider.value = (newObj.width - WIDTH_RANGE[0]) / (WIDTH_RANGE[1] - WIDTH_RANGE[0]) * 100.0;
   
@@ -209,7 +218,7 @@ document.addEventListener("mousemove", function(event) {
 
 // Setup buttons 
 document.getElementById("basic1d")?.addEventListener("click", function () {
-  current_object = create_basic1d(amplitude_value, width_value);
+  set_current_object(create_basic1d(amplitude_value, width_value));
 })
 
 const amplitude_slider = document.getElementById("amplitude")!;
@@ -223,5 +232,18 @@ width_slider.oninput = function () {
   width_value = WIDTH_RANGE[0] + width_slider.value / 100.0 * (WIDTH_RANGE[1] - WIDTH_RANGE[0]);
   update_current_cell_width();
 }
+
+const deform_slider = document.getElementById("deform_slider")!;
+deform_slider.oninput = function () {
+}
+
+const toggleSwitch = document.getElementById('toggleSwitch') as HTMLInputElement;
+toggleSwitch.addEventListener('change', function () {
+  if (toggleSwitch.checked) {
+    deform_slider.style.display = "block";
+  } else {
+    deform_slider.style.display = "none";
+  }
+});
 
 animate();

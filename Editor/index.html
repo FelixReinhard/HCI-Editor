@@ -67,7 +67,13 @@
 
             <div class="form-check form-switch mgn-20">
               <label class="form-check-label rp-35" for="flexSwitchCheckDefault">Elastic</label>
-              <input class="form-check-input rp-35" type="checkbox" role="switch" id="flexSwitchCheckDefault" />
+              <input class="form-check-input rp-35" type="checkbox" role="switch" id="toggleSwitch" checked/>
+            </div>
+            <div class="mgn-20" style="display: none;" id="deform_slider">
+              <label class="text-center form-label" for="deform">Easy to deform</label>
+              <div class="range w75 p-25">
+                <input type="range" class="form-range" id="deform" />
+              </div>
             </div>
             <div class="mgn-20 d-row gap-2 container d-flex justify-content-center align-items-center">
               <button id="add" type="button" class="btn btn-dark btn-rounded"> <i class="v-35 fas fa-plus"></i></button>

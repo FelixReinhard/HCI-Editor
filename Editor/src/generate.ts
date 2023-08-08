@@ -2,7 +2,7 @@ import * as Three from 'three';
 import {warning} from './main.ts';
   
 const WARNING_STRING = "Combination of amplitude and width lead to negative Dimensions. Try changing the sliders.";
-
+const SELECTED_COLOR = 0xFF0000;
 var id = 0;
 
 export function create_basic1d(amplitude: number, width: number): Cell {
@@ -40,7 +40,6 @@ function generate_basic1d_flat(amplitude: number, width: number): number[] {
 
   return vertices;
 }
-
 
 function generate_basic1d(amplitude: number, width: number): number[] {
   const c = amplitude;
@@ -90,7 +89,36 @@ function quad(x1: number[], x2: number[], x3: number[], x4: number[]): number[] 
   ]
 }
 
+function generate_selected_rect(width: number, height: number): number[] {
+  return [ 
+    ...rect(width - 1.0, .5, [.5, 0]),
+    ...rect(width - 1.0, .5, [.5, height - .5]),
+    ...rect(.5, height),
+    ...rect(.5, height, [width - .5, 0])
+  ];
+}
 
+function generate_selected_rect_mesh(width: number, height: number): Three.Mesh {
+  const vertices = generate_selected_rect(width, height);
+  const verticesFloat32Array = new Float32Array(vertices);
+
+  // Create the BufferGeometry
+  const geometry = new Three.BufferGeometry();
+
+  // Set the custom vertex attribute 'position'
+  const positionAttribute = new Three.BufferAttribute(verticesFloat32Array, 3);
+  geometry.setAttribute('position', positionAttribute);
+
+  const material = new Three.LineBasicMaterial( { 
+    side: Three.DoubleSide ,color: SELECTED_COLOR,
+    opacity: 0.7,    
+    transparent: true
+  });
+  const mesh = new Three.Mesh( geometry, material );
+  mesh.userData = ++id;
+  mesh.rotateX(-Math.PI )
+  return mesh;
+}
 
 function generate_object(vertices: number[], color: Three.Color): Three.Mesh {
   const verticesFloat32Array = new Float32Array(vertices);
@@ -105,7 +133,7 @@ function generate_object(vertices: number[], color: Three.Color): Three.Mesh {
   const material = new Three.MeshBasicMaterial( { side: Three.DoubleSide ,color: color} );
   const mesh = new Three.Mesh( geometry, material );
   mesh.userData = ++id;
-  mesh.rotateX(-Math.PI )
+  mesh.rotateX(-Math.PI)
   return mesh;
 }
 
@@ -116,7 +144,6 @@ const COLOR_MESH = new Three.Color(0.23, 0.23, 0.23);
 const COLOR_FLAT_MESH = new Three.Color(0.75, 0.75, 0.75);
 
 export class Cell {
-  
   vertices_flat: number[];
   vertices: number[];
   mesh: Three.Mesh;
@@ -128,6 +155,7 @@ export class Cell {
   elastic_x: number;
   amplitude: number;
   width: number;
+  selected_mesh: Three.Mesh;
 
   constructor(vertices_flat: number[], vertices: number[], position: Three.Vector3, amplitude: number, width: number) {
     this.vertices = vertices;
@@ -143,18 +171,26 @@ export class Cell {
 
     this.mesh = generate_object(vertices, COLOR_MESH);
     this.mesh_flat = generate_object(vertices_flat, COLOR_FLAT_MESH);
+    this.selected_mesh = generate_selected_rect_mesh(this.get_width() + 2 , this.get_height() + 2);
   }
 
-  width() {
-    var max = 0;
+  get_width() {
+    var max = 0.0;
     for (let i = 0; i < this.vertices_flat.length; i += 3) {
       max = Math.max(max, this.vertices_flat[i]);
     }
+
+    const c = amplitude;
+    const d = width;
+
+    const b = (c1[4]*c - c1[1]*d) / (c1[0]*c1[4] - c1[1]*c1[3]);
+    const a = (c - c1[0]*b - c1[2]) / c1[1];
+
     return max;
   }
 
-  height() {
-    var max = 0;
+  get_height() {
+    var max = 0.0;
     for (let i = 2; i < this.vertices_flat.length; i += 3) {
       max = Math.max(max, this.vertices_flat[i]);
     }
@@ -166,6 +202,9 @@ export class Cell {
     this.width = width;
     const vertices_flat = generate_basic1d_flat(amplitude, width);
     const vertices = generate_basic1d(amplitude, width); 
+
+    this.vertices_flat = vertices_flat;
+    this.vertices = vertices;
     
     // flat
     this.mesh_flat.geometry.dispose();
@@ -191,5 +230,16 @@ export class Cell {
     this.mesh.geometry = geometry2;
     this.amplitude = amplitude;
     this.width = width;
+
+    this.selected_mesh.geometry.dispose();
+
+    const verticesFloat32Array3 = new Float32Array(generate_selected_rect(this.get_width() + 2, this.get_height() + 2));
+    // Create the BufferGeometry
+    const geometry3 = new Three.BufferGeometry();
+
+    // Set the custom vertex attribute 'position'
+    const positionAttribute3 = new Three.BufferAttribute(verticesFloat32Array3, 3);
+    geometry3.setAttribute('position', positionAttribute3);
+    this.selected_mesh.geometry = geometry3;
   }
 }
