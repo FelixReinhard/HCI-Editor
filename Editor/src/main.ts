@@ -7,7 +7,7 @@ import './style.css'
 import * as Three from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
-import {Cell, create_basic1d} from './generate.ts';
+import {Cell, create_basic1d, create_basic2d} from './generate.ts';
 import {make_3d_mesh_visible} from "./utils.ts";
 
 // controls the speed you can drag the camera with in editing mode.
@@ -37,12 +37,24 @@ renderer.setSize(window.innerWidth * 0.6, window.innerHeight);
 camera.position.setZ(EDITING_MODE_DEFAULT_DIST);
 camera.rotation.set(0, -Math.PI / 2, 0)
 
+const lineGeometry = new Three.BufferGeometry().setFromPoints([
+    new Three.Vector3(0, 0, 0), // Start point
+    new Three.Vector3(0, 100, 0), // End point (change Y value to adjust the height)
+]);
+
+const lineMaterial = new Three.LineBasicMaterial({ color: 0x000000 }); 
+
+// Create the line object and add it to the scene
+const line = new Three.Line(lineGeometry, lineMaterial);
+scene.add(line);
+
 const orbitControl = new OrbitControls(camera, renderer.domElement);
 //
 // scene.add(t);
 // Grid 
 const gridHelper = new Three.GridHelper(500, 50);
 scene.add( gridHelper );
+
 
 function animate() {
   requestAnimationFrame(animate);
@@ -265,9 +277,24 @@ document.addEventListener("mousemove", function(event) {
 })
 
 // Setup buttons 
-document.getElementById("basic1d")?.addEventListener("click", function () {
+const btn_basic1d = document.getElementById("basic1d") as HTMLButtonElement;
+btn_basic1d.addEventListener("click", function () {
   set_current_object(create_basic1d(amplitude_value, width_value));
+  enable_all_btns_not_me("basic1d");
 })
+
+const btn_basic2d = document.getElementById("basic2d") as HTMLButtonElement;
+btn_basic2d.addEventListener("click", function() {
+  set_current_object(create_basic2d(amplitude_value, width_value));
+  enable_all_btns_not_me("basic2d");
+})
+
+function enable_all_btns_not_me(not_disable_id: string) {
+  btn_basic1d.disabled = false;
+  btn_basic2d.disabled = false;
+  
+  document.getElementById(not_disable_id).disabled = true;
+}
 
 const amplitude_slider = document.getElementById("amplitude")!;
 amplitude_slider.oninput = function () {
@@ -293,5 +320,10 @@ toggleSwitch.addEventListener('change', function () {
     deform_slider.style.display = "none";
   }
 });
+
+
+
+// basic1d is selected by default.
+enable_all_btns_not_me("basic1d");
 
 animate();

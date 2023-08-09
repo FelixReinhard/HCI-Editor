@@ -3,4 +3,6 @@ Todo:
   # selected effect
   # selected area x, and "elastic".
   # move cell.
+  - when plus btn create new current object
+  - export.
   - basic 2d

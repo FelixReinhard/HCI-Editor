@@ -9,7 +9,14 @@ export function create_basic1d(amplitude: number, width: number): Cell {
   const vertices = generate_basic1d(amplitude, width);
   const vertices_flat = generate_basic1d_flat(amplitude, width);
   
-  return new Cell(vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width);
+  return new Cell("basic1d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width);
+}
+
+export function create_basic2d(amplitude: number, width: number): Cell {
+  const vertices = generate_basic2d(amplitude, width);
+  const vertices_flat = generate_basic2d_flat(amplitude, width);
+  
+  return new Cell("basic2d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width);
 }
 
 const DEFAULT_SIZE = 2; // 2mm
@@ -63,6 +70,97 @@ function generate_basic1d(amplitude: number, width: number): number[] {
     ...rect(DEFAULT_SIZE, b, [center + DEFAULT_SIZE + d/2.0, 0])
   ]
   return vertices;
+}
+
+const c2 = [
+  0.8932499999999999,
+  0.149,
+  0.9269999999999996, // perhaps wrong because -- in formuala whatsapp
+  0.8803124999999999,
+  0.9789375,
+  6.489625
+]
+
+function generate_basic2d(amplitude: number, width: number): number[] {
+  const c = amplitude;
+  const d = width;
+
+  const b = (c2[4]*c - c2[1]*d) / (c2[0]*c2[4] - c2[1]*c2[3]);
+  const a = (c - c2[0]*b - c2[2]) / c2[1];
+  
+  if (a < 0 || b < 0) {
+    warning(true, WARNING_STRING);
+  } else {
+    warning(false);
+  }
+  return [
+    ...rect(4, 4)
+  ]
+}
+function generate_basic2d_flat(amplitude: number, width: number): number[] {
+  const c = amplitude;
+  const d = width;
+
+  const b = (c2[4]*c - c2[1]*d) / (c2[0]*c2[4] - c2[1]*c2[3]);
+  const a = (c - c2[0]*b - c2[2]) / c2[1];
+  
+  if (a < 0 || b < 0) {
+    warning(true, WARNING_STRING);
+  } else {
+    warning(false);
+  }
+  // move vertices so that the selected mesh generation can start at 0,0 (2d plane)
+  return move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+    // left
+    ...rect(DEFAULT_SIZE, b),
+    ...rect(a, b, [DEFAULT_SIZE*2, 0]),
+    ...vertex([DEFAULT_SIZE*2 + a, 0, 0], [DEFAULT_SIZE*2 + a + b/2.0, 0, b/2.0], [DEFAULT_SIZE*2 +a, 0, b]),
+    //right
+    ...vertex([DEFAULT_SIZE*3 + a + b, 0, 0], [DEFAULT_SIZE*2 + a + b/2.0 + DEFAULT_SIZE, 0, b/2.0], [DEFAULT_SIZE*3 + a + b, 0, b]),
+    ...rect(a, b, [DEFAULT_SIZE*3 + a+ b, 0]),
+    ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a + b, 0]),
+    // top,
+    ...vertex([DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, 0, b + DEFAULT_SIZE/2.0],
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0 + b, 0, b + DEFAULT_SIZE/2.0], 
+      [DEFAULT_SIZE*2 + a + b/2.0 + DEFAULT_SIZE/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0] 
+    ),
+    ...rect(b, a, [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, b + DEFAULT_SIZE/2.0]),
+    ...rect(b, DEFAULT_SIZE, [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, b + DEFAULT_SIZE/2.0 + a + DEFAULT_SIZE]),
+    // down
+    ...vertex([DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, 0, -DEFAULT_SIZE/2.0],
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0 + b, 0, -DEFAULT_SIZE/2.0], 
+      [DEFAULT_SIZE*2 + a + b/2.0 + DEFAULT_SIZE/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0] 
+    ),
+    ...rect(b, a, [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, -a -DEFAULT_SIZE/2.0]),
+    ...rect(b, DEFAULT_SIZE, [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, -DEFAULT_SIZE/2.0 - a - DEFAULT_SIZE*2]),
+  ])
+}
+
+
+function move_verticies(x:number, y:number, z:number, vertices: number[]): number[] {
+  // x
+  for (var i = 0; i < vertices.length; i+=3) {
+    vertices[i] += x;
+  }
+
+  // y
+  for (var i = 1; i < vertices.length; i+=3) {
+    vertices[i] += y;
+  }
+
+  // z
+  for (var i = 2; i < vertices.length; i+=3) {
+    vertices[i] += z;
+  }
+  return vertices;
+}
+
+function vertex(x1: number[], x2: number[], x3: number[]): number[] {
+  return [
+    x1[0], x1[1], x1[2],
+    x2[0], x2[1], x2[2],
+    x3[0], x3[1], x3[2]
+  ]
 }
 
 function rect(width: number, height: number, offset: number[] = [0, 0]): number[] {
@@ -144,6 +242,7 @@ const COLOR_MESH = new Three.Color(0.23, 0.23, 0.23);
 const COLOR_FLAT_MESH = new Three.Color(0.75, 0.75, 0.75);
 
 export class Cell {
+  type: string;
   vertices_flat: number[];
   vertices: number[];
   mesh: Three.Mesh;
@@ -157,7 +256,8 @@ export class Cell {
   width: number;
   selected_mesh: Three.Mesh;
 
-  constructor(vertices_flat: number[], vertices: number[], position: Three.Vector3, amplitude: number, width: number) {
+  constructor(type: string, vertices_flat: number[], vertices: number[], position: Three.Vector3, amplitude: number, width: number) {
+    this.type = type;
     this.vertices = vertices;
     this.vertices_flat = vertices_flat;
     this.position = position;
@@ -179,13 +279,6 @@ export class Cell {
     for (let i = 0; i < this.vertices_flat.length; i += 3) {
       max = Math.max(max, this.vertices_flat[i]);
     }
-
-    const c = amplitude;
-    const d = width;
-
-    const b = (c1[4]*c - c1[1]*d) / (c1[0]*c1[4] - c1[1]*c1[3]);
-    const a = (c - c1[0]*b - c1[2]) / c1[1];
-
     return max;
   }
 
@@ -197,11 +290,27 @@ export class Cell {
     return max;
   }
 
+  
+
   regenerate(amplitude: number, width: number) {
     this.amplitude = amplitude;
     this.width = width;
-    const vertices_flat = generate_basic1d_flat(amplitude, width);
-    const vertices = generate_basic1d(amplitude, width); 
+    var vertices_flat = [];
+    var vertices = []; 
+    
+    switch (this.type) {
+      case "basic1d":
+        vertices_flat = generate_basic1d_flat(amplitude, width);
+        vertices = generate_basic1d(amplitude, width); 
+        break;
+      case "basic2d":
+        vertices_flat = generate_basic2d_flat(amplitude, width);
+        vertices = generate_basic2d(amplitude, width);
+        break;
+
+      default:
+        break;
+    }
 
     this.vertices_flat = vertices_flat;
     this.vertices = vertices;
