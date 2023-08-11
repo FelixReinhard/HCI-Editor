@@ -9,6 +9,7 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
 import {Cell, create_basic1d, create_basic2d, will_1d_break, will_2d_break} from './generate.ts';
 import {make_3d_mesh_visible} from "./utils.ts";
+import { export_cells } from './export.ts';
 
 // controls the speed you can drag the camera with in editing mode.
 const DRAG_SPEED = .25;
@@ -326,6 +327,11 @@ const btn_basic2d = document.getElementById("basic2d") as HTMLButtonElement;
 btn_basic2d.addEventListener("click", function() {
   selected_type = "basic2d";
   enable_all_btns_not_me("basic2d");
+})
+
+const btn_export = document.getElementById("export") as HTMLButtonElement;
+btn_export.addEventListener("click", function() {
+  export_cells(cells);
 })
 
 function enable_all_btns_not_me(not_disable_id: string) {

@@ -36,20 +36,28 @@ export function create_basic2d(amplitude: number, width: number): Cell {
   return new Cell("basic2d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width);
 }
 
+export function formula(amplitude: number, width: number, c: number[]): number[] {
+  const cc = amplitude;
+  const d = width;
 
-const DEFAULT_SIZE = 2; // 2mm
+  const b = (-cc*c[4] + c[2]*c[4] + d*c[1] - c[5]*c[1]) / (-c[0]*c[4] + c[3]*c[1]);
+  const a = (d - c[0] * b - c[5]) / c[4];
+  return [a, b];
+}
+
+
+export const DEFAULT_SIZE = 2; // 2mm
 // basic1d formuala params
-const c1 = [-0.050187499999999934, 0.6711875000000004, 1.1248749999999932,
+export const c1 = [-0.050187499999999934, 0.6711875000000004, 1.1248749999999932,
               0.11856250000000003, 1.2491875000000001, 1.2176250000000017 ]
 
 function generate_basic1d_flat(amplitude: number, width: number): number[] {
-  // taken from the formuala provided
-  const c = amplitude;
-  const d = width;
-
-  const b = (c1[4]*c - c1[1]*d) / (c1[0]*c1[4] - c1[1]*c1[3]);
-  const a = (c - c1[0]*b - c1[2]) / c1[1];
   
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+
   if (a < 0 || b < 0) {
     warning(true, WARNING_STRING);
   } else {
@@ -70,8 +78,10 @@ function generate_basic1d(amplitude: number, width: number): number[] {
   const c = amplitude;
   const d = width;
 
-  const b = (c1[4]*c - c1[1]*d) / (c1[0]*c1[4] - c1[1]*c1[3]);
-  const a = (c - c1[0]*b - c1[2]) / c1[1];
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
   
   const center = DEFAULT_SIZE*2.5 + a;
 
@@ -102,7 +112,7 @@ function generate_basic1d(amplitude: number, width: number): number[] {
   return vertices;
 }
 
-const c2 = [
+export const c2 = [
   0.8932499999999999,
   0.149,
   0.9269999999999996, // perhaps wrong because -- in formuala whatsapp
@@ -111,14 +121,16 @@ const c2 = [
   6.489625
 ]
 // Tells you the slope for the triangles in the middle in amplitude
-const BASIC_2D_TRIANGLE_AMPL = 1;
+const BASIC_2D_TRIANGLE_AMPL = 0.85;
 
 function generate_basic2d(amplitude: number, width: number): number[] {
   const c = amplitude;
   const d = width;
 
-  const b = (c2[4]*c - c2[1]*d) / (c2[0]*c2[4] - c2[1]*c2[3]);
-  const a = (c - c2[0]*b - c2[2]) / c2[1];
+  const f = formula(amplitude, width, c2);
+
+  const b = f[1];
+  const a = f[0];
   
   const center = DEFAULT_SIZE*2.5 + a + b/2;
 
@@ -212,11 +224,11 @@ function generate_basic2d(amplitude: number, width: number): number[] {
   ]);
 }
 function generate_basic2d_flat(amplitude: number, width: number): number[] {
-  const c = amplitude;
-  const d = width;
 
-  const b = (c2[4]*c - c2[1]*d) / (c2[0]*c2[4] - c2[1]*c2[3]);
-  const a = (c - c2[0]*b - c2[2]) / c2[1];
+  const f = formula(amplitude, width, c2);
+
+  const b = f[1];
+  const a = f[0];
   
   if (a < 0 || b < 0) {
     warning(true, WARNING_STRING);

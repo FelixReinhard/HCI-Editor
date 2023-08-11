@@ -6,7 +6,7 @@ export class SvgWriter {
   constructor(width: number, height: number) {
     this.width = width;
     this.height = height;
-    this.content = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">\n';
+    this.content = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">\n`;
   }
   
   save() {
@@ -16,7 +16,7 @@ export class SvgWriter {
     const a = document.createElement('a');
     a.style.display = 'none';
     a.href = url;
-    a.download = 'file_${new Date().toLocaleTimeString()}.svg';
+    a.download = `file_${new Date().toLocaleTimeString()}.svg`;
 
     document.body.appendChild(a);
     a.click();
@@ -26,7 +26,7 @@ export class SvgWriter {
   }
 
   rect(x:number, y:number, w:number, h:number, rounded:number=0, color:number=0): SvgWriter {
-    this.content += '<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rounded}" fill="${color}"/>'
+    this.content += `<rect x="${x}" y="${y-h}" width="${w}" height="${h}" rx="${rounded}" fill="${color}"/>\n`;
     return this;
   }
 
