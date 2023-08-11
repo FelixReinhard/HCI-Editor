@@ -3,6 +3,12 @@ Todo:
   # selected effect
   # selected area x, and "elastic".
   # move cell.
-  - when plus btn create new current object
+  # max out visualazation when breaks
+  # basic 2d
   - export.
-  - basic 2d
+  - collision box for each rectangle,
+  - dist between primitavies
+  - mergin
+  - edges of mountain black
+  - 2d basic dist between 
+  - when plus btn create new current object

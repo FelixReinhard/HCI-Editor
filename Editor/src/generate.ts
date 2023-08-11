@@ -12,12 +12,30 @@ export function create_basic1d(amplitude: number, width: number): Cell {
   return new Cell("basic1d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width);
 }
 
+export function will_1d_break(amplitude: number, width: number): boolean {
+  const c = amplitude;
+  const d = width;
+
+  const b = (c1[4]*c - c1[1]*d) / (c1[0]*c1[4] - c1[1]*c1[3]);
+  const a = (c - c1[0]*b - c1[2]) / c1[1];
+  return a <= 0.0 || b <= 0.0;
+}
+export function will_2d_break(amplitude: number, width: number): boolean {
+  const c = amplitude;
+  const d = width;
+
+  const b = (c2[4]*c - c2[1]*d) / (c2[0]*c2[4] - c2[1]*c2[3]);
+  const a = (c - c2[0]*b - c2[2]) / c2[1];
+  return a <= 0.0 || b <= 0.0;
+}
+  
 export function create_basic2d(amplitude: number, width: number): Cell {
   const vertices = generate_basic2d(amplitude, width);
   const vertices_flat = generate_basic2d_flat(amplitude, width);
   
   return new Cell("basic2d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width);
 }
+
 
 const DEFAULT_SIZE = 2; // 2mm
 // basic1d formuala params
@@ -58,7 +76,13 @@ function generate_basic1d(amplitude: number, width: number): number[] {
   const center = DEFAULT_SIZE*2.5 + a;
 
   const vertices = [
-    ...rect(DEFAULT_SIZE, b, [center - DEFAULT_SIZE*2 - d/2.0, 0]),
+    ...quad(
+      [center - DEFAULT_SIZE*2 - d/2.0, -DEFAULT_SIZE/2.0, 0], 
+      [center - DEFAULT_SIZE*2 - d/2.0, -DEFAULT_SIZE/2.0, b],
+      [center - DEFAULT_SIZE- d/2.0, 0, 0], 
+      [center - DEFAULT_SIZE- d/2.0, 0, b],
+    ),
+    // ...rect(DEFAULT_SIZE, b, [center - DEFAULT_SIZE*2 - d/2.0, 0]),
     ...quad(
       [center - d/2.0, 0, 0], [center, -c, 0],
       [center - d/2.0, 0, b], [center, -c, b],
@@ -67,7 +91,13 @@ function generate_basic1d(amplitude: number, width: number): number[] {
       [center, -c, 0], [center + d/2.0, 0, 0], 
       [center, -c, b], [center + d/2.0, 0, b], 
     ),
-    ...rect(DEFAULT_SIZE, b, [center + DEFAULT_SIZE + d/2.0, 0])
+    ...quad(
+      [center + DEFAULT_SIZE*2 + d/2.0, -DEFAULT_SIZE/2.0, 0], 
+      [center + DEFAULT_SIZE*2 + d/2.0, -DEFAULT_SIZE/2.0, b],
+      [center + DEFAULT_SIZE + d/2.0, 0, 0], 
+      [center + DEFAULT_SIZE + d/2.0, 0, b],
+    ),
+    //...rect(DEFAULT_SIZE, b, [center + DEFAULT_SIZE + d/2.0, 0])
   ]
   return vertices;
 }
@@ -80,6 +110,8 @@ const c2 = [
   0.9789375,
   6.489625
 ]
+// Tells you the slope for the triangles in the middle in amplitude
+const BASIC_2D_TRIANGLE_AMPL = 1;
 
 function generate_basic2d(amplitude: number, width: number): number[] {
   const c = amplitude;
@@ -88,14 +120,96 @@ function generate_basic2d(amplitude: number, width: number): number[] {
   const b = (c2[4]*c - c2[1]*d) / (c2[0]*c2[4] - c2[1]*c2[3]);
   const a = (c - c2[0]*b - c2[2]) / c2[1];
   
+  const center = DEFAULT_SIZE*2.5 + a + b/2;
+
   if (a < 0 || b < 0) {
     warning(true, WARNING_STRING);
   } else {
     warning(false);
   }
-  return [
-    ...rect(4, 4)
-  ]
+  
+  const elem_len = a + b/2.0;
+  const elem_len_3d_triangle = (b/2.0)/elem_len * d/2.0;
+  const elem_len_3d_rect = a/elem_len * d/2.0;
+
+  return move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+    // left
+    ...vertex(
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+      [center - DEFAULT_SIZE/2.0, -c, b/2.0], 
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , b], 
+    ),
+    ...quad(
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , b], 
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, 0], 
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, b], 
+    ),
+    ...quad(
+      [center - 3*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, 0], 
+      [center - 3*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, b], 
+      [center - 5*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, -DEFAULT_SIZE/2.0, 0], 
+      [center - 5*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, -DEFAULT_SIZE/2.0, b], 
+    ),
+
+    // right 
+    ...vertex(
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+      [center + DEFAULT_SIZE/2.0, -c, b/2.0], 
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , b], 
+    ),
+    ...quad(
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , b], 
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, 0], 
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, b], 
+    ),
+    ...quad(
+      [center + 3*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, 0], 
+      [center + 3*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, b], 
+      [center + 5*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, -DEFAULT_SIZE/2.0, 0], 
+      [center + 5*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, -DEFAULT_SIZE/2.0, b], 
+    ),
+    // top 
+    ...vertex(
+      [center - b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle],
+      [center, -c, b/2.0 + DEFAULT_SIZE/2.0],
+      [center + b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle],
+    ),
+    ...quad(
+      [center - b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle],
+      [center + b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle],
+
+      [center - b/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+      [center + b/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+    ),
+    ...quad(
+      [center - b/2.0, 0, b/2.0 + 3*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+      [center + b/2.0, 0, b/2.0 + 3*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+      [center - b/2.0, -DEFAULT_SIZE/2.0, b/2.0 + 5*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+      [center + b/2.0, -DEFAULT_SIZE/2.0, b/2.0 + 5*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+    ),
+    // bottom
+    ...vertex(
+      [center - b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle],
+      [center, -c, b/2.0 - DEFAULT_SIZE/2.0],
+      [center + b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle],
+    ),
+    ...quad(
+      [center - b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle],
+      [center + b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle],
+
+      [center - b/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+      [center + b/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+    ),
+    ...quad(
+      [center - b/2.0, 0, b/2.0 - 3*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+      [center + b/2.0, 0, b/2.0 - 3*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+      [center - b/2.0, -DEFAULT_SIZE/2.0, b/2.0 - 5*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+      [center + b/2.0, -DEFAULT_SIZE/2.0, b/2.0 - 5*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+    ),
+
+  ]);
 }
 function generate_basic2d_flat(amplitude: number, width: number): number[] {
   const c = amplitude;
@@ -228,7 +342,7 @@ function generate_object(vertices: number[], color: Three.Color): Three.Mesh {
   const positionAttribute = new Three.BufferAttribute(verticesFloat32Array, 3);
   geometry.setAttribute('position', positionAttribute);
 
-  const material = new Three.MeshBasicMaterial( { side: Three.DoubleSide ,color: color} );
+  const material = new Three.MeshBasicMaterial( { transparent: true, opacity: 0.9, side: Three.DoubleSide ,color: color} );
   const mesh = new Three.Mesh( geometry, material );
   mesh.userData = ++id;
   mesh.rotateX(-Math.PI)

@@ -7,7 +7,7 @@ import './style.css'
 import * as Three from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
-import {Cell, create_basic1d, create_basic2d} from './generate.ts';
+import {Cell, create_basic1d, create_basic2d, will_1d_break, will_2d_break} from './generate.ts';
 import {make_3d_mesh_visible} from "./utils.ts";
 
 // controls the speed you can drag the camera with in editing mode.
@@ -15,6 +15,7 @@ const DRAG_SPEED = .25;
 const EDITING_MODE_DEFAULT_DIST = 15.0;
 const AMPLITUDE_RANGE = [4, 20];
 const WIDTH_RANGE = [8, 40];
+const IS_2D_STRECHED = false;
 
 // State 
 var mode: String = "inspect"
@@ -117,12 +118,22 @@ document.addEventListener("keydown", function(event) {
     case "a":
       moveX(-1)
       break;
-    case " ": 
+    case "Delete":
+      remove_selected_cell();
       break;
     default:
       break;
   }
 });
+
+function remove_selected_cell() {
+  if (current_object != null) {
+    scene.remove(current_object.mesh);
+    scene.remove(current_object.mesh_flat);
+    scene.remove(current_object.selected_mesh);
+    cells = cells.filter(item => item !== current_object);
+  }
+}
 
 function place_current_selected_cell(position: Three.Vector3) {
   if (current_object == null) return;
@@ -149,12 +160,26 @@ export function warning(visible: boolean, message: string = "") {
   elem.textContent = message;
 } 
 
-function update_current_cell_amplitude() {
-  if (current_object != null) current_object.regenerate(amplitude_value, width_value);
-}
-
-function update_current_cell_width() {
-  if (current_object != null) current_object.regenerate(amplitude_value, width_value);
+function update_current_cell() {
+  if (current_object != null) {
+    const prev_amplitude = current_object.amplitude;
+    const prev_width = current_object.width;
+    var will_break = false;
+    switch (current_object.type) {
+      case "basic1d":
+        will_break = will_1d_break(amplitude_value, width_value);
+        break;
+      case "basic2d":
+        will_break = will_2d_break(amplitude_value, width_value);
+        break;
+    }
+    if (!will_break) current_object.regenerate(amplitude_value, width_value);
+    else {
+      amplitude_value = prev_amplitude;
+      width_value = prev_width;
+      set_sliders(current_object.amplitude, current_object.width, current_object.elastic_d);
+    }
+  }
 }
 
 var last_pos = {'x': 0, 'y': 0}
@@ -184,7 +209,15 @@ document.addEventListener("mousedown", function(event) {
   clicked_on_cell = false;
 })
 
-document.getElementById("add")?.addEventListener("click", function (event) {
+document.getElementById("add")?.addEventListener("click", function () {
+  switch (selected_type) {
+    case "basic1d":
+      set_current_object(create_basic1d(amplitude_value, width_value));
+    break;
+    case "basic2d":
+      set_current_object(create_basic2d(amplitude_value, width_value));
+    break;
+  }
   place_current_selected_cell(orbitControl.target);
 })
 
@@ -233,15 +266,21 @@ function get_mouse_in_world(clientX, clientY): Three.Vector3 {
   return intersects;
 }
 
+function set_sliders(amplitude: number, width: number, elastic: number) {
+  amplitude_slider.value = (amplitude - AMPLITUDE_RANGE[0]) / (AMPLITUDE_RANGE[1] - AMPLITUDE_RANGE[0]) * 100.0;
+  width_slider.value = (width - WIDTH_RANGE[0]) / (WIDTH_RANGE[1] - WIDTH_RANGE[0]) * 100.0;
+  // TODO elastic slider
+}
+
 function set_current_object(newObj: Cell) {
   if (current_object != null) {
     current_object.selected_mesh.visible = false;
   }
   current_object = newObj;
   current_object.selected_mesh.visible = true;
-  amplitude_slider.value = (newObj.amplitude - AMPLITUDE_RANGE[0]) / (AMPLITUDE_RANGE[1] - AMPLITUDE_RANGE[0]) * 100.0;
-  width_slider.value = (newObj.width - WIDTH_RANGE[0]) / (WIDTH_RANGE[1] - WIDTH_RANGE[0]) * 100.0;
-  
+
+  set_sliders(newObj.amplitude, newObj.width, newObj.elastic_d);
+
   amplitude_value = newObj.amplitude;
   width_value = newObj.width;
   amplitude_slider.dispatchEvent(new Event("input"));
@@ -279,13 +318,13 @@ document.addEventListener("mousemove", function(event) {
 // Setup buttons 
 const btn_basic1d = document.getElementById("basic1d") as HTMLButtonElement;
 btn_basic1d.addEventListener("click", function () {
-  set_current_object(create_basic1d(amplitude_value, width_value));
+  selected_type = "basic1d";
   enable_all_btns_not_me("basic1d");
 })
 
 const btn_basic2d = document.getElementById("basic2d") as HTMLButtonElement;
 btn_basic2d.addEventListener("click", function() {
-  set_current_object(create_basic2d(amplitude_value, width_value));
+  selected_type = "basic2d";
   enable_all_btns_not_me("basic2d");
 })
 
@@ -299,13 +338,13 @@ function enable_all_btns_not_me(not_disable_id: string) {
 const amplitude_slider = document.getElementById("amplitude")!;
 amplitude_slider.oninput = function () {
   amplitude_value = AMPLITUDE_RANGE[0] + amplitude_slider.value / 100.0 * (AMPLITUDE_RANGE[1] - AMPLITUDE_RANGE[0]);
-  update_current_cell_amplitude();
+  update_current_cell();
 }
 
 const width_slider = document.getElementById("width")!;
 width_slider.oninput = function () {
   width_value = WIDTH_RANGE[0] + width_slider.value / 100.0 * (WIDTH_RANGE[1] - WIDTH_RANGE[0]);
-  update_current_cell_width();
+  update_current_cell();
 }
 
 const deform_slider = document.getElementById("deform_slider")!;
