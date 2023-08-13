@@ -16,7 +16,7 @@ export class SvgWriter {
     const a = document.createElement('a');
     a.style.display = 'none';
     a.href = url;
-    a.download = `file_${new Date().toLocaleTimeString()}.svg`;
+    a.download = `file_${this.formatFullDate(new Date())}.svg`;
 
     document.body.appendChild(a);
     a.click();
@@ -28,6 +28,28 @@ export class SvgWriter {
   rect(x:number, y:number, w:number, h:number, rounded:number=0, color:number=0): SvgWriter {
     this.content += `<rect x="${x}" y="${y-h}" width="${w}" height="${h}" rx="${rounded}" fill="${color}"/>\n`;
     return this;
+  }
+
+  path(positions: [number, number][], color:number=0): SvgWriter {
+    this.content += `<path d="M${positions[0][0]} ${positions[0][1]}`;
+    for (let i = 1; i < positions.length; i++) {
+      const pos = positions[i];
+      this.content += ` L${pos[0]} ${pos[1]}`;
+    }
+    this.content += `" fill="${color}" />\n`;
+    return this;
+  }
+
+
+  formatFullDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+
+    return `${year}:${month}:${day}:${hours}:${minutes}:${seconds}`;
   }
 
 }

@@ -8,7 +8,10 @@ export function export_cells(cells: Cell[]) {
   for (const cell of cells) {
     switch (cell.type) {
       case "basic1d":
-        basic1D([cell.position.x, cell.position.z], cell.amplitude, cell.width, writer);
+        basic1D([cell.position.x + DEF_SIZE[0]/2.0, cell.position.z + DEF_SIZE[1]/2.0], cell.amplitude, cell.width, writer);
+        break;
+      case "basic2d":
+        basic2D([cell.position.x + DEF_SIZE[0]/2.0, cell.position.z + DEF_SIZE[1]/2.0], cell.amplitude, cell.width, writer);
         break;
       default:
         break;
@@ -30,5 +33,49 @@ function basic1D(position: number[], amplitude: number, width: number, writer: S
 }
 
 function basic2D(position: number[], amplitude: number, width: number, writer: SvgWriter) {
+
+  const f = formula(amplitude, width, c2); 
+
+  const b = f[1];
+  const a = f[0];
+  
+  const offsetY = position[1] - b - DEFAULT_SIZE/2.0;
+  const offsetX = position[0];
+  
+  writer.rect(offsetX, offsetY, DEFAULT_SIZE, b); 
+  writer.path([
+    [offsetX + DEFAULT_SIZE*2, offsetY],
+    [offsetX + DEFAULT_SIZE*2 + a, offsetY],
+    [offsetX + DEFAULT_SIZE*2 + a + b/2.0, offsetY - b/2.0],
+    [offsetX + DEFAULT_SIZE*2 + a, offsetY - b],
+    [offsetX + DEFAULT_SIZE*2, offsetY - b],
+  ]);
+
+  writer.rect(offsetX + DEFAULT_SIZE*4 + 2*a + b, offsetY, DEFAULT_SIZE, b);
+  writer.path([
+    [offsetX + DEFAULT_SIZE*3 + a + b/2.0, offsetY - b/2.0],
+    [offsetX + DEFAULT_SIZE*3 + a + b, offsetY],
+    [offsetX + DEFAULT_SIZE*3 + 2*a + b, offsetY],
+    [offsetX + DEFAULT_SIZE*3 + 2*a + b, offsetY - b],
+    [offsetX + DEFAULT_SIZE*3 + a + b, offsetY - b],
+  ]);
+
+  writer.rect(offsetX + DEFAULT_SIZE*2.5 + a, offsetY + a + DEFAULT_SIZE*2.5, b, DEFAULT_SIZE);
+  writer.path([
+    [offsetX + a + DEFAULT_SIZE*2.5 + b/2.0, offsetY - b/2.0 + DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5, offsetY + DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5, offsetY + a + DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY + a + DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY + DEFAULT_SIZE/2.0],
+  ]);
+
+  writer.rect(offsetX + DEFAULT_SIZE*2.5 + a, offsetY - a - b - DEFAULT_SIZE*1.5, b, DEFAULT_SIZE);
+  writer.path([
+    [offsetX + a + DEFAULT_SIZE*2.5 + b/2.0, offsetY - b/2.0 - DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5, offsetY - b - DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5, offsetY - a - b - DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY - a - b - DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY - b - DEFAULT_SIZE/2.0],
+  ]);
 
 }

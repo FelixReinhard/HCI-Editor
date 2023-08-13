@@ -1,5 +1,6 @@
 import * as Three from 'three';
 import {warning} from './main.ts';
+import { CollisionBox } from './collision.ts';
   
 const WARNING_STRING = "Combination of amplitude and width lead to negative Dimensions. Try changing the sliders.";
 const SELECTED_COLOR = 0xFF0000;
@@ -361,6 +362,37 @@ function generate_object(vertices: number[], color: Three.Color): Three.Mesh {
   return mesh;
 }
 
+function generate_basic1d_collision(position: number[], amplitude: number, width: number): CollisionBox[] {
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+
+  return [
+    new CollisionBox(position[0], position[1], DEFAULT_SIZE, b, "1d_left"),
+    new CollisionBox(position[0] + DEFAULT_SIZE*2, position[1], a, b, "1d_left_m"),
+    new CollisionBox(position[0] + DEFAULT_SIZE*3 + a, position[1], a, b, "1d_right_m"),
+    new CollisionBox(position[0] + DEFAULT_SIZE*4 + 2*a, position[1], DEFAULT_SIZE, b, "1d_right")
+  ];
+}
+
+function generate_basic2d_collision(position: number[], amplitude: number, width: number): CollisionBox[] {
+  const f = formula(amplitude, width, c2);
+
+  const b = f[1];
+  const a = f[0];
+
+  const yOffset = a+ DEFAULT_SIZE*2.5;
+
+  // only collisionshape for the outer ones, maybe add for other later.
+  return [
+    new CollisionBox(position[0], position[1] + yOffset, DEFAULT_SIZE, b, "2d_left"),
+    new CollisionBox(position[0] + DEFAULT_SIZE*4 + 2*a + b, position[1] + yOffset, DEFAULT_SIZE, b, "2d_right"),
+    new CollisionBox(position[0] + DEFAULT_SIZE*2.5 + a, position[1] + yOffset + DEFAULT_SIZE*2.5 + a + b, b, DEFAULT_SIZE, "2d_top"),
+    new CollisionBox(position[0] + DEFAULT_SIZE*2.5 + a, position[1] + yOffset -DEFAULT_SIZE*.25 - a, b, DEFAULT_SIZE, "2d_down"),
+  ];
+}
+
 const DEFAULT_ELASTIC_D = 20; // mm
 const DEFAULT_ELASTIC_X = 20; // mm
 const DEFAULT_SCALE = 1;
@@ -381,6 +413,7 @@ export class Cell {
   amplitude: number;
   width: number;
   selected_mesh: Three.Mesh;
+  coll: CollisionBox[];
 
   constructor(type: string, vertices_flat: number[], vertices: number[], position: Three.Vector3, amplitude: number, width: number) {
     this.type = type;
@@ -398,6 +431,21 @@ export class Cell {
     this.mesh = generate_object(vertices, COLOR_MESH);
     this.mesh_flat = generate_object(vertices_flat, COLOR_FLAT_MESH);
     this.selected_mesh = generate_selected_rect_mesh(this.get_width() + 2 , this.get_height() + 2);
+    
+    this.gen_coll();
+  }
+
+  gen_coll() {
+    switch (this.type) {
+      case "basic1d":
+        this.coll = generate_basic1d_collision([this.position.x, this.position.z], this.amplitude, this.width);
+        break;
+      case "basic2d":
+        this.coll = generate_basic2d_collision([this.position.x, this.position.z], this.amplitude, this.width);
+        break;
+      default:
+        break;
+    }
   }
 
   get_width() {
@@ -416,8 +464,6 @@ export class Cell {
     return max;
   }
 
-  
-
   regenerate(amplitude: number, width: number) {
     this.amplitude = amplitude;
     this.width = width;
@@ -433,7 +479,6 @@ export class Cell {
         vertices_flat = generate_basic2d_flat(amplitude, width);
         vertices = generate_basic2d(amplitude, width);
         break;
-
       default:
         break;
     }
@@ -476,5 +521,8 @@ export class Cell {
     const positionAttribute3 = new Three.BufferAttribute(verticesFloat32Array3, 3);
     geometry3.setAttribute('position', positionAttribute3);
     this.selected_mesh.geometry = geometry3;
+
+    // regen collision
+    this.coll = this.gen_coll();
   }
 }

@@ -5,7 +5,7 @@ Todo:
   # move cell.
   # max out visualazation when breaks
   # basic 2d
-  - export.
+  # export.
   - collision box for each rectangle,
   - dist between primitavies
   - mergin

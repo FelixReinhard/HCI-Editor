@@ -366,7 +366,29 @@ toggleSwitch.addEventListener('change', function () {
   }
 });
 
+// collision 
+function checkCollision(cell: Cell) {
+  for (let other of cells) {
+    if (other == cell) continue;
 
+    if (cell.type == other.type && cell.type == "basic1d") {
+      for (let col1 of cell.coll) {
+        for (let col2 of other.coll) {
+          if (col1.collisionBoxesIntersect(col2)) {
+            // Collision between basic1d
+            // check for collision types
+            // cell is being moved so "other & cell"
+            //
+            // - 1d_right & 1d_left
+            // - 1d_right_m & 1d_left_m
+            // - 1d_left & 1d_right 
+            // - 1d_left_m & 1d_right_m
+          }
+        }
+      }
+    }
+  }
+}
 
 // basic1d is selected by default.
 enable_all_btns_not_me("basic1d");
