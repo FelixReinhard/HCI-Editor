@@ -14,19 +14,17 @@ export function create_basic1d(amplitude: number, width: number): Cell {
 }
 
 export function will_1d_break(amplitude: number, width: number): boolean {
-  const c = amplitude;
-  const d = width;
+  const f = formula(amplitude, width, c1);
 
-  const b = (c1[4]*c - c1[1]*d) / (c1[0]*c1[4] - c1[1]*c1[3]);
-  const a = (c - c1[0]*b - c1[2]) / c1[1];
+  const b = f[1];
+  const a = f[0];
   return a <= 0.0 || b <= 0.0;
 }
 export function will_2d_break(amplitude: number, width: number): boolean {
-  const c = amplitude;
-  const d = width;
+  const f = formula(amplitude, width, c2);
 
-  const b = (c2[4]*c - c2[1]*d) / (c2[0]*c2[4] - c2[1]*c2[3]);
-  const a = (c - c2[0]*b - c2[2]) / c2[1];
+  const b = f[1];
+  const a = f[0];
   return a <= 0.0 || b <= 0.0;
 }
   
@@ -46,6 +44,107 @@ export function formula(amplitude: number, width: number, c: number[]): number[]
   return [a, b];
 }
 
+
+function generate_basic1d_chained_flat(amplitude: number, width: number, data: string[]): number[] {
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+  
+  var xOffset = DEFAULT_SIZE*6 + a * 2;
+  // t1 small, t2 big ones merge.
+  if (data[0] == "t2") {
+    xOffset = DEFAULT_SIZE*4 + a*2;
+  }
+  var v = [
+    ...generate_basic1d_flat(amplitude, width),
+  ];
+  for (let i = 0; i < data.length; i++) {
+    if (data[i] == "t1") {
+      v.push(
+      ...rect(a, b, [xOffset, 0]),
+      ...rect(a, b, [xOffset + a + DEFAULT_SIZE, 0]),
+      ...rect(DEFAULT_SIZE, b, [xOffset + 2*a + 2*DEFAULT_SIZE, 0]),
+      );
+      xOffset += 2*a + 3*DEFAULT_SIZE;
+    }
+  }
+  return v;
+}
+
+function generate_basic1d_chained(amplitude: number, width: number, data: string[]): number[] {
+
+  const c = amplitude;
+  const d = width;
+
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+  
+  var xOffset = 0;
+  var flatOffset = DEFAULT_SIZE*6 + a * 2;
+
+  var vertices = [
+    ...quad(
+      [0, -DEFAULT_SIZE/2.0, 0], 
+      [0, -DEFAULT_SIZE/2.0, b],
+      [DEFAULT_SIZE, 0, 0], 
+      [DEFAULT_SIZE, 0, b],
+    ),
+    // ...rect(DEFAULT_SIZE, b, [center - DEFAULT_SIZE*2 - d/2.0, 0]),
+    ...quad(
+      [DEFAULT_SIZE*2, 0, 0], [DEFAULT_SIZE*2 + d/2.0, -c, 0],
+      [DEFAULT_SIZE*2, 0, b], [DEFAULT_SIZE*2 + d/2.0, -c, b],
+    ),
+    ...quad(
+      [DEFAULT_SIZE*2 + d/2.0,-c, 0], [DEFAULT_SIZE*2 + d, 0, 0], 
+      [DEFAULT_SIZE*2 + d/2.0, -c, b], [DEFAULT_SIZE* 2 + d, 0, b], 
+    ),
+  ];
+
+  xOffset = DEFAULT_SIZE*3 + d;
+
+  for (let i = 0; i < data.length; i++) {
+    if (data[i] == "t1") { 
+      vertices.push(
+        // ...quad(
+        //   [xOffset, 0, 0], 
+        //   [xOffset, 0, b],
+        //   [DEFAULT_SIZE, 0, 0], 
+        //   [DEFAULT_SIZE, 0, b],
+        // ),
+        ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
+        ...quad(
+          [xOffset + DEFAULT_SIZE*2, 0, 0], [xOffset +  DEFAULT_SIZE*2 + d/2.0, -c, 0],
+          [xOffset + DEFAULT_SIZE*2, 0, b], [xOffset + DEFAULT_SIZE*2 + d/2.0, -c, b],
+        ),
+        ...quad(
+          [xOffset + DEFAULT_SIZE*2 + d/2.0,-c, 0], [xOffset +  DEFAULT_SIZE*2 + d, 0, 0], 
+          [xOffset + DEFAULT_SIZE*2 + d/2.0, -c, b], [xOffset + DEFAULT_SIZE* 2 + d, 0, b], 
+        ),
+      );
+      xOffset += DEFAULT_SIZE*4 + d;
+      flatOffset += 2*a + 3*DEFAULT_SIZE;
+      if (i == data.length - 1) {
+        // if last then add last small one. 
+        vertices.push(
+          ...quad(
+            [xOffset, 0, 0], 
+            [xOffset, 0, b],
+            [xOffset + DEFAULT_SIZE, -DEFAULT_SIZE/2.0, 0], 
+            [xOffset + DEFAULT_SIZE, -DEFAULT_SIZE/2.0, b],
+          ),
+        );
+      }
+    }
+  }
+  
+  const w = vertices_width(vertices);
+  const w_flat = flatOffset;
+  
+  return move_verticies((w_flat - w) / 2.0, 0, 0, vertices);
+}
 
 export const DEFAULT_SIZE = 2; // 2mm
 // basic1d formuala params
@@ -263,6 +362,13 @@ function generate_basic2d_flat(amplitude: number, width: number): number[] {
   ])
 }
 
+function vertices_width(vertices: number[]): number {
+  let max = 0;
+  for (var i = 0; i < vertices.length; i+=3) {
+    if (vertices[i] > 0) max = vertices[i];
+  }
+  return max;
+}
 
 function move_verticies(x:number, y:number, z:number, vertices: number[]): number[] {
   // x
@@ -376,6 +482,14 @@ function generate_basic1d_collision(position: number[], amplitude: number, width
   ];
 }
 
+function generate_basic1d_chained_collision(position: number[], amplitude: number, width: number, data): CollisionBox[] {
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+
+}
+
 function generate_basic2d_collision(position: number[], amplitude: number, width: number): CollisionBox[] {
   const f = formula(amplitude, width, c2);
 
@@ -414,6 +528,7 @@ export class Cell {
   width: number;
   selected_mesh: Three.Mesh;
   coll: CollisionBox[];
+  meta_data: any;
 
   constructor(type: string, vertices_flat: number[], vertices: number[], position: Three.Vector3, amplitude: number, width: number) {
     this.type = type;
@@ -479,6 +594,11 @@ export class Cell {
         vertices_flat = generate_basic2d_flat(amplitude, width);
         vertices = generate_basic2d(amplitude, width);
         break;
+      // 
+      case "chained_basic_1d":
+        vertices_flat = generate_basic1d_chained_flat(amplitude, width, this.meta_data);
+        vertices = generate_basic1d_chained(amplitude, width, this.meta_data);
+        break;
       default:
         break;
     }
@@ -523,6 +643,6 @@ export class Cell {
     this.selected_mesh.geometry = geometry3;
 
     // regen collision
-    this.coll = this.gen_coll();
+    this.gen_coll();
   }
 }

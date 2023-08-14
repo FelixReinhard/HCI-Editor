@@ -10,6 +10,7 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {Cell, create_basic1d, create_basic2d, will_1d_break, will_2d_break} from './generate.ts';
 import {make_3d_mesh_visible} from "./utils.ts";
 import { export_cells } from './export.ts';
+import { merge_1d } from './merge.ts';
 
 // controls the speed you can drag the camera with in editing mode.
 const DRAG_SPEED = .25;
@@ -151,6 +152,7 @@ function place_current_selected_cell(position: Three.Vector3) {
 
   current_object.mesh.visible = mode == "inspect";
   current_object.position.copy(position);
+  current_object.gen_coll();
   if (!cells.includes(current_object)) cells.push(current_object);
 }
 
@@ -168,6 +170,7 @@ function update_current_cell() {
     var will_break = false;
     switch (current_object.type) {
       case "basic1d":
+      case "chained_basic_1d":
         will_break = will_1d_break(amplitude_value, width_value);
         break;
       case "basic2d":
@@ -191,6 +194,7 @@ document.addEventListener("mouseup", function() {
   --mouse_pressed
   last_pos = {'x': 0, 'y': 0}
   clicked_on_cell = false;
+  check_mergin();
 })
 
 document.addEventListener("mousedown", function(event) {
@@ -209,7 +213,7 @@ document.addEventListener("mousedown", function(event) {
   } 
   clicked_on_cell = false;
 })
-
+// Add new btn
 document.getElementById("add")?.addEventListener("click", function () {
   switch (selected_type) {
     case "basic1d":
@@ -301,10 +305,12 @@ var move_offset: Three.Vector3 = new Three.Vector3(0, 0, 0);
 
 function move_cell(mousePos) {
   place_current_selected_cell(mousePos.add(move_offset));
+  checkCollision(current_object);
 }
 
 // editing mode drag camera
 document.addEventListener("mousemove", function(event) {
+  collision_type = {"type": "none", "agent1": null, "agent2": null};
   if (mouse_pressed && mode == "editing" && event.clientX <= window.innerWidth * .6 && clicked_on_cell) { 
     move_cell(get_mouse_in_world(event.clientX, event.clientY));
   } else if (mouse_pressed && mode == "editing" && event.clientX <= window.innerWidth * .6) {
@@ -366,15 +372,57 @@ toggleSwitch.addEventListener('change', function () {
   }
 });
 
+// used on the mouseup event to check if a merging should be done.
+var collision_type: {} = {"type" : "none", "agent1": null, "agent2": null};
+var collision_callbacks = {};
+
+type CollisionCallback = (cell: Cell, other: Cell) => void;
+
+function add_coll_callback( cellType1: string, cellType2: string, type1: string, type2: string, callback: CollisionCallback) {
+  collision_callbacks[`${cellType1}_${cellType2}:${type1}_${type2}`] = callback;
+}
+
+add_coll_callback("basic1d", "basic1d", "1d_left", "1d_right", function(cell: Cell, other: Cell) {
+  collision_type = {"type": "1d_right_left", "agent1": cell, "agent2": other};
+})
+
+add_coll_callback("basic1d", "chained_basic_1d", "1d_left", "1d_right", function(cell: Cell, other: Cell) {
+  collision_type = {"type": "", "agent1": cell, "agent2": other};
+})
+
+function check_mergin() {
+  if (collision_type["type"] != "none") {
+    switch (collision_type["type"]) {
+      case "1d_right_left":
+        remove_selected_cell();
+        merge_1d(collision_type["agent1"], collision_type["agent2"], cells);
+        break;
+    }
+  }
+}
 // collision 
 function checkCollision(cell: Cell) {
   for (let other of cells) {
     if (other == cell) continue;
+    
+
+    for (let col1 of cell.coll) {
+      for (let col2 of other.coll) { 
+        const key = `${cell.type}_${other.type}:${col1.meta}_${col2.meta}`;
+        if (key in collision_callbacks && col1.collisionBoxesIntersect(col2)) {
+          collision_callbacks[key](cell, other);
+        }
+      }
+    }
 
     if (cell.type == other.type && cell.type == "basic1d") {
       for (let col1 of cell.coll) {
         for (let col2 of other.coll) {
+
+          // if (col1.meta == "1d_left" && col2.meta == "1d_right") 
+          //    console.log("col1: ", col1, "col2: ", col2);
           if (col1.collisionBoxesIntersect(col2)) {
+            //console.log("col1: ", col1, "col2: ", col2);
             // Collision between basic1d
             // check for collision types
             // cell is being moved so "other & cell"
@@ -383,12 +431,38 @@ function checkCollision(cell: Cell) {
             // - 1d_right_m & 1d_left_m
             // - 1d_left & 1d_right 
             // - 1d_left_m & 1d_right_m
+            if (col1.meta == "1d_left" && col2.meta == "1d_right") {
+              console.log("1d_right + 1d_left");
+              collision_type = {"type": "1d_right_left", "agent1": cell, "agent2": other};
+            } else if (col1.meta == "1d_left_m" && col2.meta == "1d_right_m") {
+              console.log("1d_right_m + 1d_left_m");
+              collision_type = {"type": "1d_right_left_m", "agent1": cell, "agent2": other};
+            } else if (col1.meta == "1d_right" && col2.meta == "1d_left") {
+              console.log("1d_left + 1d_right");
+              collision_type = {"type": "1d_left_right", "agent1": cell, "agent2": other};
+            } else if (col1.meta == "1d_right_m" && col2.meta == "1d_left_m") {
+              console.log("1d_left_m + 1d_right_m");
+              collision_type = {"type": "1d_left_right_m", "agent1": cell, "agent2": other};
+            }
+          }
+        }
+      }
+    }
+
+    // basic1d with chained 
+    if (other.type == "chained_basic_1d" && cell.type == "basic1d") {
+
+      for (let col1 of cell.coll) {
+        for (let col2 of other.coll) { 
+          if (col1.collisionBoxesIntersect(col2)) {
+
           }
         }
       }
     }
   }
 }
+
 
 // basic1d is selected by default.
 enable_all_btns_not_me("basic1d");

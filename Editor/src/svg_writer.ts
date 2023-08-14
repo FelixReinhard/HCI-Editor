@@ -26,7 +26,7 @@ export class SvgWriter {
   }
 
   rect(x:number, y:number, w:number, h:number, rounded:number=0, color:number=0): SvgWriter {
-    this.content += `<rect x="${x}" y="${y-h}" width="${w}" height="${h}" rx="${rounded}" fill="${color}"/>\n`;
+    this.content += `<rect x="${x}" y="${y-h}" width="${w}" height="${h}" rx="${rounded}" fill="${numberToHexColor(color)}"/>\n`;
     return this;
   }
 

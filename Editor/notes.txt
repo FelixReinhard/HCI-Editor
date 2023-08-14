@@ -5,10 +5,13 @@ Todo:
   # move cell.
   # max out visualazation when breaks
   # basic 2d
+  # when plus btn create new current object
   # export.
-  - collision box for each rectangle,
+  # collision box for each rectangle,
+  - merge basic1d left/right 
+  - export merged type.
+  - merge basic1d left/right (m)
+  - export merged type.
   - dist between primitavies
-  - mergin
-  - edges of mountain black
   - 2d basic dist between 
-  - when plus btn create new current object
+  - edges of mountain black
