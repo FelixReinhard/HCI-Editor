@@ -66,7 +66,7 @@ function generate_basic1d_chained_flat(amplitude: number, width: number, data: s
       ...rect(a, b, [xOffset + a + DEFAULT_SIZE, 0]),
       ...rect(DEFAULT_SIZE, b, [xOffset + 2*a + 2*DEFAULT_SIZE, 0]),
       );
-      xOffset += 2*a + 3*DEFAULT_SIZE;
+      xOffset += 2*a + 4*DEFAULT_SIZE;
     }
   }
   return v;
@@ -124,7 +124,7 @@ function generate_basic1d_chained(amplitude: number, width: number, data: string
           [xOffset + DEFAULT_SIZE*2 + d/2.0, -c, b], [xOffset + DEFAULT_SIZE* 2 + d, 0, b], 
         ),
       );
-      xOffset += DEFAULT_SIZE*4 + d;
+      xOffset += DEFAULT_SIZE*3 + d;
       flatOffset += 2*a + 3*DEFAULT_SIZE;
       if (i == data.length - 1) {
         // if last then add last small one. 
@@ -487,7 +487,13 @@ function generate_basic1d_chained_collision(position: number[], amplitude: numbe
 
   const b = f[1];
   const a = f[0];
-
+  const w = vertices_width(generate_basic1d_chained_flat(amplitude, width, data));
+  return [
+    new CollisionBox(position[0], position[1], DEFAULT_SIZE, b, "1d_left"),
+    new CollisionBox(position[0] + DEFAULT_SIZE*2, position[1], a, b, "1d_left_m"),
+    new CollisionBox(position[0] + (w), position[1], DEFAULT_SIZE, b, "1d_right"),
+    new CollisionBox(position[0] + (w - 2*DEFAULT_SIZE - a), position[1], a, b, "1d_right_m"),
+  ];
 }
 
 function generate_basic2d_collision(position: number[], amplitude: number, width: number): CollisionBox[] {
@@ -557,6 +563,9 @@ export class Cell {
         break;
       case "basic2d":
         this.coll = generate_basic2d_collision([this.position.x, this.position.z], this.amplitude, this.width);
+        break;
+      case "chained_basic_1d":
+        this.coll = generate_basic1d_chained_collision([this.position.x, this.position.z], this.amplitude, this.width, this.meta_data);
         break;
       default:
         break;

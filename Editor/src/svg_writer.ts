@@ -1,4 +1,67 @@
-export class SvgWriter {
+export interface Writer {
+  rect(x: number, y: number, w: number, h: number, rounded: number, color: number): Writer;
+  path(positions: [number, number][], color:number): Writer;
+  save(): void;
+}
+import { DxfWriter, HatchBoundaryPaths, HatchPolylineBoundary, HatchPredefinedPatterns, pattern, point3d, vertex } from "@tarikjabiri/dxf";
+
+export class DXFWriter implements Writer {
+  writer: DxfWriter;
+  constructor() {
+    this.writer = new DxfWriter();
+    this.writer.setVariable("$INSUNITS", { 70: 4, 271: 2 });
+  }
+
+  rect(x: number, y: number, w: number, h: number, rounded: number=0, color: number=0): DXFWriter {
+    const polyline = new HatchPolylineBoundary(); 
+    polyline.add(vertex(x, y));
+    polyline.add(vertex(x+w, y));
+    polyline.add(vertex(x+w, y-h));
+    polyline.add(vertex(x, y-h));
+
+    const boundary = new HatchBoundaryPaths();
+    boundary.addPolylineBoundary(polyline); 
+    const solid = pattern({
+      name: HatchPredefinedPatterns.SOLID
+    });
+    this.writer.addHatch(boundary, solid);
+    return this;
+  }
+
+
+  path(positions: [number, number][], color:number): DXFWriter {
+    const polyline = new HatchPolylineBoundary(); 
+    for (let pos of positions) {
+      polyline.add(vertex(pos[0], pos[1]));
+    }
+
+    const boundary = new HatchBoundaryPaths();
+    boundary.addPolylineBoundary(polyline); 
+    const solid = pattern({
+      name: HatchPredefinedPatterns.SOLID
+    });
+    this.writer.addHatch(boundary, solid);
+    return this;
+  }
+
+  save() {
+    const content = this.writer.stringify();
+    const blob = new Blob([content], {type: 'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = `file_${formatFullDate(new Date())}.dxf`;
+
+    document.body.appendChild(a);
+    a.click();
+
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }
+}
+
+export class SvgWriter implements Writer {
   content: string;
   width: number;
   height: number;
@@ -16,7 +79,7 @@ export class SvgWriter {
     const a = document.createElement('a');
     a.style.display = 'none';
     a.href = url;
-    a.download = `file_${this.formatFullDate(new Date())}.svg`;
+    a.download = `file_${formatFullDate(new Date())}.svg`;
 
     document.body.appendChild(a);
     a.click();
@@ -40,18 +103,17 @@ export class SvgWriter {
     return this;
   }
 
+}
 
-  formatFullDate(date: Date): string {
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    const seconds = date.getSeconds().toString().padStart(2, '0');
+function formatFullDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const seconds = date.getSeconds().toString().padStart(2, '0');
 
-    return `${year}:${month}:${day}:${hours}:${minutes}:${seconds}`;
-  }
-
+  return `${year}:${month}:${day}:${hours}:${minutes}:${seconds}`;
 }
 
 function numberToHexColor(number: number): string {

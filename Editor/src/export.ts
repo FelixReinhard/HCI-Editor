@@ -1,18 +1,18 @@
 import { Cell, formula, c1, c2, DEFAULT_SIZE } from "./generate";
-import { SvgWriter } from "./svg_writer";
+import { DXFWriter, SvgWriter, Writer } from "./svg_writer";
 import { CollisionBox } from "./collision.ts";
 
 const DEF_SIZE = [500, 500];
 
 export function export_cells(cells: Cell[]) {
-  const writer: SvgWriter = new SvgWriter(DEF_SIZE[0], DEF_SIZE[1]);
+  const writer: Writer = new DXFWriter();
   for (const cell of cells) {
     switch (cell.type) {
       case "basic1d":
-        basic1D([cell.position.x + DEF_SIZE[0]/2.0, cell.position.z + DEF_SIZE[1]/2.0], cell.amplitude, cell.width, cell.coll, writer);
+        basic1D([cell.position.x + DEF_SIZE[0]/2.0, (cell.position.z + DEF_SIZE[1]/2.0)], cell.amplitude, cell.width, cell.coll, writer);
         break;
       case "basic2d":
-        basic2D([cell.position.x + DEF_SIZE[0]/2.0, cell.position.z + DEF_SIZE[1]/2.0], cell.amplitude, cell.width, writer);
+        basic2D([cell.position.x + DEF_SIZE[0]/2.0, (cell.position.z + DEF_SIZE[1]/2.0)], cell.amplitude, cell.width, writer);
         break;
       default:
         break;

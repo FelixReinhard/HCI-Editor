@@ -10,7 +10,7 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {Cell, create_basic1d, create_basic2d, will_1d_break, will_2d_break} from './generate.ts';
 import {make_3d_mesh_visible} from "./utils.ts";
 import { export_cells } from './export.ts';
-import { merge_1d } from './merge.ts';
+import { merge_1d, merge_1d_chain } from './merge.ts';
 
 // controls the speed you can drag the camera with in editing mode.
 const DRAG_SPEED = .25;
@@ -129,11 +129,15 @@ document.addEventListener("keydown", function(event) {
 });
 
 function remove_selected_cell() {
-  if (current_object != null) {
-    scene.remove(current_object.mesh);
-    scene.remove(current_object.mesh_flat);
-    scene.remove(current_object.selected_mesh);
-    cells = cells.filter(item => item !== current_object);
+  remove(current_object);
+}
+
+function remove(cell: Cell) {
+  if (cell != null) {
+    scene.remove(cell.mesh);
+    scene.remove(cell.mesh_flat);
+    scene.remove(cell.selected_mesh);
+    cells = cells.filter(item => item !== cell);
   }
 }
 
@@ -381,21 +385,50 @@ type CollisionCallback = (cell: Cell, other: Cell) => void;
 function add_coll_callback( cellType1: string, cellType2: string, type1: string, type2: string, callback: CollisionCallback) {
   collision_callbacks[`${cellType1}_${cellType2}:${type1}_${type2}`] = callback;
 }
-
+// basic_1d outer 
 add_coll_callback("basic1d", "basic1d", "1d_left", "1d_right", function(cell: Cell, other: Cell) {
   collision_type = {"type": "1d_right_left", "agent1": cell, "agent2": other};
-})
+});
 
+add_coll_callback("basic1d", "basic1d", "1d_right", "1d_left", function(cell: Cell, other: Cell) {
+  collision_type = {"type": "1d_left_right", "agent1": cell, "agent2": other};
+});
+
+// basic_1d inner 
+// dragin: left, toMerge right/chained.
 add_coll_callback("basic1d", "chained_basic_1d", "1d_left", "1d_right", function(cell: Cell, other: Cell) {
-  collision_type = {"type": "", "agent1": cell, "agent2": other};
-})
+  collision_type = {"type": "1d_right_left_chain", "agent1": cell, "agent2": other};
+});
 
+add_coll_callback("basic1d", "chained_basic_1d", "1d_right", "1d_left", function(cell: Cell, other: Cell) {
+  collision_type = {"type": "1d_left_right_chain", "agent1": cell, "agent2": other};
+});
+
+// during moving the cell in 'mousemove' we check for collisions. The above add_coll_callback add a handler for a certain kind of collision. 
+// e.g. add_coll_callback("basic1d", "basic1d", "1d_right", "1d_left", ... adds a handler for when a basic1d cell is draged onto another basic1d
+// cell and the rightmost rect of the dragged cell intersects with the leftmost of the other cell. 
+// If then the mouse is released in this position a merge should happen. so the draged cell should be extended with a t1 merge and should stay at this position,
+// so this is handled in the check mergin function. 
+// Ik its really stupid and 
 function check_mergin() {
   if (collision_type["type"] != "none") {
     switch (collision_type["type"]) {
       case "1d_right_left":
         remove_selected_cell();
         merge_1d(collision_type["agent1"], collision_type["agent2"], cells);
+        break;
+      case "1d_left_right":
+        merge_1d(collision_type["agent2"], collision_type["agent1"], cells);
+        remove(collision_type["agent2"]);
+        break;
+      case "1d_right_left_chain": 
+        remove_selected_cell();
+        merge_1d_chain(collision_type["agent1"], collision_type["agent2"], cells);
+        break;
+      case "1d_left_right_chain": 
+        collision_type["agent1"].meta_data = collision_type["agent2"].meta_data;
+        merge_1d_chain(collision_type["agent2"], collision_type["agent1"], cells);
+        remove(collision_type["agent2"]);
         break;
     }
   }
@@ -404,59 +437,12 @@ function check_mergin() {
 function checkCollision(cell: Cell) {
   for (let other of cells) {
     if (other == cell) continue;
-    
-
     for (let col1 of cell.coll) {
       for (let col2 of other.coll) { 
         const key = `${cell.type}_${other.type}:${col1.meta}_${col2.meta}`;
+        if (col1.collisionBoxesIntersect(col2)) console.log(key);
         if (key in collision_callbacks && col1.collisionBoxesIntersect(col2)) {
           collision_callbacks[key](cell, other);
-        }
-      }
-    }
-
-    if (cell.type == other.type && cell.type == "basic1d") {
-      for (let col1 of cell.coll) {
-        for (let col2 of other.coll) {
-
-          // if (col1.meta == "1d_left" && col2.meta == "1d_right") 
-          //    console.log("col1: ", col1, "col2: ", col2);
-          if (col1.collisionBoxesIntersect(col2)) {
-            //console.log("col1: ", col1, "col2: ", col2);
-            // Collision between basic1d
-            // check for collision types
-            // cell is being moved so "other & cell"
-            //
-            // - 1d_right & 1d_left
-            // - 1d_right_m & 1d_left_m
-            // - 1d_left & 1d_right 
-            // - 1d_left_m & 1d_right_m
-            if (col1.meta == "1d_left" && col2.meta == "1d_right") {
-              console.log("1d_right + 1d_left");
-              collision_type = {"type": "1d_right_left", "agent1": cell, "agent2": other};
-            } else if (col1.meta == "1d_left_m" && col2.meta == "1d_right_m") {
-              console.log("1d_right_m + 1d_left_m");
-              collision_type = {"type": "1d_right_left_m", "agent1": cell, "agent2": other};
-            } else if (col1.meta == "1d_right" && col2.meta == "1d_left") {
-              console.log("1d_left + 1d_right");
-              collision_type = {"type": "1d_left_right", "agent1": cell, "agent2": other};
-            } else if (col1.meta == "1d_right_m" && col2.meta == "1d_left_m") {
-              console.log("1d_left_m + 1d_right_m");
-              collision_type = {"type": "1d_left_right_m", "agent1": cell, "agent2": other};
-            }
-          }
-        }
-      }
-    }
-
-    // basic1d with chained 
-    if (other.type == "chained_basic_1d" && cell.type == "basic1d") {
-
-      for (let col1 of cell.coll) {
-        for (let col2 of other.coll) { 
-          if (col1.collisionBoxesIntersect(col2)) {
-
-          }
         }
       }
     }
