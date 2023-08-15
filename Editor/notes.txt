@@ -8,7 +8,7 @@ Todo:
   # when plus btn create new current object
   # export.
   # collision box for each rectangle,
-  - merge basic1d left/right 
+  # merge basic1d left/right 
   - export merged type.
   - merge basic1d left/right (m)
   - export merged type.

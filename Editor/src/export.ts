@@ -21,7 +21,7 @@ export function export_cells(cells: Cell[]) {
   writer.save();
 }
 
-function basic1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: SvgWriter) {
+function basic1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: Writer) {
   const f = formula(amplitude, width, c1); 
 
   const b = f[1];
@@ -35,6 +35,10 @@ function basic1D(position: number[], amplitude: number, width: number,collisions
   // for (let coll of collisions) {
   //   writer.rect(coll.x, coll.y, coll.width, coll.height, 0, 0x00FF00);
   // }
+}
+
+function basic1d_chained(position: number[], amplitude: number, width: number, writer: Writer) {
+
 }
 
 function basic2D(position: number[], amplitude: number, width: number, writer: SvgWriter) {
