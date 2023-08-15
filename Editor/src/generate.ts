@@ -51,24 +51,32 @@ function generate_basic1d_chained_flat(amplitude: number, width: number, data: s
   const b = f[1];
   const a = f[0];
   
-  var xOffset = DEFAULT_SIZE*6 + a * 2;
+  var xOffset = DEFAULT_SIZE*4 + a * 2;
   // t1 small, t2 big ones merge.
-  if (data[0] == "t2") {
-    xOffset = DEFAULT_SIZE*4 + a*2;
-  }
   var v = [
-    ...generate_basic1d_flat(amplitude, width),
+    ...rect(DEFAULT_SIZE, b),
+    ...rect(a, b, [DEFAULT_SIZE*2, 0]),
+    ...rect(a, b, [DEFAULT_SIZE*3 + a, 0]),
+  //  ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a, 0]),
   ];
   for (let i = 0; i < data.length; i++) {
     if (data[i] == "t1") {
       v.push(
-      ...rect(a, b, [xOffset, 0]),
-      ...rect(a, b, [xOffset + a + DEFAULT_SIZE, 0]),
-      ...rect(DEFAULT_SIZE, b, [xOffset + 2*a + 2*DEFAULT_SIZE, 0]),
+      ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
+      ...rect(a, b, [xOffset + DEFAULT_SIZE*2, 0]),
+      ...rect(a, b, [xOffset + a + DEFAULT_SIZE*3, 0]),
       );
       xOffset += 2*a + 4*DEFAULT_SIZE;
+    } else if (data[i] == "t2") {
+      v.push(
+        ...rect(a, b, [xOffset, 0]),
+      );
+      xOffset += a + DEFAULT_SIZE;
     }
   }
+  v.push(
+    ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
+  );
   return v;
 }
 

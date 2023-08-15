@@ -10,7 +10,7 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {Cell, create_basic1d, create_basic2d, will_1d_break, will_2d_break} from './generate.ts';
 import {make_3d_mesh_visible} from "./utils.ts";
 import { export_cells } from './export.ts';
-import { merge_1d, merge_1d_chain } from './merge.ts';
+import { merge_1d, merge_1d_chain, merge_1d_t2 } from './merge.ts';
 
 // controls the speed you can drag the camera with in editing mode.
 const DRAG_SPEED = .25;
@@ -307,42 +307,45 @@ function get_cell_by_mesh_uuid(id): Cell | null {
 
 var move_offset: Three.Vector3 = new Three.Vector3(0, 0, 0);
 
-function move_cell(mousePos) {
+function move_cell(mousePos: Three.Vector3) {
   place_current_selected_cell(mousePos.add(move_offset));
   checkCollision(current_object);
 }
 
 // editing mode drag camera
 document.addEventListener("mousemove", function(event) {
+  // reset collision_type before move, so only if collision is possible
+
   collision_type = {"type": "none", "agent1": null, "agent2": null};
+
   if (mouse_pressed && mode == "editing" && event.clientX <= window.innerWidth * .6 && clicked_on_cell) { 
     move_cell(get_mouse_in_world(event.clientX, event.clientY));
   } else if (mouse_pressed && mode == "editing" && event.clientX <= window.innerWidth * .6) {
     const dir = {'x': event.clientX - last_pos.x, 'y': event.clientY - last_pos.y}
     const zoom = orbitControl.target.distanceTo(camera.position) / EDITING_MODE_DEFAULT_DIST * DRAG_SPEED;
-    moveX(-dir.x * 0.1 * zoom)
-    moveY(-dir.y * 0.1 * zoom)
-    last_pos = {'x': event.clientX, 'y': event.clientY}
+    moveX(-dir.x * 0.1 * zoom);
+    moveY(-dir.y * 0.1 * zoom);
+    last_pos = {'x': event.clientX, 'y': event.clientY};
   } 
-})
+});
 
 // Setup buttons 
 const btn_basic1d = document.getElementById("basic1d") as HTMLButtonElement;
 btn_basic1d.addEventListener("click", function () {
   selected_type = "basic1d";
   enable_all_btns_not_me("basic1d");
-})
+});
 
 const btn_basic2d = document.getElementById("basic2d") as HTMLButtonElement;
 btn_basic2d.addEventListener("click", function() {
   selected_type = "basic2d";
   enable_all_btns_not_me("basic2d");
-})
+});
 
 const btn_export = document.getElementById("export") as HTMLButtonElement;
 btn_export.addEventListener("click", function() {
   export_cells(cells);
-})
+});
 
 function enable_all_btns_not_me(not_disable_id: string) {
   btn_basic1d.disabled = false;
@@ -363,8 +366,9 @@ width_slider.oninput = function () {
   update_current_cell();
 }
 
-const deform_slider = document.getElementById("deform_slider")!;
+const deform_slider = document.getElementById("deform_slider")! as HTMLInputElement;
 deform_slider.oninput = function () {
+  deform_slider.value;
 }
 
 const toggleSwitch = document.getElementById('toggleSwitch') as HTMLInputElement;
@@ -382,7 +386,7 @@ var collision_callbacks = {};
 
 type CollisionCallback = (cell: Cell, other: Cell) => void;
 
-function add_coll_callback( cellType1: string, cellType2: string, type1: string, type2: string, callback: CollisionCallback) {
+function add_coll_callback(cellType1: string, cellType2: string, type1: string, type2: string, callback: CollisionCallback) {
   collision_callbacks[`${cellType1}_${cellType2}:${type1}_${type2}`] = callback;
 }
 // basic_1d outer 
@@ -402,6 +406,10 @@ add_coll_callback("basic1d", "chained_basic_1d", "1d_left", "1d_right", function
 
 add_coll_callback("basic1d", "chained_basic_1d", "1d_right", "1d_left", function(cell: Cell, other: Cell) {
   collision_type = {"type": "1d_left_right_chain", "agent1": cell, "agent2": other};
+});
+
+add_coll_callback("basic1d", "basic1d", "1d_left_m", "1d_right_m", function(cell: Cell, other: Cell) {
+  collision_type = {"type": "1d_right_left_m", "agent1": cell, "agent2": other};
 });
 
 // during moving the cell in 'mousemove' we check for collisions. The above add_coll_callback add a handler for a certain kind of collision. 
@@ -430,6 +438,10 @@ function check_mergin() {
         merge_1d_chain(collision_type["agent2"], collision_type["agent1"], cells);
         remove(collision_type["agent2"]);
         break;
+      case "1d_right_left_m":
+        merge_1d_t2(collision_type["agent1"], collision_type["agent2"], cells);
+        remove_selected_cell();
+        break;
     }
   }
 }
@@ -440,9 +452,9 @@ function checkCollision(cell: Cell) {
     for (let col1 of cell.coll) {
       for (let col2 of other.coll) { 
         const key = `${cell.type}_${other.type}:${col1.meta}_${col2.meta}`;
-        if (col1.collisionBoxesIntersect(col2)) console.log(key);
         if (key in collision_callbacks && col1.collisionBoxesIntersect(col2)) {
           collision_callbacks[key](cell, other);
+          console.log(key);
         }
       }
     }
