@@ -134,20 +134,23 @@ function generate_basic1d_chained(amplitude: number, width: number, data: string
       );
       xOffset += DEFAULT_SIZE*3 + d;
       flatOffset += 2*a + 3*DEFAULT_SIZE;
-      if (i == data.length - 1) {
-        // if last then add last small one. 
-        vertices.push(
-          ...quad(
-            [xOffset, 0, 0], 
-            [xOffset, 0, b],
-            [xOffset + DEFAULT_SIZE, -DEFAULT_SIZE/2.0, 0], 
-            [xOffset + DEFAULT_SIZE, -DEFAULT_SIZE/2.0, b],
-          ),
-        );
-      }
+    } else if (data[i] == "t2") {
+      vertices.push(
+        ...rect(a, b, [xOffset, 0])
+      );
+      xOffset += a + DEFAULT_SIZE;
+      flatOffset += a;
     }
   }
   
+  vertices.push(
+    ...quad(
+      [xOffset, 0, 0], 
+      [xOffset, 0, b],
+      [xOffset + DEFAULT_SIZE, -DEFAULT_SIZE/2.0, 0], 
+      [xOffset + DEFAULT_SIZE, -DEFAULT_SIZE/2.0, b],
+    ),
+  );
   const w = vertices_width(vertices);
   const w_flat = flatOffset;
   
