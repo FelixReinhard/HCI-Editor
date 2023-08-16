@@ -93,9 +93,24 @@
                 <button id="add" type="button" class="btn btn-dark btn-rounded"> <i
                     class="v-35 fas fa-plus"></i></button>
               </div>
-              <div class="mgn-20 d-col gap-2 container d-flex justify-content-center align-items-center">
-                <button id="export" type="button" class="btn btn-dark btn-rounded"> <i
-                    class="v-35 fas fa-file-export"></i></button>
+              <div class="mgn-20 d-col container d-flex justify-content-center align-items-center">
+                <button id="export" type="button" class="btn btn-dark rounded-left">
+                  <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
+                    <i class="r-20 fas fa-file-export"></i>
+                    <div id="export_inner">
+                      Dxf
+                    </div>
+                  </div>
+                </button>
+                <div class="dropdown-container">
+                  <button class="btn btn-dark dropdown-btn">
+                    <i class="fas fa-caret-down"></i>
+                  </button>
+                  <div class="rounded dropdown-content">
+                    <a id="export_svg" href="#">Svg</a>
+                    <a id="export_dxf" href="#">Dxf</a>
+                  </div>
+                </div>
               </div>
 
             </div>
@@ -113,7 +128,6 @@
     <style>
       input[type="range"]::-webkit-slider-thumb:active {
         background-color: #888;
-        /* Grey color when active */
       }
 
       input[type="range"]::-moz-range-thumb:active {
@@ -126,7 +140,6 @@
 
       input[type="range"]::-webkit-slider-thumb {
         background-color: #000;
-        /* Add other custom styles for the slider thumb if needed */
       }
 
       input[type="range"]::-moz-range-thumb {
@@ -153,9 +166,18 @@
         margin-left: 15px;
       }
 
+      .r-20 {
+        margin-right: 20px;
+      }
+
       .v-35 {
         margin-left: 35px;
         margin-right: 35px;
+      }
+
+      .v-20 {
+        margin-left: 20px;
+        margin-right: 20px;
       }
 
       .bg-black {

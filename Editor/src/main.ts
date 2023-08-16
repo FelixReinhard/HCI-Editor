@@ -10,7 +10,7 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {Cell, create_basic1d, create_basic2d, will_1d_break, will_2d_break} from './generate.ts';
 import {make_3d_mesh_visible} from "./utils.ts";
 import { export_cells } from './export.ts';
-import { merge_1d, merge_1d_chain, merge_1d_t2 } from './merge.ts';
+import { merge_1d, merge_1d_chain, merge_1d_chain_left, merge_1d_t2 } from './merge.ts';
 
 // controls the speed you can drag the camera with in editing mode.
 const DRAG_SPEED = .25;
@@ -329,7 +329,11 @@ document.addEventListener("mousemove", function(event) {
   } 
 });
 
+
+  
 // Setup buttons 
+//
+
 const btn_basic1d = document.getElementById("basic1d") as HTMLButtonElement;
 btn_basic1d.addEventListener("click", function () {
   selected_type = "basic1d";
@@ -344,7 +348,18 @@ btn_basic2d.addEventListener("click", function() {
 
 const btn_export = document.getElementById("export") as HTMLButtonElement;
 btn_export.addEventListener("click", function() {
-  export_cells(cells);
+  export_cells(cells, export_type);
+});
+
+const btn_export_svg = document.getElementById("export_svg")!;
+btn_export_svg.addEventListener("click", function() {
+  set_export_type("svg");
+});
+
+
+const btn_export_dxf = document.getElementById("export_dxf")!;
+btn_export_dxf.addEventListener("click", function() {
+  set_export_type("dxf");
 });
 
 function enable_all_btns_not_me(not_disable_id: string) {
@@ -380,6 +395,26 @@ toggleSwitch.addEventListener('change', function () {
   }
 });
 
+
+var export_type = "dxf";
+
+const export_text = document.getElementById("export_inner")!;
+
+function set_export_type(type: string) {
+  switch (type) {
+    case "svg":
+      export_type = "svg";
+      export_text.textContent = "Svg"
+      break;
+    case "dxf":
+      export_type = "dxf";
+      export_text.textContent = "Dxf"
+      break;
+    default:
+      break;
+  }
+}
+
 // used on the mouseup event to check if a merging should be done.
 var collision_type: {} = {"type" : "none", "agent1": null, "agent2": null};
 var collision_callbacks = {};
@@ -412,6 +447,10 @@ add_coll_callback("basic1d", "basic1d", "1d_left_m", "1d_right_m", function(cell
   collision_type = {"type": "1d_right_left_m", "agent1": cell, "agent2": other};
 });
 
+add_coll_callback("basic1d", "basic1d", "1d_right_m", "1d_left_m", function(cell: Cell, other: Cell) {
+  collision_type = {"type": "1d_left_right_m", "agent1": cell, "agent2": other};
+});
+
 // during moving the cell in 'mousemove' we check for collisions. The above add_coll_callback add a handler for a certain kind of collision. 
 // e.g. add_coll_callback("basic1d", "basic1d", "1d_right", "1d_left", ... adds a handler for when a basic1d cell is draged onto another basic1d
 // cell and the rightmost rect of the dragged cell intersects with the leftmost of the other cell. 
@@ -435,12 +474,17 @@ function check_mergin() {
         break;
       case "1d_left_right_chain": 
         collision_type["agent1"].meta_data = collision_type["agent2"].meta_data;
-        merge_1d_chain(collision_type["agent2"], collision_type["agent1"], cells);
+        merge_1d_chain_left(collision_type["agent2"], collision_type["agent1"], cells);
         remove(collision_type["agent2"]);
         break;
       case "1d_right_left_m":
         merge_1d_t2(collision_type["agent1"], collision_type["agent2"], cells);
         remove_selected_cell();
+        break;
+      case "1d_left_right_m":
+        collision_type["agent1"].meta_data = collision_type["agent2"].meta_data;
+        merge_1d_t2(collision_type["agent2"], collision_type["agent1"], cells);
+        remove(collision_type["agent2"]);
         break;
     }
   }
