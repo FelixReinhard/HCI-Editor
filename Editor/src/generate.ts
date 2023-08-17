@@ -567,6 +567,19 @@ export class Cell {
     this.gen_coll();
   }
 
+  get_corner_points(): [number, number][] {
+    return [
+      // left top,
+      [this.position.x, this.position.z],
+      // right top
+      [this.position.x + this.get_width(), this.position.z],
+      // right, bottom 
+      [this.position.x + this.get_width(), this.position.z + this.get_height()],
+      // left, bottom
+      [this.position.x, this.position.z + this.get_height()]
+    ];
+  }
+
   gen_coll() {
     switch (this.type) {
       case "basic1d":

@@ -9,9 +9,9 @@ Todo:
   # export.
   # collision box for each rectangle,
   # merge basic1d left/right 
-  - export merged type.
-  - merge basic1d left/right (m)
-  - export merged type.
+  # merge basic1d left/right (m)
+  # export merged type.
+  - variable ampl for mergin t1
   - dist between primitavies
   - 2d basic dist between 
   - edges of mountain black
