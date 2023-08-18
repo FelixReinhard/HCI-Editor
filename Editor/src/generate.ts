@@ -4,13 +4,14 @@ import { CollisionBox } from './collision.ts';
   
 const WARNING_STRING = "Combination of amplitude and width lead to negative Dimensions. Try changing the sliders.";
 const SELECTED_COLOR = 0xFF0000;
+const SELECTED_COLOR_OK = 0x00FF00;
 var id = 0;
 
-export function create_basic1d(amplitude: number, width: number): Cell {
+export function create_basic1d(amplitude: number, width: number, cells: Cell[]): Cell {
   const vertices = generate_basic1d(amplitude, width);
   const vertices_flat = generate_basic1d_flat(amplitude, width);
   
-  return new Cell("basic1d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width);
+  return new Cell("basic1d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width, cells);
 }
 
 export function will_1d_break(amplitude: number, width: number): boolean {
@@ -28,11 +29,11 @@ export function will_2d_break(amplitude: number, width: number): boolean {
   return a <= 0.0 || b <= 0.0;
 }
   
-export function create_basic2d(amplitude: number, width: number): Cell {
+export function create_basic2d(amplitude: number, width: number, cells: Cell[]): Cell {
   const vertices = generate_basic2d(amplitude, width);
   const vertices_flat = generate_basic2d_flat(amplitude, width);
   
-  return new Cell("basic2d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width);
+  return new Cell("basic2d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width, cells);
 }
 
 export function formula(amplitude: number, width: number, c: number[]): number[] {
@@ -180,7 +181,7 @@ function generate_basic1d_flat(amplitude: number, width: number): number[] {
     ...rect(a, b, [DEFAULT_SIZE*2, 0]),
     ...rect(a, b, [DEFAULT_SIZE*3 + a, 0]),
     ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a, 0]),
-  ]
+  ];
 
   return vertices;
 }
@@ -452,7 +453,7 @@ function generate_selected_rect_mesh(width: number, height: number): Three.Mesh 
   geometry.setAttribute('position', positionAttribute);
 
   const material = new Three.LineBasicMaterial( { 
-    side: Three.DoubleSide ,color: SELECTED_COLOR,
+    side: Three.DoubleSide ,color: SELECTED_COLOR_OK,
     opacity: 0.7,    
     transparent: true
   });
@@ -524,6 +525,119 @@ function generate_basic2d_collision(position: number[], amplitude: number, width
   ];
 }
 
+const IS_2D_STRECHED = false;
+const COLOR_BAD = 0xFF0000;
+const COLOR_GOOD = 0x00FF00;
+
+const SHOW_LINE_PERCENT = 1.25;
+
+class GapBox {
+  cell: Cell;
+  d: number[]; // left, right, up, down
+  boundingBox: Three.Mesh;
+
+  constructor(cell: Cell) {
+    this.cell = cell;
+    this.boundingBox = generate_object([], 0);
+    const v = cell.amplitude * 2 +1;
+    this.d = [v, v, v, v];
+  }
+
+  update_bounding_box() {
+    const d = this.d;
+    const vertices = [
+      ...rect(this.cell.get_width() + d[0]/2 + d[1]/2, LINE_THICKNESS, [-d[0]/2, -d[2]/2]),
+      ...rect(this.cell.get_width() + d[0]/2 + d[1]/2, LINE_THICKNESS, [-d[0]/2, this.cell.get_height() + d[3]/2]),
+      ...rect(LINE_THICKNESS, this.cell.get_height() + d[2]/2 + d[3]/2, [-d[0]/2, -d[2]/2]),
+      ...rect(LINE_THICKNESS, this.cell.get_height() + d[2]/2 + d[3]/2, [this.cell.get_width() + d[1]/2, -d[2]/2]),
+    ];
+
+    this.boundingBox.visible = true;
+    this.boundingBox.geometry.dispose();
+    const verticesFloat32Array = new Float32Array(vertices);
+    const geometry = new Three.BufferGeometry();
+
+    const positionAttribute = new Three.BufferAttribute(verticesFloat32Array, 3);
+    geometry.setAttribute('position', positionAttribute);
+    this.boundingBox.geometry = geometry;
+
+    const material = new Three.LineBasicMaterial( { 
+      side: Three.DoubleSide ,color: 0,
+      opacity: 0.7,    
+      transparent: true
+    });
+    this.boundingBox.material.dispose();
+    this.boundingBox.material = material;
+  }
+
+  regenerate(cells: Cell[], mouse_up: boolean) {
+    if (cells.length <= 1) {
+      const v = this.cell.amplitude * 2 +1;
+      this.d = [v, v, v, v];
+      this.update_bounding_box();
+      return;
+    }
+    // first sort all other cells into coll boxes
+    let oldR: Cell | null = null;
+    let oldL: Cell | null  = null;
+
+    let boxes = {}
+
+    const w = this.cell.get_width();
+
+    for (let c of cells) {
+
+      const center = c.get_center();
+      
+      if (center[0] >= this.cell.position.x + this.cell.get_width()
+        && center[1] >= this.cell.position.z 
+        && center[1] <= this.cell.position.z + this.cell.get_height()
+      ) {
+        // right of cell
+        console.log("right")
+        if (oldR != null && oldR.amplitude > c.amplitude) 
+          this.d[1] = Math.max(oldR.amplitude, this.cell.amplitude)*2 + 1;
+        else {
+          this.d[1] = Math.max(c.amplitude, this.cell.amplitude)*2 + 1;
+          oldR = c;
+        }
+      }
+      else if (center[0] <= this.cell.position.x
+        && center[1] >= this.cell.position.z 
+        && center[1] <= this.cell.position.z + this.cell.get_height()
+      ) {
+        // left of cell
+        //
+        console.log("left")
+        if (oldL != null && oldL.amplitude > c.amplitude) 
+          this.d[0] = Math.max(oldL.amplitude, this.cell.amplitude)*2 + 1;
+        else {
+          this.d[0] = Math.max(c.amplitude, this.cell.amplitude)*2 + 1;
+          oldL = c;
+        }
+      } 
+      else if (center[0] >= this.cell.position.x 
+        && center[0] <= this.cell.position.x + this.cell.get_width()
+        && center[1] >= this.cell.position.z + this.cell.get_height()
+      ) {
+        // top of cell
+        console.log("top")
+      } 
+      else if (center[0] >= this.cell.position.x 
+        && center[0] <= this.cell.position.x + this.cell.get_width()
+        && center[1] <= this.cell.position.z
+      ) {
+        // botom of cell
+        console.log("bottom")
+      }
+    }
+      // find nearest cell right of this cell.
+    this.update_bounding_box();
+  }
+}
+
+const LINE_THICKNESS = .25;
+
 const DEFAULT_ELASTIC_D = 20; // mm
 const DEFAULT_ELASTIC_X = 20; // mm
 const DEFAULT_SCALE = 1;
@@ -547,7 +661,12 @@ export class Cell {
   coll: CollisionBox[];
   meta_data: any;
 
-  constructor(type: string, vertices_flat: number[], vertices: number[], position: Three.Vector3, amplitude: number, width: number) {
+  bounding_box: CollisionBox;
+  d: number;
+
+  lines: GapBox;
+
+  constructor(type: string, vertices_flat: number[], vertices: number[], position: Three.Vector3, amplitude: number, width: number, cells: Cell[]) {
     this.type = type;
     this.vertices = vertices;
     this.vertices_flat = vertices_flat;
@@ -562,9 +681,30 @@ export class Cell {
 
     this.mesh = generate_object(vertices, COLOR_MESH);
     this.mesh_flat = generate_object(vertices_flat, COLOR_FLAT_MESH);
-    this.selected_mesh = generate_selected_rect_mesh(this.get_width() + 2 , this.get_height() + 2);
-    
+
+    this.lines = new GapBox(this);
+
     this.gen_coll();
+    this.update_gap(cells);
+    // needs to go after, relies on gap
+    this.selected_mesh = generate_selected_rect_mesh(this.get_width() + 2, this.get_height() + 2);
+  }
+
+  get_center() {
+    return [this.position.x + this.get_width() / 2, this.position.z + this.get_height() / 2];
+  }
+
+  update_gap(otherCells: Cell[]) {
+    this.lines.regenerate(otherCells, false);
+  }
+
+  add_lines(scene: Three.Scene) {
+    // scene.add(this.lines.right);
+    // scene.add(this.lines.left);
+    // scene.add(this.lines.up);
+    // scene.add(this.lines.down);
+    scene.add(this.lines.boundingBox);
+    this.lines.boundingBox.position.copy(this.position);
   }
 
   get_corner_points(): [number, number][] {
@@ -612,7 +752,7 @@ export class Cell {
     return max;
   }
 
-  regenerate(amplitude: number, width: number) {
+  regenerate(amplitude: number, width: number, cells: Cell[]) {
     this.amplitude = amplitude;
     this.width = width;
     var vertices_flat = [];
@@ -666,6 +806,8 @@ export class Cell {
 
     this.selected_mesh.geometry.dispose();
 
+    this.update_gap(cells);
+
     const verticesFloat32Array3 = new Float32Array(generate_selected_rect(this.get_width() + 2, this.get_height() + 2));
     // Create the BufferGeometry
     const geometry3 = new Three.BufferGeometry();
@@ -677,5 +819,25 @@ export class Cell {
 
     // regen collision
     this.gen_coll();
+  }
+  // if selected green or red outline,
+  // ok ignored if not selected so dotted
+  set_selected_mesh(selected: boolean, ok: boolean) { 
+    this.selected_mesh.visible = selected;
+  }
+
+  reset_displacement() {
+    this.mesh.position.copy(this.position);
+  }
+
+  add_displacement(cell: Cell) {
+    const distX = ((this.position.x + this.get_width() / 2.0) - (cell.position.x + cell.get_width()));
+    const distZ = ((this.position.z + this.get_height() / 2.0) - (cell.position.z + cell.get_height()));
+
+    const dir = [
+      this.position.x - cell.position.x, this.position.z - cell.position.z
+    ];
+
+    this.mesh.position.copy(this.mesh.position.add(new Three.Vector3(dir[0] * 1.0/distX * 50, 0, dir[1] * 1.0/distZ)));
   }
 }

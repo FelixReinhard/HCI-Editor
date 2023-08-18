@@ -11,7 +11,6 @@ Todo:
   # merge basic1d left/right 
   # merge basic1d left/right (m)
   # export merged type.
-  - variable ampl for mergin t1
   - dist between primitavies
   - 2d basic dist between 
-  - edges of mountain black
+  - variable ampl for mergin t1

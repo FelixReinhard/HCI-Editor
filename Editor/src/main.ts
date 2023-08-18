@@ -17,7 +17,6 @@ const DRAG_SPEED = .25;
 const EDITING_MODE_DEFAULT_DIST = 15.0;
 const AMPLITUDE_RANGE = [4, 20];
 const WIDTH_RANGE = [8, 40];
-const IS_2D_STRECHED = false;
 
 // State 
 var mode: String = "inspect"
@@ -26,7 +25,7 @@ var cells: Cell[] = []
 var selected_type = "basic1d"; // basic1d
 var amplitude_value = AMPLITUDE_RANGE[1]/2.0;
 var width_value = WIDTH_RANGE[1]/2.0;
-var current_object: Cell = create_basic1d(amplitude_value, width_value);
+var current_object: Cell = create_basic1d(amplitude_value, width_value, cells);
 
 // Positions are in mm
 const scene = new Three.Scene();
@@ -137,6 +136,7 @@ function remove(cell: Cell) {
     scene.remove(cell.mesh);
     scene.remove(cell.mesh_flat);
     scene.remove(cell.selected_mesh);
+    scene.remove(cell.lines.boundingBox);
     cells = cells.filter(item => item !== cell);
   }
 }
@@ -144,20 +144,36 @@ function remove(cell: Cell) {
 function place_current_selected_cell(position: Three.Vector3) {
   if (current_object == null) return;
   current_object.mesh_flat.position.copy(position);
-  current_object.mesh.position.copy(position);
+  current_object.position.copy(position);
   current_object.selected_mesh.position.copy(position);
+  current_object.mesh.position.copy(position);
+  // add offset 
   current_object.selected_mesh.position.x -= 1;
   current_object.selected_mesh.position.z += 1;
-  current_object.mesh.position.y += 0.1;
 
   scene.add(current_object.mesh_flat);
   scene.add(current_object.mesh);
   scene.add(current_object.selected_mesh);
+  current_object.add_lines(scene);
 
   current_object.mesh.visible = mode == "inspect";
   current_object.position.copy(position);
   current_object.gen_coll();
-  if (!cells.includes(current_object)) cells.push(current_object);
+  if (!cells.includes(current_object)) {
+    cells.push(current_object);
+    current_object.mesh.position.y += 0.1;
+    current_object.reset_displacement();
+  }   
+}
+
+function update_3d_visuals_displacement() {
+  // for (let i of cells) {
+  //   i.reset_displacement();
+  //   for (let j of cells) {
+  //     if (j !== i)
+  //       i.add_displacement(j);
+  //   }
+  // }
 }
 
 // warning always when generating flat
@@ -181,12 +197,13 @@ function update_current_cell() {
         will_break = will_2d_break(amplitude_value, width_value);
         break;
     }
-    if (!will_break) current_object.regenerate(amplitude_value, width_value);
+    if (!will_break) current_object.regenerate(amplitude_value, width_value, cells);
     else {
       amplitude_value = prev_amplitude;
       width_value = prev_width;
       set_sliders(current_object.amplitude, current_object.width, current_object.elastic_d);
     }
+    check_gap();
   }
 }
 
@@ -221,10 +238,10 @@ document.addEventListener("mousedown", function(event) {
 document.getElementById("add")?.addEventListener("click", function () {
   switch (selected_type) {
     case "basic1d":
-      set_current_object(create_basic1d(amplitude_value, width_value));
+      set_current_object(create_basic1d(amplitude_value, width_value, cells));
     break;
     case "basic2d":
-      set_current_object(create_basic2d(amplitude_value, width_value));
+      set_current_object(create_basic2d(amplitude_value, width_value, cells));
     break;
   }
   place_current_selected_cell(orbitControl.target);
@@ -283,10 +300,10 @@ function set_sliders(amplitude: number, width: number, elastic: number) {
 
 function set_current_object(newObj: Cell) {
   if (current_object != null) {
-    current_object.selected_mesh.visible = false;
+    current_object.set_selected_mesh(false, true)
   }
   current_object = newObj;
-  current_object.selected_mesh.visible = true;
+  current_object.set_selected_mesh(true, true);
 
   set_sliders(newObj.amplitude, newObj.width, newObj.elastic_d);
 
@@ -310,6 +327,7 @@ var move_offset: Three.Vector3 = new Three.Vector3(0, 0, 0);
 function move_cell(mousePos: Three.Vector3) {
   place_current_selected_cell(mousePos.add(move_offset));
   checkCollision(current_object);
+  check_gap();
 }
 
 // editing mode drag camera
@@ -351,17 +369,6 @@ btn_export.addEventListener("click", function() {
   export_cells(cells, export_type);
 });
 
-const btn_export_svg = document.getElementById("export_svg")!;
-btn_export_svg.addEventListener("click", function() {
-  set_export_type("svg");
-});
-
-
-const btn_export_dxf = document.getElementById("export_dxf")!;
-btn_export_dxf.addEventListener("click", function() {
-  set_export_type("dxf");
-});
-
 function enable_all_btns_not_me(not_disable_id: string) {
   btn_basic1d.disabled = false;
   btn_basic2d.disabled = false;
@@ -396,7 +403,7 @@ toggleSwitch.addEventListener('change', function () {
 });
 
 
-var export_type = "dxf";
+var export_type = "svg";
 
 const export_text = document.getElementById("export_inner")!;
 
@@ -465,6 +472,8 @@ function check_mergin() {
         merge_1d(collision_type["agent1"], collision_type["agent2"], cells);
         break;
       case "1d_left_right":
+        collision_type["agent1"].amplitude = collision_type["agent2"].amplitude;
+        collision_type["agent1"].width = collision_type["agent2"].width;
         merge_1d(collision_type["agent2"], collision_type["agent1"], cells);
         remove(collision_type["agent2"]);
         break;
@@ -504,7 +513,22 @@ function checkCollision(cell: Cell) {
     }
   }
 }
-
+function check_gap() {
+  // const newCenter = [
+  //   cells.reduce((acc: number, value: Cell) => { return Math.max(acc, value.position.x + value.get_width())}, 0) / 2.0,
+  //   cells.reduce((acc: number, value: Cell) => { return Math.max(acc, value.position.z + value.get_height())}, 0) / 2.0
+  // ];
+  // 
+  // const offset = [newCenter[0] - center[0], newCenter[1] - center[1]];
+  // for (let cell of cells) {
+  //   cell.mesh.position.x += offset[0];
+  //   cell.mesh.position.z += offset[1];
+  // }
+  // center = newCenter;
+  for (let c of cells) {
+    c.update_gap(cells);
+  }
+}
 
 // basic1d is selected by default.
 enable_all_btns_not_me("basic1d");
