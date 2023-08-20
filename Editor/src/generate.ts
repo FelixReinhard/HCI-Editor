@@ -14,6 +14,13 @@ export function create_basic1d(amplitude: number, width: number, cells: Cell[]):
   return new Cell("basic1d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width, cells);
 }
 
+export function create_right1d(amplitude: number, width: number, cells: Cell[]): Cell {
+  const vertices = generate_right1d(amplitude, width);
+  const vertices_flat = generate_right1d_flat(amplitude, width);
+  
+  return new Cell("right1d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width, cells);
+}
+
 export function will_1d_break(amplitude: number, width: number): boolean {
   const f = formula(amplitude, width, c1);
 
@@ -208,6 +215,60 @@ function generate_basic1d(amplitude: number, width: number): number[] {
     ...quad(
       [center - d/2.0, 0, 0], [center, -c, 0],
       [center - d/2.0, 0, b], [center, -c, b],
+    ),
+    ...quad(
+      [center, -c, 0], [center + d/2.0, 0, 0], 
+      [center, -c, b], [center + d/2.0, 0, b], 
+    ),
+    ...quad(
+      [center + DEFAULT_SIZE*2 + d/2.0, -DEFAULT_SIZE/2.0, 0], 
+      [center + DEFAULT_SIZE*2 + d/2.0, -DEFAULT_SIZE/2.0, b],
+      [center + DEFAULT_SIZE + d/2.0, 0, 0], 
+      [center + DEFAULT_SIZE + d/2.0, 0, b],
+    ),
+    //...rect(DEFAULT_SIZE, b, [center + DEFAULT_SIZE + d/2.0, 0])
+  ]
+  return vertices;
+}
+
+function generate_right1d_flat(amplitude: number, width: number): number[] {
+
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+
+  return [
+    ...rect(DEFAULT_SIZE, b),
+    ...rect(a*.6, b, [DEFAULT_SIZE*2, 0]),
+    ...rect(a*1.4, b, [DEFAULT_SIZE*3 + a*.6, 0]),
+    ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a, 0]),
+  ];
+}
+
+
+function generate_right1d(amplitude: number, width: number): number[] {
+  const c = amplitude;
+  const d = width;
+
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+  
+  const center = DEFAULT_SIZE*2.5 + a*.6;
+  // TODO
+  const vertices = [
+    ...quad(
+      [center - DEFAULT_SIZE*2 - d/2.0*.6, -DEFAULT_SIZE/2.0, 0], 
+      [center - DEFAULT_SIZE*2 - d/2.0*.6, -DEFAULT_SIZE/2.0, b],
+      [center - DEFAULT_SIZE- d/2.0*.6, 0, 0], 
+      [center - DEFAULT_SIZE- d/2.0*.6, 0, b],
+    ),
+    // ...rect(DEFAULT_SIZE, b, [center - DEFAULT_SIZE*2 - d/2.0, 0]),
+    ...quad(
+      [center - d/2.0*.6, 0, 0], [center, -c, 0],
+      [center - d/2.0*.6, 0, b], [center, -c, b],
     ),
     ...quad(
       [center, -c, 0], [center + d/2.0, 0, 0], 
@@ -570,15 +631,19 @@ class GapBox {
     this.boundingBox.material = material;
   }
 
-  regenerate(cells: Cell[], mouse_up: boolean) {
+  regenerate(cells: Cell[], mouse_up: boolean, selected_cell: Cell) {
+
+    const v = this.cell.amplitude * 2 +1;
+    this.d = [v, v, v, v];
+
     if (cells.length <= 1) {
-      const v = this.cell.amplitude * 2 +1;
-      this.d = [v, v, v, v];
       this.update_bounding_box();
       return;
     }
     // first sort all other cells into coll boxes
     let oldR: Cell | null = null;
+    let oldU: Cell | null = null;
+    let oldB: Cell | null = null;
     let oldL: Cell | null  = null;
 
     let boxes = {}
@@ -588,13 +653,14 @@ class GapBox {
     for (let c of cells) {
 
       const center = c.get_center();
-      
+      // normal ones
       if (center[0] >= this.cell.position.x + this.cell.get_width()
         && center[1] >= this.cell.position.z 
         && center[1] <= this.cell.position.z + this.cell.get_height()
       ) {
         // right of cell
-        console.log("right")
+        if (this.cell == selected_cell)
+          console.log("right")
         if (oldR != null && oldR.amplitude > c.amplitude) 
           this.d[1] = Math.max(oldR.amplitude, this.cell.amplitude)*2 + 1;
         else {
@@ -608,6 +674,7 @@ class GapBox {
       ) {
         // left of cell
         //
+        if (this.cell == selected_cell)
         console.log("left")
         if (oldL != null && oldL.amplitude > c.amplitude) 
           this.d[0] = Math.max(oldL.amplitude, this.cell.amplitude)*2 + 1;
@@ -621,14 +688,51 @@ class GapBox {
         && center[1] >= this.cell.position.z + this.cell.get_height()
       ) {
         // top of cell
+        if (this.cell == selected_cell)
         console.log("top")
+        if (oldU != null && oldU.amplitude > c.amplitude) 
+          this.d[2] = Math.max(oldU.amplitude, this.cell.amplitude) * 2 + 1;
+        else {
+          this.d[2] = Math.max(c.amplitude, this.cell.amplitude)*2 + 1;
+          oldU = c;
+        }
       } 
       else if (center[0] >= this.cell.position.x 
         && center[0] <= this.cell.position.x + this.cell.get_width()
         && center[1] <= this.cell.position.z
       ) {
-        // botom of cell
-        console.log("bottom")
+        if (this.cell == selected_cell)
+        console.log("bottom");
+        if (oldB != null && oldB.amplitude > c.amplitude) 
+          this.d[3] = Math.max(oldB.amplitude, this.cell.amplitude) * 2 + 1;
+        else {
+          this.d[3] = Math.max(c.amplitude, this.cell.amplitude)*2 + 1;
+          oldB = c;
+        }
+      }
+      else if (center[0] >= this.cell.position.x + this.cell.get_width()
+        && center[1] >= this.cell.position.z + this.cell.get_height()
+      ) {
+        if (this.cell == selected_cell)
+        console.log("right top");
+      }
+      else if (center[0] <= this.cell.position.x 
+        && center[1] >= this.cell.position.z + this.cell.get_height()
+      ) {
+        if (this.cell == selected_cell)
+        console.log("left top");
+      }
+      else if (center[0] <= this.cell.position.x
+        && center[1] >= this.cell.position.z + this.cell.get_height()
+      ) {
+        if (this.cell == selected_cell)
+        console.log("left top");
+      }
+      else if (center[0] <= this.cell.position.x
+        && center[1] <= this.cell.position.z
+      ) {
+        if (this.cell == selected_cell)
+        console.log("left bottom");
       }
     }
       // find nearest cell right of this cell.
@@ -694,11 +798,11 @@ export class Cell {
     return [this.position.x + this.get_width() / 2, this.position.z + this.get_height() / 2];
   }
 
-  update_gap(otherCells: Cell[]) {
-    this.lines.regenerate(otherCells, false);
+  update_gap(otherCells: Cell[], current_cell: Cell) {
+    this.lines.regenerate(otherCells, false, current_cell);
   }
 
-  add_lines(scene: Three.Scene) {
+  add_bounding_box(scene: Three.Scene) {
     // scene.add(this.lines.right);
     // scene.add(this.lines.left);
     // scene.add(this.lines.up);
@@ -763,6 +867,10 @@ export class Cell {
         vertices_flat = generate_basic1d_flat(amplitude, width);
         vertices = generate_basic1d(amplitude, width); 
         break;
+      case "right1d":
+        vertices_flat = generate_right1d_flat(amplitude, width);
+        vertices = generate_right1d(amplitude, width); 
+        break;
       case "basic2d":
         vertices_flat = generate_basic2d_flat(amplitude, width);
         vertices = generate_basic2d(amplitude, width);
@@ -806,7 +914,7 @@ export class Cell {
 
     this.selected_mesh.geometry.dispose();
 
-    this.update_gap(cells);
+    //this.update_gap(cells);
 
     const verticesFloat32Array3 = new Float32Array(generate_selected_rect(this.get_width() + 2, this.get_height() + 2));
     // Create the BufferGeometry
@@ -827,7 +935,7 @@ export class Cell {
   }
 
   reset_displacement() {
-    this.mesh.position.copy(this.position);
+   // this.mesh.position.copy(this.position);
   }
 
   add_displacement(cell: Cell) {

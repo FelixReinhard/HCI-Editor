@@ -11,6 +11,9 @@ export function export_cells(cells: Cell[], format: string) {
       case "basic1d":
         basic1D([cell.position.x + DEF_SIZE[0]/2.0, (cell.position.z + DEF_SIZE[1]/2.0)], cell.amplitude, cell.width, cell.coll, writer);
         break;
+      case "right1d":
+        right1D([cell.position.x + DEF_SIZE[0]/2.0, (cell.position.z + DEF_SIZE[1]/2.0)], cell.amplitude, cell.width, cell.coll, writer);
+        break;
       case "basic2d":
         basic2D([cell.position.x + DEF_SIZE[0]/2.0, (cell.position.z + DEF_SIZE[1]/2.0)], cell.amplitude, cell.width, writer);
         break;
@@ -63,6 +66,17 @@ function basic1D(position: number[], amplitude: number, width: number,collisions
   writer.rect(position[0] + DEFAULT_SIZE*4 + 2*a , position[1], DEFAULT_SIZE, b);
 }
 
+function right1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: Writer) {
+  const f = formula(amplitude, width, c1); 
+
+  const b = f[1];
+  const a = f[0];
+
+  writer.rect(position[0], position[1], DEFAULT_SIZE, b);
+  writer.rect(position[0] + DEFAULT_SIZE*2, position[1], a*.6, b);
+  writer.rect(position[0] + DEFAULT_SIZE*3 + a*.6, position[1], a*1.4, b);
+  writer.rect(position[0] + DEFAULT_SIZE*4 + 2*a , position[1], DEFAULT_SIZE, b);
+}
 
 function basic2D(position: number[], amplitude: number, width: number, writer: SvgWriter) {
 

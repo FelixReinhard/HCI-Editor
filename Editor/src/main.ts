@@ -7,7 +7,7 @@ import './style.css'
 import * as Three from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
-import {Cell, create_basic1d, create_basic2d, will_1d_break, will_2d_break} from './generate.ts';
+import {Cell, create_right1d, create_basic1d, create_basic2d, will_1d_break, will_2d_break} from './generate.ts';
 import {make_3d_mesh_visible} from "./utils.ts";
 import { export_cells } from './export.ts';
 import { merge_1d, merge_1d_chain, merge_1d_chain_left, merge_1d_t2 } from './merge.ts';
@@ -19,15 +19,18 @@ const AMPLITUDE_RANGE = [4, 20];
 const WIDTH_RANGE = [8, 40];
 
 // State 
+// ######################################################
 var mode: String = "inspect"
 var cells: Cell[] = []
+
 // Which type of thing is currently selected, changed with the buttons on the left.
 var selected_type = "basic1d"; // basic1d
 var amplitude_value = AMPLITUDE_RANGE[1]/2.0;
 var width_value = WIDTH_RANGE[1]/2.0;
 var current_object: Cell = create_basic1d(amplitude_value, width_value, cells);
 
-// Positions are in mm
+// Setup three js scene 
+// ######################################################
 const scene = new Three.Scene();
 const camera = new Three.PerspectiveCamera(80, (window.innerWidth * 0.6) / window.innerHeight, 0.1, 1000);
 const renderer = new Three.WebGLRenderer({
@@ -39,23 +42,21 @@ renderer.setSize(window.innerWidth * 0.6, window.innerHeight);
 camera.position.setZ(EDITING_MODE_DEFAULT_DIST);
 camera.rotation.set(0, -Math.PI / 2, 0)
 
+// Add Grid visual
+// ######################################################
+
 const lineGeometry = new Three.BufferGeometry().setFromPoints([
     new Three.Vector3(0, 0, 0), // Start point
     new Three.Vector3(0, 100, 0), // End point (change Y value to adjust the height)
 ]);
-
 const lineMaterial = new Three.LineBasicMaterial({ color: 0x000000 }); 
-
 // Create the line object and add it to the scene
 const line = new Three.Line(lineGeometry, lineMaterial);
 scene.add(line);
 
 const orbitControl = new OrbitControls(camera, renderer.domElement);
-//
-// scene.add(t);
-// Grid 
-const gridHelper = new Three.GridHelper(500, 50);
-scene.add( gridHelper );
+scene.add( new Three.GridHelper(500, 50) );
+ 
 
 
 function animate() {
@@ -100,32 +101,6 @@ function moveX(dir) {
   camera.position.x += dir;
 }
 
-// check keyboard input to move OrbitControls 
-document.addEventListener("keydown", function(event) {
-  switch (event.key) {
-    case "e":
-      if (mode == "editing") switch_mode("inspect")
-      else switch_mode("editing")
-      break;
-    case "w":
-      moveY(-1)
-      break;
-    case "s":
-      moveY(1)
-      break;
-    case "d":
-      moveX(1)
-      break;
-    case "a":
-      moveX(-1)
-      break;
-    case "Delete":
-      remove_selected_cell();
-      break;
-    default:
-      break;
-  }
-});
 
 function remove_selected_cell() {
   remove(current_object);
@@ -150,30 +125,20 @@ function place_current_selected_cell(position: Three.Vector3) {
   // add offset 
   current_object.selected_mesh.position.x -= 1;
   current_object.selected_mesh.position.z += 1;
+  current_object.mesh.position.y = 0.1;
 
   scene.add(current_object.mesh_flat);
   scene.add(current_object.mesh);
   scene.add(current_object.selected_mesh);
-  current_object.add_lines(scene);
+  current_object.add_bounding_box(scene);
 
   current_object.mesh.visible = mode == "inspect";
   current_object.position.copy(position);
   current_object.gen_coll();
   if (!cells.includes(current_object)) {
     cells.push(current_object);
-    current_object.mesh.position.y += 0.1;
     current_object.reset_displacement();
   }   
-}
-
-function update_3d_visuals_displacement() {
-  // for (let i of cells) {
-  //   i.reset_displacement();
-  //   for (let j of cells) {
-  //     if (j !== i)
-  //       i.add_displacement(j);
-  //   }
-  // }
 }
 
 // warning always when generating flat
@@ -211,6 +176,33 @@ var last_pos = {'x': 0, 'y': 0}
 var mouse_pressed = 0;
 var clicked_on_cell = false;
 
+// check keyboard input to move OrbitControls 
+document.addEventListener("keydown", function(event) {
+  switch (event.key) {
+    case "e":
+      if (mode == "editing") switch_mode("inspect")
+      else switch_mode("editing")
+      break;
+    case "w":
+      moveY(-1)
+      break;
+    case "s":
+      moveY(1)
+      break;
+    case "d":
+      moveX(1)
+      break;
+    case "a":
+      moveX(-1)
+      break;
+    case "Delete":
+      remove_selected_cell();
+      break;
+    default:
+      break;
+  }
+});
+
 document.addEventListener("mouseup", function() {
   --mouse_pressed
   last_pos = {'x': 0, 'y': 0}
@@ -234,15 +226,18 @@ document.addEventListener("mousedown", function(event) {
   } 
   clicked_on_cell = false;
 })
-// Add new btn
+// Add new btn/ Button
 document.getElementById("add")?.addEventListener("click", function () {
   switch (selected_type) {
     case "basic1d":
       set_current_object(create_basic1d(amplitude_value, width_value, cells));
-    break;
+      break;
     case "basic2d":
       set_current_object(create_basic2d(amplitude_value, width_value, cells));
-    break;
+      break;
+    case "right1d":
+      set_current_object(create_right1d(amplitude_value, width_value, cells));
+      break;
   }
   place_current_selected_cell(orbitControl.target);
 })
@@ -358,6 +353,14 @@ btn_basic1d.addEventListener("click", function () {
   enable_all_btns_not_me("basic1d");
 });
 
+const btn_right1d = document.getElementById("right1d") as HTMLButtonElement;
+btn_right1d.addEventListener("click", function () {
+  selected_type = "right1d";
+  enable_all_btns_not_me("right1d");
+});
+
+
+
 const btn_basic2d = document.getElementById("basic2d") as HTMLButtonElement;
 btn_basic2d.addEventListener("click", function() {
   selected_type = "basic2d";
@@ -372,6 +375,7 @@ btn_export.addEventListener("click", function() {
 function enable_all_btns_not_me(not_disable_id: string) {
   btn_basic1d.disabled = false;
   btn_basic2d.disabled = false;
+  btn_right1d.disabled = false;
   
   document.getElementById(not_disable_id).disabled = true;
 }
@@ -526,7 +530,7 @@ function check_gap() {
   // }
   // center = newCenter;
   for (let c of cells) {
-    c.update_gap(cells);
+    c.update_gap(cells, current_object);
   }
 }
 

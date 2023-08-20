@@ -97,7 +97,7 @@ export class SvgWriter implements Writer {
     return this;
   }
 
-  path(positions: [number, number][], color:number=0): SvgWriter {
+  path(positions: [number, number][], _color:number=0): SvgWriter {
     this.content += `<path d="M${positions[0][0]} ${positions[0][1]}`;
     for (let i = 1; i < positions.length; i++) {
       const pos = positions[i];
