@@ -8,7 +8,6 @@ const export_functions = {
   "basic1d": basic1D,
   "right1d": right1D,
   "basic2d": basic2D,
-  "basic1d_chained": basic1d_chained,
   "full1d": full1D,
   "slope71d": slope71D,
   "slope1d": slope1D,
@@ -20,7 +19,7 @@ export function export_cells(cells: Cell[], format: string) {
   for (const cell of cells) {
     if (cell.type in export_functions) {
       export_functions[cell.type]([cell.position.x + DEF_SIZE[0]/2.0, (cell.position.z + DEF_SIZE[1]/2.0)], cell.amplitude, cell.width, cell.coll, writer);
-    } else if (cell.type == "basic1d_chained"){
+    } else if (cell.type == "chained_basic_1d"){
       basic1d_chained([cell.position.x + DEF_SIZE[0]/2.0, (cell.position.z + DEF_SIZE[1]/2.0)], cell.amplitude, cell.width, writer, cell.meta_data);
     } else {
       console.log(`Cant export ${cell.type}`);
