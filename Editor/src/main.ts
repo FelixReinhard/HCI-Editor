@@ -7,7 +7,7 @@ import './style.css'
 import * as Three from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
-import {Cell, create_right1d, create_basic1d, create_basic2d, will_1d_break, will_2d_break} from './generate.ts';
+import {Cell, create_right1d, create_basic1d, create_basic2d, will_1d_break, will_2d_break, create_full1d, create_slope701d, create_slope1d, create_angle1d} from './generate.ts';
 import {make_3d_mesh_visible} from "./utils.ts";
 import { export_cells } from './export.ts';
 import { merge_1d, merge_1d_chain, merge_1d_chain_left, merge_1d_t2 } from './merge.ts';
@@ -156,6 +156,11 @@ function update_current_cell() {
     switch (current_object.type) {
       case "basic1d":
       case "chained_basic_1d":
+      case "right1d":
+      case "full1d":
+      case "slope71d":
+      case "slope1d":
+      case "angle1d":
         will_break = will_1d_break(amplitude_value, width_value);
         break;
       case "basic2d":
@@ -237,6 +242,18 @@ document.getElementById("add")?.addEventListener("click", function () {
       break;
     case "right1d":
       set_current_object(create_right1d(amplitude_value, width_value, cells));
+      break;
+    case "full1d":
+      set_current_object(create_full1d(amplitude_value, width_value, cells));
+      break;
+    case "slope71d":
+      set_current_object(create_slope701d(amplitude_value, width_value, cells));
+      break;
+    case "slope1d":
+      set_current_object(create_slope1d(amplitude_value, width_value, cells));
+      break;
+    case "angle1d":
+      set_current_object(create_angle1d(amplitude_value, width_value, cells));
       break;
   }
   place_current_selected_cell(orbitControl.target);
@@ -359,7 +376,29 @@ btn_right1d.addEventListener("click", function () {
   enable_all_btns_not_me("right1d");
 });
 
+const btn_full1d = document.getElementById("full1d") as HTMLButtonElement;
+btn_full1d.addEventListener("click", function () {
+  selected_type = "full1d";
+  enable_all_btns_not_me("full1d");
+});
 
+const btn_slope71d= document.getElementById("slope71d") as HTMLButtonElement;
+btn_slope71d.addEventListener("click", function () {
+  selected_type = "slope71d";
+  enable_all_btns_not_me("slope71d");
+});
+
+const btn_slope1d= document.getElementById("slope1d") as HTMLButtonElement;
+btn_slope1d.addEventListener("click", function () {
+  selected_type = "slope1d";
+  enable_all_btns_not_me("slope1d");
+});
+
+const btn_angle1d = document.getElementById("angle1d") as HTMLButtonElement;
+btn_angle1d.addEventListener("click", function () {
+  selected_type = "angle1d";
+  enable_all_btns_not_me("angle1d");
+});
 
 const btn_basic2d = document.getElementById("basic2d") as HTMLButtonElement;
 btn_basic2d.addEventListener("click", function() {
@@ -376,6 +415,10 @@ function enable_all_btns_not_me(not_disable_id: string) {
   btn_basic1d.disabled = false;
   btn_basic2d.disabled = false;
   btn_right1d.disabled = false;
+  btn_full1d.disabled = false;
+  btn_slope71d.disabled = false;
+  btn_slope1d.disabled = false;
+  btn_angle1d.disabled = false;
   
   document.getElementById(not_disable_id).disabled = true;
 }
@@ -505,8 +548,9 @@ function check_mergin() {
 // collision 
 function checkCollision(cell: Cell) {
   for (let other of cells) {
-    if (other == cell) continue;
+    if (other == cell || cell.coll == null) continue;
     for (let col1 of cell.coll) {
+      if (other.coll == null) continue;
       for (let col2 of other.coll) { 
         const key = `${cell.type}_${other.type}:${col1.meta}_${col2.meta}`;
         if (key in collision_callbacks && col1.collisionBoxesIntersect(col2)) {

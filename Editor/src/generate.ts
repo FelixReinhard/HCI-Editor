@@ -21,6 +21,34 @@ export function create_right1d(amplitude: number, width: number, cells: Cell[]):
   return new Cell("right1d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width, cells);
 }
 
+export function create_full1d(amplitude: number, width: number, cells: Cell[]): Cell {
+  const vertices = generate_full1d(amplitude, width);
+  const vertices_flat = generate_full1d_flat(amplitude, width);
+  
+  return new Cell("full1d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width, cells);
+}
+
+export function create_slope701d(amplitude: number, width: number, cells: Cell[]): Cell {
+  const vertices = generate_slope71d(amplitude, width);
+  const vertices_flat = generate_slope71d_flat(amplitude, width);
+  
+  return new Cell("slope71d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width, cells);
+}
+
+export function create_slope1d(amplitude: number, width: number, cells: Cell[]): Cell {
+  const vertices = generate_slope1d(amplitude, width);
+  const vertices_flat = generate_slope1d_flat(amplitude, width);
+  
+  return new Cell("slope1d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width, cells);
+}
+
+export function create_angle1d(amplitude: number, width: number, cells: Cell[]): Cell {
+  const vertices = generate_angle1d(amplitude, width);
+  const vertices_flat = generate_angle1d_flat(amplitude, width);
+  
+  return new Cell("angle1d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width, cells);
+}
+
 export function will_1d_break(amplitude: number, width: number): boolean {
   const f = formula(amplitude, width, c1);
 
@@ -257,7 +285,6 @@ function generate_right1d(amplitude: number, width: number): number[] {
   const a = f[0];
   
   const center = DEFAULT_SIZE*2.5 + a*.6;
-  // TODO
   const vertices = [
     ...quad(
       [center - DEFAULT_SIZE*2 - d/2.0*.6, -DEFAULT_SIZE/2.0, 0], 
@@ -271,8 +298,128 @@ function generate_right1d(amplitude: number, width: number): number[] {
       [center - d/2.0*.6, 0, b], [center, -c, b],
     ),
     ...quad(
-      [center, -c, 0], [center + d/2.0, 0, 0], 
-      [center, -c, b], [center + d/2.0, 0, b], 
+      [center, -c, 0], [center + d/2.0*1.4, 0, 0], 
+      [center, -c, b], [center + d/2.0*1.4, 0, b], 
+    ),
+    ...quad(
+      [center + DEFAULT_SIZE*2 + d/2.0*1.4, -DEFAULT_SIZE/2.0, 0], 
+      [center + DEFAULT_SIZE*2 + d/2.0*1.4, -DEFAULT_SIZE/2.0, b],
+      [center + DEFAULT_SIZE + d/2.0*1.4, 0, 0], 
+      [center + DEFAULT_SIZE + d/2.0*1.4, 0, b],
+    ),
+    //...rect(DEFAULT_SIZE, b, [center + DEFAULT_SIZE + d/2.0, 0])
+  ]
+  return vertices;
+}
+
+
+function generate_full1d_flat(amplitude: number, width: number): number[] {
+
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+
+  return [
+    ...rect(DEFAULT_SIZE, b),
+    ...rect(a*2 + DEFAULT_SIZE, b, [DEFAULT_SIZE*2, 0]),
+    ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a, 0]),
+  ];
+}
+
+
+function generate_full1d(amplitude: number, width: number): number[] {
+  const c = amplitude;
+  const d = width;
+
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+  
+  const center = DEFAULT_SIZE*2.5 + a;
+  const vertices = [
+    ...quad(
+      [center - DEFAULT_SIZE*2 - d/2.0, -DEFAULT_SIZE/2.0, 0], 
+      [center - DEFAULT_SIZE*2 - d/2.0, -DEFAULT_SIZE/2.0, b],
+      [center - DEFAULT_SIZE- d/2.0, 0, 0], 
+      [center - DEFAULT_SIZE- d/2.0, 0, b],
+    ),
+    // ...rect(DEFAULT_SIZE, b, [center - DEFAULT_SIZE*2 - d/2.0, 0]),
+    ...quad(
+      [center - d/2.0, 0, 0], [center + d/2.0, -c, 0],
+      [center - d/2.0, 0, b], [center + d/2.0, -c, b],
+    ),
+    ...quad(
+      [center + DEFAULT_SIZE*2 + d/2.0, -DEFAULT_SIZE/2.0, 0], 
+      [center + DEFAULT_SIZE*2 + d/2.0, -DEFAULT_SIZE/2.0, b],
+      [center + DEFAULT_SIZE + d/2.0, 0, 0], 
+      [center + DEFAULT_SIZE + d/2.0, 0, b],
+    ),
+  ]
+  return vertices;
+}
+
+
+function generate_slope71d_flat(amplitude: number, width: number): number[] {
+  
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+
+  if (a < 0 || b < 0) {
+    warning(true, WARNING_STRING);
+  } else {
+    warning(false);
+  }
+
+  const vertices = [
+    ...rect(DEFAULT_SIZE, b),
+    ...quad(
+      [DEFAULT_SIZE*2 + a, 0, b*.15], 
+      [DEFAULT_SIZE*2 + a, 0, b*.85], 
+      [DEFAULT_SIZE*2, 0, 0], 
+      [DEFAULT_SIZE*2, 0, b]
+    ),
+    ...quad(
+      [DEFAULT_SIZE*3 + 2*a, 0, 0], 
+      [DEFAULT_SIZE*3 + 2*a, 0, b], 
+      [DEFAULT_SIZE*3 + a, 0, b*.15], 
+      [DEFAULT_SIZE*3 + a, 0, b*.85]
+    ),
+    ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a, 0])
+  ];
+
+  return vertices;
+}
+
+function generate_slope71d(amplitude: number, width: number): number[] {
+  const c = amplitude;
+  const d = width;
+
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+  
+  const center = DEFAULT_SIZE*2.5 + a;
+
+  const vertices = [
+    ...quad(
+      [center - DEFAULT_SIZE*2 - d/2.0, -DEFAULT_SIZE/2.0, 0], 
+      [center - DEFAULT_SIZE*2 - d/2.0, -DEFAULT_SIZE/2.0, b],
+      [center - DEFAULT_SIZE- d/2.0, 0, 0], 
+      [center - DEFAULT_SIZE- d/2.0, 0, b],
+    ),
+    // ...rect(DEFAULT_SIZE, b, [center - DEFAULT_SIZE*2 - d/2.0, 0]),
+    ...quad(
+      [center - d/2.0, 0, 0], [center, -c, b*.15],
+      [center - d/2.0, 0, b], [center, -c, b*.85],
+    ),
+    ...quad(
+      [center, -c, b*.15], [center + d/2.0, 0, 0], 
+      [center, -c, b*.85], [center + d/2.0, 0, b], 
     ),
     ...quad(
       [center + DEFAULT_SIZE*2 + d/2.0, -DEFAULT_SIZE/2.0, 0], 
@@ -283,6 +430,129 @@ function generate_right1d(amplitude: number, width: number): number[] {
     //...rect(DEFAULT_SIZE, b, [center + DEFAULT_SIZE + d/2.0, 0])
   ]
   return vertices;
+}
+
+function generate_slope1d_flat(amplitude: number, width: number): number[] {
+  
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+
+  if (a < 0 || b < 0) {
+    warning(true, WARNING_STRING);
+  } else {
+    warning(false);
+  }
+
+  const vertices = [
+    ...rect(DEFAULT_SIZE, b),
+    ...vertex([DEFAULT_SIZE*2, 0, 0], [DEFAULT_SIZE*2, 0, b], [DEFAULT_SIZE*2 + a, 0, b/2.0]),
+    ...vertex([DEFAULT_SIZE*3 + a, 0, b/2.0], [DEFAULT_SIZE*3 + 2*a, 0, 0], [DEFAULT_SIZE*3 + 2*a, 0, b]),
+    ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a, 0])
+  ];
+
+  return vertices;
+}
+
+function generate_slope1d(amplitude: number, width: number): number[] {
+  const c = amplitude;
+  const d = width;
+
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+  
+  const center = DEFAULT_SIZE*2.5 + a;
+
+  const vertices = [
+    ...quad(
+      [center - DEFAULT_SIZE*2 - d/2.0, -DEFAULT_SIZE/2.0, 0], 
+      [center - DEFAULT_SIZE*2 - d/2.0, -DEFAULT_SIZE/2.0, b],
+      [center - DEFAULT_SIZE- d/2.0, 0, 0], 
+      [center - DEFAULT_SIZE- d/2.0, 0, b],
+    ),
+    // ...rect(DEFAULT_SIZE, b, [center - DEFAULT_SIZE*2 - d/2.0, 0]),
+    ...vertex([center - d/2.0, 0, 0], [center - d/2.0, 0, b], [center, -c, b/2.0]),
+    ...vertex([center + d/2.0, 0, 0], [center + d/2.0, 0, b], [center, -c, b/2.0]),
+    ...quad(
+      [center + DEFAULT_SIZE*2 + d/2.0, -DEFAULT_SIZE/2.0, 0], 
+      [center + DEFAULT_SIZE*2 + d/2.0, -DEFAULT_SIZE/2.0, b],
+      [center + DEFAULT_SIZE + d/2.0, 0, 0], 
+      [center + DEFAULT_SIZE + d/2.0, 0, b],
+    ),
+    //...rect(DEFAULT_SIZE, b, [center + DEFAULT_SIZE + d/2.0, 0])
+  ]
+  return vertices;
+}
+
+function generate_angle1d_flat(amplitude: number, width: number): number[] {
+  
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+
+  if (a < 0 || b < 0) {
+    warning(true, WARNING_STRING);
+  } else {
+    warning(false);
+  }
+  
+  const yOffset = -(a * Math.sin(20 * (Math.PI / 180.0))) / Math.sin(70 * (Math.PI / 180.0));
+
+  const vertices = [
+    ...rect(DEFAULT_SIZE, b),
+    ...quad(
+      [DEFAULT_SIZE*2, 0, 0], [DEFAULT_SIZE*2, 0, b], [DEFAULT_SIZE*2 + a, 0, yOffset], [DEFAULT_SIZE*2 + a, 0, yOffset + b]
+    ),
+    ...quad(
+      [DEFAULT_SIZE*3 + a, 0, yOffset], [DEFAULT_SIZE*3 + a, 0, yOffset + b], [DEFAULT_SIZE*3 + 2*a, 0, 0], [DEFAULT_SIZE*3 + 2*a, 0, b]
+    ),
+    ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a, 0])
+  ];
+
+  return move_verticies(0, 0, -yOffset, vertices);
+}
+
+function generate_angle1d(amplitude: number, width: number): number[] {
+  const c = amplitude;
+  const d = width;
+
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+  
+  const center = DEFAULT_SIZE*2.5 + a;
+  const yOffset = -(a * Math.sin(20 * (Math.PI / 180.0))) / Math.sin(70 * (Math.PI / 180.0));
+
+  const vertices = [
+    ...quad(
+      [center - DEFAULT_SIZE*2 - d/2.0, -DEFAULT_SIZE/2.0, 0], 
+      [center - DEFAULT_SIZE*2 - d/2.0, -DEFAULT_SIZE/2.0, b],
+      [center - DEFAULT_SIZE- d/2.0, 0, 0], 
+      [center - DEFAULT_SIZE- d/2.0, 0, b],
+    ),
+    // ...rect(DEFAULT_SIZE, b, [center - DEFAULT_SIZE*2 - d/2.0, 0]),
+    ...quad(
+      [center - d/2.0, 0, 0], [center, -c, yOffset],
+      [center - d/2.0, 0, b], [center, -c, b + yOffset],
+    ),
+    ...quad(
+      [center, -c, yOffset], [center + d/2.0, 0, 0], 
+      [center, -c, yOffset + b], [center + d/2.0, 0, b], 
+    ),
+    ...quad(
+      [center + DEFAULT_SIZE*2 + d/2.0, -DEFAULT_SIZE/2.0, 0], 
+      [center + DEFAULT_SIZE*2 + d/2.0, -DEFAULT_SIZE/2.0, b],
+      [center + DEFAULT_SIZE + d/2.0, 0, 0], 
+      [center + DEFAULT_SIZE + d/2.0, 0, b],
+    ),
+    //...rect(DEFAULT_SIZE, b, [center + DEFAULT_SIZE + d/2.0, 0])
+  ]
+  return move_verticies(0, 0, -yOffset, vertices);
 }
 
 export const c2 = [
@@ -870,6 +1140,22 @@ export class Cell {
       case "right1d":
         vertices_flat = generate_right1d_flat(amplitude, width);
         vertices = generate_right1d(amplitude, width); 
+        break;
+      case "full1d":
+        vertices_flat = generate_full1d_flat(amplitude, width);
+        vertices = generate_full1d(amplitude, width); 
+        break;
+      case "slope71d":
+        vertices_flat = generate_slope71d_flat(amplitude, width);
+        vertices = generate_slope71d(amplitude, width); 
+        break;
+      case "slope1d":
+        vertices_flat = generate_slope1d_flat(amplitude, width);
+        vertices = generate_slope1d(amplitude, width); 
+        break;
+      case "angle1d":
+        vertices_flat = generate_angle1d_flat(amplitude, width);
+        vertices = generate_angle1d(amplitude, width); 
         break;
       case "basic2d":
         vertices_flat = generate_basic2d_flat(amplitude, width);
