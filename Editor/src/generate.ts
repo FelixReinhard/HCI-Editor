@@ -71,6 +71,13 @@ export function create_basic2d(amplitude: number, width: number, cells: Cell[]):
   return new Cell("basic2d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width, cells);
 }
 
+export function create_right2d(amplitude: number, width: number, cells: Cell[]): Cell {
+  const vertices = generate_basic2d(amplitude, width);
+  const vertices_flat = generate_basic2d_flat(amplitude, width);
+  
+  return new Cell("right2d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width, cells);
+}
+
 export function formula(amplitude: number, width: number, c: number[]): number[] {
   const cc = amplitude;
   const d = width;
@@ -326,7 +333,8 @@ function generate_full1d_flat(amplitude: number, width: number): number[] {
     ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a, 0]),
   ];
 }
-
+// acutally 2*ARK_NUM segments are created
+const ARK_NUM = 6;
 
 function generate_full1d(amplitude: number, width: number): number[] {
   const c = amplitude;
@@ -338,6 +346,8 @@ function generate_full1d(amplitude: number, width: number): number[] {
   const a = f[0];
   
   const center = DEFAULT_SIZE*2.5 + a;
+
+
   const vertices = [
     ...quad(
       [center - DEFAULT_SIZE*2 - d/2.0, -DEFAULT_SIZE/2.0, 0], 
@@ -345,11 +355,7 @@ function generate_full1d(amplitude: number, width: number): number[] {
       [center - DEFAULT_SIZE- d/2.0, 0, 0], 
       [center - DEFAULT_SIZE- d/2.0, 0, b],
     ),
-    // ...rect(DEFAULT_SIZE, b, [center - DEFAULT_SIZE*2 - d/2.0, 0]),
-    ...quad(
-      [center - d/2.0, 0, 0], [center + d/2.0, -c, 0],
-      [center - d/2.0, 0, b], [center + d/2.0, -c, b],
-    ),
+    ...arc(center,d, c, b),
     ...quad(
       [center + DEFAULT_SIZE*2 + d/2.0, -DEFAULT_SIZE/2.0, 0], 
       [center + DEFAULT_SIZE*2 + d/2.0, -DEFAULT_SIZE/2.0, b],
@@ -705,6 +711,146 @@ function generate_basic2d_flat(amplitude: number, width: number): number[] {
   ])
 }
 
+function generate_right2d(amplitude: number, width: number): number[] {
+  const c = amplitude;
+  const d = width;
+
+  const f = formula(amplitude, width, c2);
+
+  const b = f[1];
+  const a = f[0];
+  
+  const center = DEFAULT_SIZE*2.5 + a + b/2;
+
+  if (a < 0 || b < 0) {
+    warning(true, WARNING_STRING);
+  } else {
+    warning(false);
+  }
+  
+  const elem_len = a + b/2.0;
+  const elem_len_3d_triangle = (b/2.0)/elem_len * d/2.0;
+  const elem_len_3d_rect = a/elem_len * d/2.0;
+
+  return move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+    // left
+    ...vertex(
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+      [center - DEFAULT_SIZE/2.0, -c, b/2.0], 
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , b], 
+    ),
+    ...quad(
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , b], 
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, 0], 
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, b], 
+    ),
+    ...quad(
+      [center - 3*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, 0], 
+      [center - 3*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, b], 
+      [center - 5*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, -DEFAULT_SIZE/2.0, 0], 
+      [center - 5*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, -DEFAULT_SIZE/2.0, b], 
+    ),
+
+    // right 
+    ...vertex(
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+      [center + DEFAULT_SIZE/2.0, -c, b/2.0], 
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , b], 
+    ),
+    ...quad(
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , b], 
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, 0], 
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, b], 
+    ),
+    ...quad(
+      [center + 3*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, 0], 
+      [center + 3*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, b], 
+      [center + 5*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, -DEFAULT_SIZE/2.0, 0], 
+      [center + 5*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, -DEFAULT_SIZE/2.0, b], 
+    ),
+    // top 
+    ...vertex(
+      [center - b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle],
+      [center, -c, b/2.0 + DEFAULT_SIZE/2.0],
+      [center + b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle],
+    ),
+    ...quad(
+      [center - b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle],
+      [center + b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle],
+
+      [center - b/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+      [center + b/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+    ),
+    ...quad(
+      [center - b/2.0, 0, b/2.0 + 3*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+      [center + b/2.0, 0, b/2.0 + 3*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+      [center - b/2.0, -DEFAULT_SIZE/2.0, b/2.0 + 5*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+      [center + b/2.0, -DEFAULT_SIZE/2.0, b/2.0 + 5*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+    ),
+    // bottom
+    ...vertex(
+      [center - b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle],
+      [center, -c, b/2.0 - DEFAULT_SIZE/2.0],
+      [center + b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle],
+    ),
+    ...quad(
+      [center - b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle],
+      [center + b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle],
+
+      [center - b/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+      [center + b/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+    ),
+    ...quad(
+      [center - b/2.0, 0, b/2.0 - 3*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+      [center + b/2.0, 0, b/2.0 - 3*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+      [center - b/2.0, -DEFAULT_SIZE/2.0, b/2.0 - 5*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+      [center + b/2.0, -DEFAULT_SIZE/2.0, b/2.0 - 5*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+    ),
+
+  ]);
+}
+function generate_right2d_flat(amplitude: number, width: number): number[] {
+
+  const f = formula(amplitude, width, c2);
+
+  const b = f[1];
+  const a = f[0];
+  
+  if (a < 0 || b < 0) {
+    warning(true, WARNING_STRING);
+  } else {
+    warning(false);
+  }
+  // move vertices so that the selected mesh generation can start at 0,0 (2d plane)
+  return move_verticies(0, 0, a*1.4 +DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+    // left
+    ...rect(DEFAULT_SIZE, b),
+    ...rect(a*.6, b, [DEFAULT_SIZE*2, 0]),
+    ...vertex([DEFAULT_SIZE*2 + a*.6, 0, 0], [DEFAULT_SIZE*2 + a*.6+ b/2.0, 0, b/2.0], [DEFAULT_SIZE*2 +a*.6, 0, b]),
+    //right
+    ...vertex([DEFAULT_SIZE*3 + a*.6 + b, 0, 0], [DEFAULT_SIZE*2 + a*.6 + b/2.0 + DEFAULT_SIZE, 0, b/2.0], [DEFAULT_SIZE*3 + a*.6 + b, 0, b]),
+    ...rect(a*1.4, b, [DEFAULT_SIZE*3 + a*.6+ b, 0]),
+    ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a + b, 0]),
+    // top,
+    ...vertex([DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, 0, b + DEFAULT_SIZE/2.0],
+      [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0 + b, 0, b + DEFAULT_SIZE/2.0], 
+      [DEFAULT_SIZE*2 + a*.6 + b/2.0 + DEFAULT_SIZE/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0] 
+    ),
+    ...rect(b, a*.6, [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, b + DEFAULT_SIZE/2.0]),
+    ...rect(b, DEFAULT_SIZE, [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, b + DEFAULT_SIZE/2.0 + a*.6 + DEFAULT_SIZE]),
+    // down
+    ...vertex([DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, 0, -DEFAULT_SIZE/2.0],
+      [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0 + b, 0, -DEFAULT_SIZE/2.0], 
+      [DEFAULT_SIZE*2 + a*.6 + b/2.0 + DEFAULT_SIZE/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0] 
+    ),
+    ...rect(b, a*1.4, [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, -a*1.4 -DEFAULT_SIZE/2.0]),
+    ...rect(b, DEFAULT_SIZE, [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, -DEFAULT_SIZE/2.0 - a*1.4 - DEFAULT_SIZE*2]),
+  ])
+}
+
+
 function vertices_width(vertices: number[]): number {
   let max = 0;
   for (var i = 0; i < vertices.length; i+=3) {
@@ -713,6 +859,22 @@ function vertices_width(vertices: number[]): number {
   return max;
 }
 
+
+function arc(center: number, d: number, c: number, b: number) {
+  function fn(x: number): number {
+    return 1 -((x - 1) ** 2);
+  }
+  let arc = [];
+  for (let i = 0; i < ARK_NUM * 2; i++) {
+    const pos = center - d/2.0 * ( 1 - (i/ARK_NUM));
+    const pos2 = center - d/2.0 * ( 1 - ((i+1)/ARK_NUM));
+    arc.push(...quad(
+      [pos, -c*fn(i/ARK_NUM), 0], [pos, -c*fn(i/ARK_NUM), b],
+      [pos2, -c*fn((i+1)/ARK_NUM), 0], [pos2, -c*fn((i+1)/ARK_NUM), b]
+    ));
+  }
+  return arc;
+}
 function move_verticies(x:number, y:number, z:number, vertices: number[]): number[] {
   // x
   for (var i = 0; i < vertices.length; i+=3) {
@@ -919,6 +1081,15 @@ class GapBox {
     let boxes = {}
 
     const w = this.cell.get_width();
+      
+    function update(t: GapBox, old: Cell, c: Cell, i: number) {
+      if (old != null && old.amplitude > c.amplitude) 
+        t.d[i] = Math.max(old.amplitude, t.cell.amplitude)*2 + 1;
+      else {
+        t.d[i] = Math.max(c.amplitude, t.cell.amplitude)*2 + 1;
+        old = c;
+      }
+    }
 
     for (let c of cells) {
 
@@ -931,12 +1102,7 @@ class GapBox {
         // right of cell
         if (this.cell == selected_cell)
           console.log("right")
-        if (oldR != null && oldR.amplitude > c.amplitude) 
-          this.d[1] = Math.max(oldR.amplitude, this.cell.amplitude)*2 + 1;
-        else {
-          this.d[1] = Math.max(c.amplitude, this.cell.amplitude)*2 + 1;
-          oldR = c;
-        }
+        update(this, oldR!, c, 1);
       }
       else if (center[0] <= this.cell.position.x
         && center[1] >= this.cell.position.z 
@@ -945,13 +1111,8 @@ class GapBox {
         // left of cell
         //
         if (this.cell == selected_cell)
-        console.log("left")
-        if (oldL != null && oldL.amplitude > c.amplitude) 
-          this.d[0] = Math.max(oldL.amplitude, this.cell.amplitude)*2 + 1;
-        else {
-          this.d[0] = Math.max(c.amplitude, this.cell.amplitude)*2 + 1;
-          oldL = c;
-        }
+          console.log("left")
+        update(this, oldL!, c, 0);
       } 
       else if (center[0] >= this.cell.position.x 
         && center[0] <= this.cell.position.x + this.cell.get_width()
@@ -960,49 +1121,48 @@ class GapBox {
         // top of cell
         if (this.cell == selected_cell)
         console.log("top")
-        if (oldU != null && oldU.amplitude > c.amplitude) 
-          this.d[2] = Math.max(oldU.amplitude, this.cell.amplitude) * 2 + 1;
-        else {
-          this.d[2] = Math.max(c.amplitude, this.cell.amplitude)*2 + 1;
-          oldU = c;
-        }
+        update(this, oldU!, c, 2);
       } 
       else if (center[0] >= this.cell.position.x 
         && center[0] <= this.cell.position.x + this.cell.get_width()
         && center[1] <= this.cell.position.z
       ) {
         if (this.cell == selected_cell)
-        console.log("bottom");
-        if (oldB != null && oldB.amplitude > c.amplitude) 
-          this.d[3] = Math.max(oldB.amplitude, this.cell.amplitude) * 2 + 1;
-        else {
-          this.d[3] = Math.max(c.amplitude, this.cell.amplitude)*2 + 1;
-          oldB = c;
-        }
+          console.log("bottom");
+        update(this, oldB!, c, 3);
       }
       else if (center[0] >= this.cell.position.x + this.cell.get_width()
         && center[1] >= this.cell.position.z + this.cell.get_height()
       ) {
         if (this.cell == selected_cell)
         console.log("right top");
+        update(this, oldR!, c, 1);
+        update(this, oldU!, c, 2);
       }
       else if (center[0] <= this.cell.position.x 
         && center[1] >= this.cell.position.z + this.cell.get_height()
       ) {
         if (this.cell == selected_cell)
         console.log("left top");
+        update(this, oldL!, c, 0);
+        update(this, oldU!, c, 2);
       }
-      else if (center[0] <= this.cell.position.x
-        && center[1] >= this.cell.position.z + this.cell.get_height()
+      else if (center[0] >= this.cell.position.x + this.cell.get_width()
+        && center[1] <= this.cell.position.z 
       ) {
         if (this.cell == selected_cell)
-        console.log("left top");
+        console.log("right bottm");
+
+        update(this, oldR!, c, 1);
+        update(this, oldB!, c, 3);
       }
       else if (center[0] <= this.cell.position.x
         && center[1] <= this.cell.position.z
       ) {
         if (this.cell == selected_cell)
         console.log("left bottom");
+        update(this, oldL!, c, 0);
+        update(this, oldB!, c, 3);
       }
     }
       // find nearest cell right of this cell.
@@ -1160,6 +1320,10 @@ export class Cell {
       case "basic2d":
         vertices_flat = generate_basic2d_flat(amplitude, width);
         vertices = generate_basic2d(amplitude, width);
+        break;
+      case "right2d":
+        vertices_flat = generate_right2d_flat(amplitude, width);
+        vertices = generate_right2d(amplitude, width);
         break;
       // 
       case "chained_basic_1d":
