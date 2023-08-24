@@ -7,11 +7,14 @@ const DEF_SIZE = [500, 500];
 const export_functions = {
   "basic1d": basic1D,
   "right1d": right1D,
-  "basic2d": basic2D,
   "full1d": full1D,
   "slope71d": slope71D,
   "slope1d": slope1D,
   "angle1d": angle1D,
+
+  "basic3d": basic2D,
+  "right2d": right2D,
+  "full2d": full2D,
 }
 
 export function export_cells(cells: Cell[], format: string) {
@@ -163,6 +166,54 @@ function right1D(position: number[], amplitude: number, width: number,collisions
   writer.rect(position[0] + DEFAULT_SIZE*4 + 2*a , position[1], DEFAULT_SIZE, b);
 }
 
+function right2D(position: number[], amplitude: number, width: number, collisions: CollisionBox[],  writer: Writer) {
+  
+  const f = formula(amplitude, width, c2); 
+
+  const b = f[1];
+  const a = f[0];
+
+  const offsetY = position[1] - b - DEFAULT_SIZE/2.0;
+  const offsetX = position[0];
+
+  writer.rect(offsetX, offsetY, DEFAULT_SIZE, b); 
+  writer.path([
+    [offsetX + DEFAULT_SIZE*2, offsetY],
+    [offsetX + DEFAULT_SIZE*2 + a*.6, offsetY],
+    [offsetX + DEFAULT_SIZE*2 + a*.6 + b/2.0, offsetY - b/2.0],
+    [offsetX + DEFAULT_SIZE*2 + a*.6, offsetY - b],
+    [offsetX + DEFAULT_SIZE*2, offsetY - b],
+  ]);
+
+  writer.rect(offsetX + DEFAULT_SIZE*4 + 2*a + b, offsetY, DEFAULT_SIZE, b);
+  writer.path([
+    [offsetX + DEFAULT_SIZE*3 + a*.6 + b/2.0, offsetY - b/2.0],
+    [offsetX + DEFAULT_SIZE*3 + a*.6 + b, offsetY],
+    [offsetX + DEFAULT_SIZE*3 + 2*a + b, offsetY],
+    [offsetX + DEFAULT_SIZE*3 + 2*a + b, offsetY - b],
+    [offsetX + DEFAULT_SIZE*3 + a*.6 + b, offsetY - b],
+  ]);
+
+  writer.rect(offsetX + DEFAULT_SIZE*2.5 + a*.6, offsetY + a*1.4 + DEFAULT_SIZE*2.5, b, DEFAULT_SIZE);
+  writer.path([
+    [offsetX + a*.6 + DEFAULT_SIZE*2.5 + b/2.0, offsetY - b/2.0 + DEFAULT_SIZE/2.0],
+    [offsetX + a*.6 + DEFAULT_SIZE*2.5, offsetY + DEFAULT_SIZE/2.0],
+    [offsetX + a*.6 + DEFAULT_SIZE*2.5, offsetY + a*1.4 + DEFAULT_SIZE/2.0],
+    [offsetX + a*.6 + DEFAULT_SIZE*2.5 + b, offsetY + a*1.4 + DEFAULT_SIZE/2.0],
+    [offsetX + a*.6 + DEFAULT_SIZE*2.5 + b, offsetY + DEFAULT_SIZE/2.0],
+  ]);
+
+  writer.rect(offsetX + DEFAULT_SIZE*2.5 + a*.6, offsetY - a - b - DEFAULT_SIZE*1.5, b, DEFAULT_SIZE);
+  writer.path([
+    [offsetX + a*.6 + DEFAULT_SIZE*2.5 + b/2.0, offsetY - b/2.0 - DEFAULT_SIZE/2.0],
+    [offsetX + a*.6 + DEFAULT_SIZE*2.5, offsetY - b - DEFAULT_SIZE/2.0],
+    [offsetX + a*.6 + DEFAULT_SIZE*2.5, offsetY - a - b - DEFAULT_SIZE/2.0],
+    [offsetX + a*.6 + DEFAULT_SIZE*2.5 + b, offsetY - a - b - DEFAULT_SIZE/2.0],
+    [offsetX + a*.6 + DEFAULT_SIZE*2.5 + b, offsetY - b - DEFAULT_SIZE/2.0],
+  ]);
+}
+
+
 function basic2D(position: number[], amplitude: number, width: number, collisions: CollisionBox[],  writer: Writer) {
 
   const f = formula(amplitude, width, c2); 
@@ -208,5 +259,36 @@ function basic2D(position: number[], amplitude: number, width: number, collision
     [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY - a - b - DEFAULT_SIZE/2.0],
     [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY - b - DEFAULT_SIZE/2.0],
   ]);
+}
 
+
+function full2D(position: number[], amplitude: number, width: number, collisions: CollisionBox[], writer: Writer) {
+
+  const f = formula(amplitude, width, c2); 
+
+  const b = f[1];
+  const a = f[0];
+  
+  const offsetY = position[1] - b - DEFAULT_SIZE/2.0;
+  const offsetX = position[0];
+  
+  writer.rect(offsetX, offsetY, DEFAULT_SIZE, b); 
+  writer.rect(offsetX + DEFAULT_SIZE*2, offsetY, b + 2*a + DEFAULT_SIZE, b);
+  writer.rect(offsetX + DEFAULT_SIZE*4 + 2*a + b, offsetY, DEFAULT_SIZE, b);
+
+  writer.rect(offsetX + DEFAULT_SIZE*2.5 + a, offsetY + a + DEFAULT_SIZE*2.5, b, DEFAULT_SIZE);
+  writer.path([
+    [offsetX + a + DEFAULT_SIZE*2.5, offsetY],
+    [offsetX + a + DEFAULT_SIZE*2.5, offsetY + a + DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY + a + DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY],
+  ]);
+
+  writer.rect(offsetX + DEFAULT_SIZE*2.5 + a, offsetY - a - b - DEFAULT_SIZE*1.5, b, DEFAULT_SIZE);
+  writer.path([
+    [offsetX + a + DEFAULT_SIZE*2.5, offsetY - b] ,
+    [offsetX + a + DEFAULT_SIZE*2.5, offsetY - a - b - DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY - a - b - DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY - b],
+  ]);
 }

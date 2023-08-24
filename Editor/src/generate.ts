@@ -72,10 +72,39 @@ export function create_basic2d(amplitude: number, width: number, cells: Cell[]):
 }
 
 export function create_right2d(amplitude: number, width: number, cells: Cell[]): Cell {
-  const vertices = generate_basic2d(amplitude, width);
+  const vertices = generate_right2d(amplitude, width);
   const vertices_flat = generate_basic2d_flat(amplitude, width);
   
   return new Cell("right2d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width, cells);
+}
+
+export function create_full2d(amplitude: number, width: number, cells: Cell[]): Cell {
+  const vertices = generate_full2d(amplitude, width);
+  const vertices_flat = generate_full2d_flat(amplitude, width);
+  
+  return new Cell("full2d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width, cells);
+}
+
+export function create_slope702d(amplitude: number, width: number, cells: Cell[]): Cell {
+  const vertices = generate_slope72d(amplitude, width);
+  const vertices_flat = generate_slope72d_flat(amplitude, width);
+  
+  return new Cell("slope72d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width, cells);
+}
+
+export function create_slope2d(amplitude: number, width: number, cells: Cell[]): Cell {
+  const vertices = generate_slope2d(amplitude, width);
+  const vertices_flat = generate_slope2d_flat(amplitude, width);
+  
+  return new Cell("slope2d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width, cells);
+}
+
+
+export function create_angle2d(amplitude: number, width: number, cells: Cell[]): Cell {
+  const vertices = generate_angle2d(amplitude, width);
+  const vertices_flat = generate_slope2d_flat(amplitude, width);
+  
+  return new Cell("angle2d", vertices_flat, vertices, new Three.Vector3(0, 0, 0), amplitude, width, cells);
 }
 
 export function formula(amplitude: number, width: number, c: number[]): number[] {
@@ -720,7 +749,7 @@ function generate_right2d(amplitude: number, width: number): number[] {
   const b = f[1];
   const a = f[0];
   
-  const center = DEFAULT_SIZE*2.5 + a + b/2;
+  const center = DEFAULT_SIZE*2.5 + a*.6 + b/2;
 
   if (a < 0 || b < 0) {
     warning(true, WARNING_STRING);
@@ -731,6 +760,237 @@ function generate_right2d(amplitude: number, width: number): number[] {
   const elem_len = a + b/2.0;
   const elem_len_3d_triangle = (b/2.0)/elem_len * d/2.0;
   const elem_len_3d_rect = a/elem_len * d/2.0;
+
+  const elem_len_short = a*.6 + b/2.0;
+  const elem_len_3d_triangle_short = (b/2.0)/elem_len_short * d/2.0;
+  const elem_len_3d_rect_short = (a*.6)/elem_len_short * d/2.0;
+
+  return move_verticies(0, 0, a*1.4+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+    // left
+    ...vertex(
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle*.6, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+      [center - DEFAULT_SIZE/2.0, -c, b/2.0], 
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle*.6, -c*BASIC_2D_TRIANGLE_AMPL , b ], 
+    ),
+    ...quad(
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle*.6, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle*.6, -c*BASIC_2D_TRIANGLE_AMPL , b ], 
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_rect*.6 - elem_len_3d_triangle*.6, 0, 0], 
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_rect*.6 - elem_len_3d_triangle*.6, 0, b ], 
+    ),
+    ...quad(
+      [center - 3*DEFAULT_SIZE/2.0 - elem_len_3d_rect*.6- elem_len_3d_triangle*.6, 0, 0], 
+      [center - 3*DEFAULT_SIZE/2.0 - elem_len_3d_rect*.6- elem_len_3d_triangle*.6, 0, b], 
+      [center - 5*DEFAULT_SIZE/2.0 - elem_len_3d_rect*.6- elem_len_3d_triangle*.6, -DEFAULT_SIZE/2.0, 0], 
+      [center - 5*DEFAULT_SIZE/2.0 - elem_len_3d_rect*.6- elem_len_3d_triangle*.6, -DEFAULT_SIZE/2.0, b], 
+    ),
+
+    // right 
+    ...vertex(
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle*1.4, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+      [center + DEFAULT_SIZE/2.0, -c, b/2.0], 
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle*1.4, -c*BASIC_2D_TRIANGLE_AMPL , b], 
+    ),
+    ...quad(
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle*1.4, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle*1.4, -c*BASIC_2D_TRIANGLE_AMPL , b], 
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_rect*1.4 + elem_len_3d_triangle*1.4, 0, 0], 
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_rect*1.4 + elem_len_3d_triangle*1.4, 0, b], 
+    ),
+    ...quad(
+      [center + 3*DEFAULT_SIZE/2.0 + elem_len_3d_rect*1.4 + elem_len_3d_triangle*1.4, 0, 0], 
+      [center + 3*DEFAULT_SIZE/2.0 + elem_len_3d_rect*1.4 + elem_len_3d_triangle*1.4, 0, b], 
+      [center + 5*DEFAULT_SIZE/2.0 + elem_len_3d_rect*1.4 + elem_len_3d_triangle*1.4, -DEFAULT_SIZE/2.0, 0], 
+      [center + 5*DEFAULT_SIZE/2.0 + elem_len_3d_rect*1.4 + elem_len_3d_triangle*1.4, -DEFAULT_SIZE/2.0, b], 
+    ),
+    // top 
+    ...vertex(
+      [center - b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle*.6],
+      [center, -c, b/2.0 + DEFAULT_SIZE/2.0],
+      [center + b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle*.6],
+    ),
+    ...quad(
+      [center - b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle*.6],
+      [center + b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle*.6],
+
+      [center - b/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle*.6 + elem_len_3d_rect*.6],
+      [center + b/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle*.6 + elem_len_3d_rect*.6],
+    ),
+    ...quad(
+      [center - b/2.0, 0, b/2.0 + 3*DEFAULT_SIZE/2.0 + elem_len_3d_triangle*.6 + elem_len_3d_rect*.6],
+      [center + b/2.0, 0, b/2.0 + 3*DEFAULT_SIZE/2.0 + elem_len_3d_triangle*.6 + elem_len_3d_rect*.6],
+      [center - b/2.0, -DEFAULT_SIZE/2.0, b/2.0 + 5*DEFAULT_SIZE/2.0 + elem_len_3d_triangle*.6 + elem_len_3d_rect*.6],
+      [center + b/2.0, -DEFAULT_SIZE/2.0, b/2.0 + 5*DEFAULT_SIZE/2.0 + elem_len_3d_triangle*.6 + elem_len_3d_rect*.6],
+    ),
+    // bottom
+    ...vertex(
+      [center - b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle*1.4],
+      [center, -c, b/2.0 - DEFAULT_SIZE/2.0],
+      [center + b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle*1.4],
+    ),
+    ...quad(
+      [center - b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle*1.4],
+      [center + b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle*1.4],
+
+      [center - b/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle*1.4 - elem_len_3d_rect*1.4],
+      [center + b/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle*1.4 - elem_len_3d_rect*1.4],
+    ),
+    ...quad(
+      [center - b/2.0, 0, b/2.0 - 3*DEFAULT_SIZE/2.0 - elem_len_3d_triangle*1.4 - elem_len_3d_rect*1.4],
+      [center + b/2.0, 0, b/2.0 - 3*DEFAULT_SIZE/2.0 - elem_len_3d_triangle*1.4 - elem_len_3d_rect*1.4],
+      [center - b/2.0, -DEFAULT_SIZE/2.0, b/2.0 - 5*DEFAULT_SIZE/2.0 - elem_len_3d_triangle*1.4 - elem_len_3d_rect*1.4],
+      [center + b/2.0, -DEFAULT_SIZE/2.0, b/2.0 - 5*DEFAULT_SIZE/2.0 - elem_len_3d_triangle*1.4 - elem_len_3d_rect*1.4],
+    ),
+
+  ]);
+}
+function generate_right2d_flat(amplitude: number, width: number): number[] {
+
+  const f = formula(amplitude, width, c2);
+
+  const b = f[1];
+  const a = f[0];
+  
+  if (a < 0 || b < 0) {
+    warning(true, WARNING_STRING);
+  } else {
+    warning(false);
+  }
+  // move vertices so that the selected mesh generation can start at 0,0 (2d plane)
+  return move_verticies(0, 0, a*1.4 +DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+    // left
+    ...rect(DEFAULT_SIZE, b),
+    ...rect(a*.6, b, [DEFAULT_SIZE*2, 0]),
+    ...vertex([DEFAULT_SIZE*2 + a*.6, 0, 0], [DEFAULT_SIZE*2 + a*.6+ b/2.0, 0, b/2.0], [DEFAULT_SIZE*2 +a*.6, 0, b]),
+    //right
+    ...vertex([DEFAULT_SIZE*3 + a*.6 + b, 0, 0], [DEFAULT_SIZE*2 + a*.6 + b/2.0 + DEFAULT_SIZE, 0, b/2.0], [DEFAULT_SIZE*3 + a*.6 + b, 0, b]),
+    ...rect(a*1.4, b, [DEFAULT_SIZE*3 + a*.6+ b, 0]),
+    ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a + b, 0]),
+    // top,
+    ...vertex([DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, 0, b + DEFAULT_SIZE/2.0],
+      [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0 + b, 0, b + DEFAULT_SIZE/2.0], 
+      [DEFAULT_SIZE*2 + a*.6 + b/2.0 + DEFAULT_SIZE/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0] 
+    ),
+    ...rect(b, a*.6, [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, b + DEFAULT_SIZE/2.0]),
+    ...rect(b, DEFAULT_SIZE, [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, b + DEFAULT_SIZE/2.0 + a*.6 + DEFAULT_SIZE]),
+    // down
+    ...vertex([DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, 0, -DEFAULT_SIZE/2.0],
+      [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0 + b, 0, -DEFAULT_SIZE/2.0], 
+      [DEFAULT_SIZE*2 + a*.6 + b/2.0 + DEFAULT_SIZE/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0] 
+    ),
+    ...rect(b, a*1.4, [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, -a*1.4 -DEFAULT_SIZE/2.0]),
+    ...rect(b, DEFAULT_SIZE, [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, -DEFAULT_SIZE/2.0 - a*1.4 - DEFAULT_SIZE*2]),
+  ])
+}
+
+function generate_full2d(amplitude: number, width: number): number[] {
+  const c = amplitude;
+  const d = width;
+
+  const f = formula(amplitude, width, c2);
+
+  const b = f[1];
+  const a = f[0];
+  
+
+  if (a < 0 || b < 0) {
+    warning(true, WARNING_STRING);
+  } else {
+    warning(false);
+  }
+  const center = DEFAULT_SIZE*2.5 + a + b/2;
+  const centerY = b/2.0
+  
+  return move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+    // left
+    ...quad(
+      [center - b/2 - (d-b)/2 - DEFAULT_SIZE, 0, 0], 
+      [center - b/2 - (d-b)/2 - DEFAULT_SIZE, 0, b], 
+      [center - b/2 - (d-b)/2 - 2*DEFAULT_SIZE, -DEFAULT_SIZE/2.0, 0], 
+      [center - b/2 - (d-b)/2 - 2*DEFAULT_SIZE, -DEFAULT_SIZE/2.0, b], 
+    ),
+    ...half_arc_x([center - b/2 - (d-b)/2, 0], [center - b/2, b], c),
+    // right 
+    ...quad(
+      [center + b/2 + (d-b)/2 + DEFAULT_SIZE, 0, 0], 
+      [center + b/2 + (d-b)/2 + DEFAULT_SIZE, 0, b], 
+      [center + b/2 + (d-b)/2 + 2*DEFAULT_SIZE, -DEFAULT_SIZE/2.0, 0], 
+      [center + b/2 + (d-b)/2 + 2*DEFAULT_SIZE, -DEFAULT_SIZE/2.0, b], 
+    ),
+    ...half_arc_x([center + b/2 + (d-b)/2, 0], [center + b/2, b], c),
+    // top 
+    ...quad(
+      [center - b/2.0, 0, centerY + b/2 + (d-b)/2 + DEFAULT_SIZE],
+      [center + b/2.0, 0, centerY + b/2 + (d-b)/2 + DEFAULT_SIZE],
+      [center - b/2.0, -DEFAULT_SIZE/2.0, centerY + b/2 + (d-b)/2 + 2*DEFAULT_SIZE],
+      [center + b/2.0, -DEFAULT_SIZE/2.0, centerY + b/2 + (d-b)/2 + 2*DEFAULT_SIZE],
+    ),
+    ...quad(
+      [center - b/2, -c, centerY - b/2], 
+      [center - b/2, -c, centerY + b/2], 
+      [center + b/2, -c, centerY - b/2], 
+      [center + b/2, -c, centerY + b/2], 
+    ),
+    ...half_arc_y([center - b/2.0, centerY - b/2 - (d-b)/2], [center + b/2.0, centerY - b/2], c),
+    // bottom
+    ...quad(
+      [center - b/2.0, 0, centerY - b/2 - (d-b)/2 - DEFAULT_SIZE],
+      [center + b/2.0, 0, centerY - b/2 - (d-b)/2 - DEFAULT_SIZE],
+      [center - b/2.0, -DEFAULT_SIZE/2.0, centerY - b/2 - (d-b)/2 - 2*DEFAULT_SIZE],
+      [center + b/2.0, -DEFAULT_SIZE/2.0, centerY - b/2 - (d-b)/2 - 2*DEFAULT_SIZE],
+    ),
+    ...half_arc_y([center - b/2.0, centerY + b/2 + (d-b)/2], [center + b/2.0, centerY + b/2], c),
+  ]);
+}
+function generate_full2d_flat(amplitude: number, width: number): number[] {
+
+  const f = formula(amplitude, width, c2);
+
+  const b = f[1];
+  const a = f[0];
+  
+  if (a < 0 || b < 0) {
+    warning(true, WARNING_STRING);
+  } else {
+    warning(false);
+  }
+  // move vertices so that the selected mesh generation can start at 0,0 (2d plane)
+  return move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+    // left
+    ...rect(DEFAULT_SIZE, b),
+    ...rect(a + DEFAULT_SIZE/2.0, b, [DEFAULT_SIZE*2, 0]),
+    //right
+    ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a + b, 0]),
+    ...rect(a + DEFAULT_SIZE/2.0, b, [DEFAULT_SIZE*2.5 + a + b, 0]),
+    // top,
+    ...rect(b, DEFAULT_SIZE, [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, b + DEFAULT_SIZE/2.0 + a + DEFAULT_SIZE]),
+    // down
+    ...rect(b, 2*a + b + DEFAULT_SIZE, [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, -a -DEFAULT_SIZE/2.0]),
+    ...rect(b, DEFAULT_SIZE, [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, -DEFAULT_SIZE/2.0 - a - DEFAULT_SIZE*2]),
+  ])
+}
+
+
+function generate_slope72d(amplitude: number, width: number): number[] {
+  const c = amplitude;
+  const d = width;
+
+  const f = formula(amplitude, width, c2);
+
+  const b = f[1];
+  const a = f[0];
+  
+  const center = DEFAULT_SIZE*2.5 + a + b/2;
+
+  if (a < 0 || b < 0) {
+    warning(true, WARNING_STRING);
+  } else {
+    warning(false);
+  }
+  
+  const elem_len = a + b/2.0;
+  const elem_len_3d_triangle = (b/2.0 + a*.3)/elem_len * d/2.0;
+  const elem_len_3d_rect = (a*.7)/elem_len * d/2.0;
 
   return move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
     // left
@@ -811,7 +1071,7 @@ function generate_right2d(amplitude: number, width: number): number[] {
 
   ]);
 }
-function generate_right2d_flat(amplitude: number, width: number): number[] {
+function generate_slope72d_flat(amplitude: number, width: number): number[] {
 
   const f = formula(amplitude, width, c2);
 
@@ -824,31 +1084,256 @@ function generate_right2d_flat(amplitude: number, width: number): number[] {
     warning(false);
   }
   // move vertices so that the selected mesh generation can start at 0,0 (2d plane)
-  return move_verticies(0, 0, a*1.4 +DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+  return move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
     // left
     ...rect(DEFAULT_SIZE, b),
-    ...rect(a*.6, b, [DEFAULT_SIZE*2, 0]),
-    ...vertex([DEFAULT_SIZE*2 + a*.6, 0, 0], [DEFAULT_SIZE*2 + a*.6+ b/2.0, 0, b/2.0], [DEFAULT_SIZE*2 +a*.6, 0, b]),
+    ...rect(a*.7, b, [DEFAULT_SIZE*2, 0]),
+    ...vertex([DEFAULT_SIZE*2 + a*.7, 0, 0], [DEFAULT_SIZE*2 + a + b/2.0, 0, b/2.0], [DEFAULT_SIZE*2 + a*.7, 0, b]),
     //right
-    ...vertex([DEFAULT_SIZE*3 + a*.6 + b, 0, 0], [DEFAULT_SIZE*2 + a*.6 + b/2.0 + DEFAULT_SIZE, 0, b/2.0], [DEFAULT_SIZE*3 + a*.6 + b, 0, b]),
-    ...rect(a*1.4, b, [DEFAULT_SIZE*3 + a*.6+ b, 0]),
+    ...vertex([DEFAULT_SIZE*3 + a*1.3 + b, 0, 0], [DEFAULT_SIZE*2 + a + b/2.0 + DEFAULT_SIZE, 0, b/2.0], [DEFAULT_SIZE*3 + a*1.3 + b, 0, b]),
+    ...rect(a*.7, b, [DEFAULT_SIZE*3 + a*1.3 + b, 0]),
     ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a + b, 0]),
     // top,
-    ...vertex([DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, 0, b + DEFAULT_SIZE/2.0],
-      [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0 + b, 0, b + DEFAULT_SIZE/2.0], 
-      [DEFAULT_SIZE*2 + a*.6 + b/2.0 + DEFAULT_SIZE/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0] 
+    ...vertex(
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, 0, a*.3 + b + DEFAULT_SIZE/2.0],
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0 + b, 0, a*.3 + b + DEFAULT_SIZE/2.0], 
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0 + b/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0] 
     ),
-    ...rect(b, a*.6, [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, b + DEFAULT_SIZE/2.0]),
-    ...rect(b, DEFAULT_SIZE, [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, b + DEFAULT_SIZE/2.0 + a*.6 + DEFAULT_SIZE]),
+    ...rect(b, a*.7, [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, a*.3 + b + DEFAULT_SIZE/2.0]),
+    ...rect(b, DEFAULT_SIZE, [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, b + DEFAULT_SIZE/2.0 + a + DEFAULT_SIZE]),
     // down
-    ...vertex([DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, 0, -DEFAULT_SIZE/2.0],
-      [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0 + b, 0, -DEFAULT_SIZE/2.0], 
-      [DEFAULT_SIZE*2 + a*.6 + b/2.0 + DEFAULT_SIZE/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0] 
+    ...vertex(
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, 0, -a*.3 - DEFAULT_SIZE/2.0],
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0 + b, 0, -a*.3 - DEFAULT_SIZE/2.0], 
+      [DEFAULT_SIZE*2 + a + b/2.0 + DEFAULT_SIZE/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0] 
     ),
-    ...rect(b, a*1.4, [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, -a*1.4 -DEFAULT_SIZE/2.0]),
-    ...rect(b, DEFAULT_SIZE, [DEFAULT_SIZE*2 + a*.6 + DEFAULT_SIZE/2.0, -DEFAULT_SIZE/2.0 - a*1.4 - DEFAULT_SIZE*2]),
+    ...rect(b, a*.7, [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, -a -DEFAULT_SIZE/2.0]),
+    ...rect(b, DEFAULT_SIZE, [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, -DEFAULT_SIZE/2.0 - a - DEFAULT_SIZE*2]),
   ])
 }
+
+function generate_slope2d(amplitude: number, width: number): number[] {
+  const c = amplitude;
+  const d = width;
+
+  const f = formula(amplitude, width, c2);
+
+  const b = f[1];
+  const a = f[0];
+  
+  const center = DEFAULT_SIZE*2.5 + a + b/2;
+
+  if (a < 0 || b < 0) {
+    warning(true, WARNING_STRING);
+  } else {
+    warning(false);
+  }
+  
+  const elem_len = a + b/2.0;
+  const elem_len_3d_triangle = (b/2.0 + a*.3)/elem_len * d/2.0;
+  const elem_len_3d_rect = (a*.7)/elem_len * d/2.0;
+
+  return move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+    // left
+    ...vertex(
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect, 0, 0], 
+      [center - DEFAULT_SIZE/2.0, -c, b/2.0], 
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect, 0, b], 
+    ),
+    ...quad(
+      [center - 3*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, 0], 
+      [center - 3*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, b], 
+      [center - 5*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, -DEFAULT_SIZE/2.0, 0], 
+      [center - 5*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, -DEFAULT_SIZE/2.0, b], 
+    ),
+
+    // right 
+    ...vertex(
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect, 0, 0], 
+      [center + DEFAULT_SIZE/2.0, -c, b/2.0], 
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect, 0, b], 
+    ),
+    ...quad(
+      [center + 3*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, 0], 
+      [center + 3*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, b], 
+      [center + 5*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, -DEFAULT_SIZE/2.0, 0], 
+      [center + 5*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, -DEFAULT_SIZE/2.0, b], 
+    ),
+    // top 
+    ...vertex(
+      [center - b/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+      [center, -c, b/2.0 + DEFAULT_SIZE/2.0],
+      [center + b/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+    ),
+    ...quad(
+      [center - b/2.0, 0, b/2.0 + 3*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+      [center + b/2.0, 0, b/2.0 + 3*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+      [center - b/2.0, -DEFAULT_SIZE/2.0, b/2.0 + 5*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+      [center + b/2.0, -DEFAULT_SIZE/2.0, b/2.0 + 5*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+    ),
+    // bottom
+    ...vertex(
+      [center - b/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+      [center, -c, b/2.0 - DEFAULT_SIZE/2.0],
+      [center + b/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+    ),
+    ...quad(
+      [center - b/2.0, 0, b/2.0 - 3*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+      [center + b/2.0, 0, b/2.0 - 3*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+      [center - b/2.0, -DEFAULT_SIZE/2.0, b/2.0 - 5*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+      [center + b/2.0, -DEFAULT_SIZE/2.0, b/2.0 - 5*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+    ),
+  ]);
+}
+
+function generate_slope2d_flat(amplitude: number, width: number): number[] {
+
+  const f = formula(amplitude, width, c2);
+
+  const b = f[1];
+  const a = f[0];
+  
+  if (a < 0 || b < 0) {
+    warning(true, WARNING_STRING);
+  } else {
+    warning(false);
+  }
+  // move vertices so that the selected mesh generation can start at 0,0 (2d plane)
+  return move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+    // left
+    ...rect(DEFAULT_SIZE, b),
+    ...vertex([DEFAULT_SIZE*2, 0, 0], [DEFAULT_SIZE*2 + a + b/2.0, 0, b/2.0], [DEFAULT_SIZE*2, 0, b]),
+    //right
+    ...vertex([DEFAULT_SIZE*3 + a*2 + b, 0, 0], [DEFAULT_SIZE*2 + a + b/2.0 + DEFAULT_SIZE, 0, b/2.0], [DEFAULT_SIZE*3 + a*2 + b, 0, b]),
+    ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a + b, 0]),
+    // top,
+    ...vertex(
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, 0, a + b + DEFAULT_SIZE/2.0],
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0 + b, 0, a + b + DEFAULT_SIZE/2.0], 
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0 + b/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0] 
+    ),
+    ...rect(b, DEFAULT_SIZE, [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, b + DEFAULT_SIZE/2.0 + a + DEFAULT_SIZE]),
+    // down
+    ...vertex(
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, 0, -a - DEFAULT_SIZE/2.0],
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0 + b, 0, -a - DEFAULT_SIZE/2.0], 
+      [DEFAULT_SIZE*2 + a + b/2.0 + DEFAULT_SIZE/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0] 
+    ),
+    ...rect(b, DEFAULT_SIZE, [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, -DEFAULT_SIZE/2.0 - a - DEFAULT_SIZE*2]),
+  ])
+}
+
+function generate_angle2d(amplitude: number, width: number): number[] {
+  const c = amplitude;
+  const d = width;
+
+  const f = formula(amplitude, width, c2);
+
+  const b = f[1];
+  const a = f[0];
+  
+  const center = DEFAULT_SIZE*2.5 + a + b/2;
+
+  if (a < 0 || b < 0) {
+    warning(true, WARNING_STRING);
+  } else {
+    warning(false);
+  }
+  
+  const elem_len = a + b/2.0;
+  const elem_len_3d_triangle = (b/2.0 + a*.3)/elem_len * d/2.0;
+  const elem_len_3d_rect = (a*.7)/elem_len * d/2.0;
+
+  return move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+    // left
+    ...vertex(
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect, 0, 0], 
+      [center - DEFAULT_SIZE/2.0, -c, b/2.0], 
+      [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect, 0, b], 
+    ),
+    ...quad(
+      [center - 3*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, 0], 
+      [center - 3*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, b], 
+      [center - 5*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, -DEFAULT_SIZE/2.0, 0], 
+      [center - 5*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, -DEFAULT_SIZE/2.0, b], 
+    ),
+
+    // right 
+    ...vertex(
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect, 0, 0], 
+      [center + DEFAULT_SIZE/2.0, -c, b/2.0], 
+      [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect, 0, b], 
+    ),
+    ...quad(
+      [center + 3*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, 0], 
+      [center + 3*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, b], 
+      [center + 5*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, -DEFAULT_SIZE/2.0, 0], 
+      [center + 5*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, -DEFAULT_SIZE/2.0, b], 
+    ),
+    // top 
+    ...vertex(
+      [center - b/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+      [center, -c, b/2.0 + DEFAULT_SIZE/2.0],
+      [center + b/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+    ),
+    ...quad(
+      [center - b/2.0, 0, b/2.0 + 3*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+      [center + b/2.0, 0, b/2.0 + 3*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+      [center - b/2.0, -DEFAULT_SIZE/2.0, b/2.0 + 5*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+      [center + b/2.0, -DEFAULT_SIZE/2.0, b/2.0 + 5*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+    ),
+    // bottom
+    ...vertex(
+      [center - b/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+      [center, -c, b/2.0 - DEFAULT_SIZE/2.0],
+      [center + b/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+    ),
+    ...quad(
+      [center - b/2.0, 0, b/2.0 - 3*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+      [center + b/2.0, 0, b/2.0 - 3*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+      [center - b/2.0, -DEFAULT_SIZE/2.0, b/2.0 - 5*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+      [center + b/2.0, -DEFAULT_SIZE/2.0, b/2.0 - 5*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+    ),
+  ]);
+}
+
+function generate_angle2d_flat(amplitude: number, width: number): number[] {
+
+  const f = formula(amplitude, width, c2);
+
+  const b = f[1];
+  const a = f[0];
+  
+  if (a < 0 || b < 0) {
+    warning(true, WARNING_STRING);
+  } else {
+    warning(false);
+  }
+  // move vertices so that the selected mesh generation can start at 0,0 (2d plane)
+  return move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+    // left
+    ...rect(DEFAULT_SIZE, b),
+    ...vertex([DEFAULT_SIZE*2, 0, 0], [DEFAULT_SIZE*2 + a + b/2.0, 0, b/2.0], [DEFAULT_SIZE*2, 0, b]),
+    //right
+    ...vertex([DEFAULT_SIZE*3 + a*2 + b, 0, 0], [DEFAULT_SIZE*2 + a + b/2.0 + DEFAULT_SIZE, 0, b/2.0], [DEFAULT_SIZE*3 + a*2 + b, 0, b]),
+    ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a + b, 0]),
+    // top,
+    ...vertex(
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, 0, a + b + DEFAULT_SIZE/2.0],
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0 + b, 0, a + b + DEFAULT_SIZE/2.0], 
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0 + b/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0] 
+    ),
+    ...rect(b, DEFAULT_SIZE, [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, b + DEFAULT_SIZE/2.0 + a + DEFAULT_SIZE]),
+    // down
+    ...vertex(
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, 0, -a - DEFAULT_SIZE/2.0],
+      [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0 + b, 0, -a - DEFAULT_SIZE/2.0], 
+      [DEFAULT_SIZE*2 + a + b/2.0 + DEFAULT_SIZE/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0] 
+    ),
+    ...rect(b, DEFAULT_SIZE, [DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, -DEFAULT_SIZE/2.0 - a - DEFAULT_SIZE*2]),
+  ])
+}
+
 
 
 function vertices_width(vertices: number[]): number {
@@ -859,6 +1344,41 @@ function vertices_width(vertices: number[]): number {
   return max;
 }
 
+
+function half_arc_x(start: [number, number], end: [number, number], c:number): number[] {
+  function fn(x: number): number {
+    return 1 -((x - 1) ** 2);
+  }
+
+  let arc = [];
+  for (let i = 0; i < ARK_NUM; i++) {
+    const pos = start[0] + (end[0] - start[0]) *((i/ARK_NUM));
+    const pos2 = start[0] + (end[0] - start[0]) *(((i+1)/ARK_NUM));
+    arc.push(...quad(
+      [pos, -c*fn(i/ARK_NUM), start[1]], [pos, -c*fn(i/ARK_NUM), end[1]],
+      [pos2, -c*fn((i+1)/ARK_NUM), start[1]], [pos2, -c*fn((i+1)/ARK_NUM), end[1]]
+    ));
+  }
+  return arc;
+}
+
+
+function half_arc_y(start: [number, number], end: [number, number], c:number): number[] {
+  function fn(x: number): number {
+    return 1 -((x - 1) ** 2);
+  }
+
+  let arc = [];
+  for (let i = 0; i < ARK_NUM; i++) {
+    const pos = start[1] + (end[1] - start[1]) *((i/ARK_NUM));
+    const pos2 = start[1] + (end[1] - start[1]) *(((i+1)/ARK_NUM));
+    arc.push(...quad(
+      [start[0], -c*fn(i/ARK_NUM), pos], [end[0], -c*fn(i/ARK_NUM), pos],
+      [start[0], -c*fn((i+1)/ARK_NUM), pos2], [end[0], -c*fn((i+1)/ARK_NUM), pos2]
+    ));
+  }
+  return arc;
+}
 
 function arc(center: number, d: number, c: number, b: number) {
   function fn(x: number): number {
@@ -1324,6 +1844,22 @@ export class Cell {
       case "right2d":
         vertices_flat = generate_right2d_flat(amplitude, width);
         vertices = generate_right2d(amplitude, width);
+        break;
+      case "full2d":
+        vertices_flat = generate_full2d_flat(amplitude, width);
+        vertices = generate_full2d(amplitude, width);
+        break;
+      case "slope72d":
+        vertices_flat = generate_slope72d_flat(amplitude, width);
+        vertices = generate_slope72d(amplitude, width);
+        break;
+      case "slope2d":
+        vertices_flat = generate_slope2d_flat(amplitude, width);
+        vertices = generate_slope2d(amplitude, width);
+        break;
+      case "angle2d":
+        vertices_flat = generate_angle2d_flat(amplitude, width);
+        vertices = generate_angle2d(amplitude, width);
         break;
       // 
       case "chained_basic_1d":

@@ -7,7 +7,7 @@ import './style.css'
 import * as Three from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
-import {Cell, create_right1d, create_basic1d, create_basic2d, will_1d_break, will_2d_break, create_full1d, create_slope701d, create_slope1d, create_angle1d, create_right2d} from './generate.ts';
+import {Cell, create_right1d, create_basic1d, create_basic2d, will_1d_break, will_2d_break, create_full1d, create_slope701d, create_slope1d, create_angle1d, create_right2d, create_full2d, create_slope702d, create_slope2d, create_angle2d} from './generate.ts';
 import {make_3d_mesh_visible} from "./utils.ts";
 import { export_cells } from './export.ts';
 import { merge_1d, merge_1d_chain, merge_1d_chain_left, merge_1d_t2 } from './merge.ts';
@@ -165,6 +165,10 @@ function update_current_cell() {
         break;
       case "basic2d":
       case "right2d":
+      case "full2d":
+      case "slope72d":
+      case "slope2d":
+      case "angle2d":
         will_break = will_2d_break(amplitude_value, width_value);
         break;
     }
@@ -259,6 +263,18 @@ document.getElementById("add")?.addEventListener("click", function () {
       break;
     case "right2d":
       set_current_object(create_right2d(amplitude_value, width_value, cells));
+      break;
+    case "full2d":
+      set_current_object(create_full2d(amplitude_value, width_value, cells));
+      break;
+    case "slope72d":
+      set_current_object(create_slope702d(amplitude_value, width_value, cells));
+      break;
+    case "slope2d":
+      set_current_object(create_slope2d(amplitude_value, width_value, cells));
+      break;
+    case "angle2d":
+      set_current_object(create_angle2d(amplitude_value, width_value, cells));
       break;
   }
   place_current_selected_cell(orbitControl.target);
@@ -405,6 +421,8 @@ btn_angle1d.addEventListener("click", function () {
   enable_all_btns_not_me("angle1d");
 });
 
+
+
 const btn_basic2d = document.getElementById("basic2d") as HTMLButtonElement;
 btn_basic2d.addEventListener("click", function() {
   selected_type = "basic2d";
@@ -416,6 +434,32 @@ btn_right2d.addEventListener("click", function() {
   selected_type = "right2d";
   enable_all_btns_not_me("right2d");
 });
+
+const btn_full2d = document.getElementById("full2d") as HTMLButtonElement;
+btn_full2d.addEventListener("click", function() {
+  selected_type = "full2d";
+  enable_all_btns_not_me("full2d");
+});
+
+const btn_slope72d= document.getElementById("slope72d") as HTMLButtonElement;
+btn_slope72d.addEventListener("click", function() {
+  selected_type = "slope72d";
+  enable_all_btns_not_me("slope72d");
+});
+
+const btn_slope2d = document.getElementById("slope2d") as HTMLButtonElement;
+btn_slope2d.addEventListener("click", function() {
+  selected_type = "slope2d";
+  enable_all_btns_not_me("slope2d");
+});
+
+
+const btn_angle2d = document.getElementById("angle2d") as HTMLButtonElement;
+btn_angle2d.addEventListener("click", function() {
+  selected_type = "angle2d";
+  enable_all_btns_not_me("angle2d");
+});
+
 
 const btn_export = document.getElementById("export") as HTMLButtonElement;
 btn_export.addEventListener("click", function() {
@@ -432,6 +476,10 @@ function enable_all_btns_not_me(not_disable_id: string) {
 
   btn_basic2d.disabled = false;
   btn_right2d.disabled = false;
+  btn_full2d.disabled = false;
+  btn_slope72d.disabled = false;
+  btn_slope2d.disabled = false;
+  btn_angle2d.disabled = false;
   
   document.getElementById(not_disable_id).disabled = true;
 }
