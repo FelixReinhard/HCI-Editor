@@ -12,9 +12,12 @@ const export_functions = {
   "slope1d": slope1D,
   "angle1d": angle1D,
 
-  "basic3d": basic2D,
+  "basic2d": basic2D,
   "right2d": right2D,
   "full2d": full2D,
+  "slope72d": slope72D,
+  "slope2d": slope2D,
+  "angle2d": angle2D,
 }
 
 export function export_cells(cells: Cell[], format: string) {
@@ -290,5 +293,141 @@ function full2D(position: number[], amplitude: number, width: number, collisions
     [offsetX + a + DEFAULT_SIZE*2.5, offsetY - a - b - DEFAULT_SIZE/2.0],
     [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY - a - b - DEFAULT_SIZE/2.0],
     [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY - b],
+  ]);
+}
+
+
+function slope72D(position: number[], amplitude: number, width: number, collisions: CollisionBox[], writer: Writer) {
+  const f = formula(amplitude, width, c2); 
+
+  const b = f[1];
+  const a = f[0];
+  
+  const offsetY = position[1] - b - DEFAULT_SIZE/2.0;
+  const offsetX = position[0];
+  
+  writer.rect(offsetX, offsetY, DEFAULT_SIZE, b); 
+  writer.path([
+    [offsetX + DEFAULT_SIZE*2, offsetY],
+    [offsetX + DEFAULT_SIZE*2 + a*.7, offsetY],
+    [offsetX + DEFAULT_SIZE*2 + a + b/2.0, offsetY - b/2.0],
+    [offsetX + DEFAULT_SIZE*2 + a*.7, offsetY - b],
+    [offsetX + DEFAULT_SIZE*2, offsetY - b],
+  ]);
+
+  writer.rect(offsetX + DEFAULT_SIZE*4 + 2*a + b, offsetY, DEFAULT_SIZE, b);
+  writer.path([
+    [offsetX + DEFAULT_SIZE*3 + a + b/2.0, offsetY - b/2.0],
+    [offsetX + DEFAULT_SIZE*3 + a*1.3 + b, offsetY],
+    [offsetX + DEFAULT_SIZE*3 + 2*a + b, offsetY],
+    [offsetX + DEFAULT_SIZE*3 + 2*a + b, offsetY - b],
+    [offsetX + DEFAULT_SIZE*3 + a*1.3 + b, offsetY - b],
+  ]);
+
+  writer.rect(offsetX + DEFAULT_SIZE*2.5 + a, offsetY + a + DEFAULT_SIZE*2.5, b, DEFAULT_SIZE);
+  writer.path([
+    [offsetX + a + DEFAULT_SIZE*2.5 + b/2.0, offsetY - b/2.0 + DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5, offsetY + a*.3 + DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5, offsetY + a + DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY + a + DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY + a*.3 + DEFAULT_SIZE/2.0],
+  ]);
+
+  writer.rect(offsetX + DEFAULT_SIZE*2.5 + a, offsetY - a - b - DEFAULT_SIZE*1.5, b, DEFAULT_SIZE);
+  writer.path([
+    [offsetX + a + DEFAULT_SIZE*2.5 + b/2.0, offsetY - b/2.0 - DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5, offsetY -a*.3 - b - DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5, offsetY - a - b - DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY - a - b - DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY - a*.3 - b - DEFAULT_SIZE/2.0],
+  ]);
+}
+
+
+function slope2D(position: number[], amplitude: number, width: number, collisions: CollisionBox[], writer: Writer) {
+  const f = formula(amplitude, width, c2); 
+
+  const b = f[1];
+  const a = f[0];
+  
+  const offsetY = position[1] - b - DEFAULT_SIZE/2.0;
+  const offsetX = position[0];
+  
+  writer.rect(offsetX, offsetY, DEFAULT_SIZE, b); 
+  writer.path([
+    [offsetX + DEFAULT_SIZE*2, offsetY],
+    [offsetX + DEFAULT_SIZE*2 + a + b/2.0, offsetY - b/2.0],
+    [offsetX + DEFAULT_SIZE*2, offsetY - b],
+  ]);
+
+  writer.rect(offsetX + DEFAULT_SIZE*4 + 2*a + b, offsetY, DEFAULT_SIZE, b);
+  writer.path([
+    [offsetX + DEFAULT_SIZE*3 + a + b/2.0, offsetY - b/2.0],
+    [offsetX + DEFAULT_SIZE*3 + 2*a + b, offsetY],
+    [offsetX + DEFAULT_SIZE*3 + 2*a + b, offsetY - b],
+  ]);
+
+  writer.rect(offsetX + DEFAULT_SIZE*2.5 + a, offsetY + a + DEFAULT_SIZE*2.5, b, DEFAULT_SIZE);
+  writer.path([
+    [offsetX + a + DEFAULT_SIZE*2.5 + b/2.0, offsetY - b/2.0 + DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5, offsetY + a + DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY + a + DEFAULT_SIZE/2.0],
+  ]);
+
+  writer.rect(offsetX + DEFAULT_SIZE*2.5 + a, offsetY - a - b - DEFAULT_SIZE*1.5, b, DEFAULT_SIZE);
+  writer.path([
+    [offsetX + a + DEFAULT_SIZE*2.5 + b/2.0, offsetY - b/2.0 - DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5, offsetY - a - b - DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY - a - b - DEFAULT_SIZE/2.0],
+  ]);
+}
+
+
+function angle2D(position: number[], amplitude: number, width: number, collisions: CollisionBox[],  writer: Writer) {
+
+  const f = formula(amplitude, width, c2); 
+
+  const b = f[1];
+  const a = f[0];
+  
+  const offsetY = position[1] - b - DEFAULT_SIZE/2.0;
+  const offsetX = position[0];
+
+  const xOffsetAngle = -(a * Math.sin(20 * (Math.PI / 180.0))) / Math.sin(70 * (Math.PI / 180.0));
+  
+  writer.rect(offsetX, offsetY, DEFAULT_SIZE, b); 
+  writer.path([
+    [offsetX + DEFAULT_SIZE*2, offsetY],
+    [offsetX + DEFAULT_SIZE*2 + a, offsetY],
+    [offsetX + DEFAULT_SIZE*2 + a + b/2.0, offsetY - b/2.0],
+    [offsetX + DEFAULT_SIZE*2 + a, offsetY - b],
+    [offsetX + DEFAULT_SIZE*2, offsetY - b],
+  ]);
+
+  writer.rect(offsetX + DEFAULT_SIZE*4 + 2*a + b, offsetY, DEFAULT_SIZE, b);
+  writer.path([
+    [offsetX + DEFAULT_SIZE*3 + a + b/2.0, offsetY - b/2.0],
+    [offsetX + DEFAULT_SIZE*3 + a + b, offsetY],
+    [offsetX + DEFAULT_SIZE*3 + 2*a + b, offsetY],
+    [offsetX + DEFAULT_SIZE*3 + 2*a + b, offsetY - b],
+    [offsetX + DEFAULT_SIZE*3 + a + b, offsetY - b],
+  ]);
+
+  writer.rect(offsetX + DEFAULT_SIZE*2.5 + a + xOffsetAngle, offsetY + a + DEFAULT_SIZE*2.5, b, DEFAULT_SIZE);
+  writer.path([
+    [offsetX + a + DEFAULT_SIZE*2.5 + b/2.0, offsetY - b/2.0 + DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5, offsetY + DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + xOffsetAngle, offsetY + a + DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b + xOffsetAngle, offsetY + a + DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY + DEFAULT_SIZE/2.0],
+  ]);
+
+  writer.rect(offsetX + DEFAULT_SIZE*2.5 + a + xOffsetAngle, offsetY - a - b - DEFAULT_SIZE*1.5, b, DEFAULT_SIZE);
+  writer.path([
+    [offsetX + a + DEFAULT_SIZE*2.5 + b/2.0, offsetY - b/2.0 - DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5, offsetY - b - DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + xOffsetAngle, offsetY - a - b - DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b + xOffsetAngle, offsetY - a - b - DEFAULT_SIZE/2.0],
+    [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY - b - DEFAULT_SIZE/2.0],
   ]);
 }
