@@ -6,7 +6,7 @@ const WARNING_STRING = "Combination of amplitude and width lead to negative Dime
 const SELECTED_COLOR = 0xFF0000;
 const SELECTED_COLOR_OK = 0x00FF00;
 var id = 0;
-
+// if elastic_val == -1 not elastic otherwise is.
 export function create_basic1d(amplitude: number, width: number, cells: Cell[]): Cell {
   const vertices = generate_basic1d(amplitude, width);
   const vertices_flat = generate_basic1d_flat(amplitude, width);
@@ -1384,9 +1384,25 @@ function generate_angle2d_flat(amplitude: number, width: number): number[] {
 function vertices_width(vertices: number[]): number {
   let max = 0;
   for (var i = 0; i < vertices.length; i+=3) {
-    if (vertices[i] > 0) max = vertices[i];
+    if (vertices[i] > 0) max = Math.max(max, vertices[i]);
   }
   return max;
+}
+
+function vertices_min_x(vertices: number[]): number {
+  let min = 100000000;
+  for (var i = 0; i < vertices.length; i+=3) {
+    min = Math.min(min, vertices[i]);
+  }
+  return min;
+}
+
+function vertices_min_y(vertices: number[]): number {
+  let min = 100000000;
+  for (var i = 2; i < vertices.length; i+=3) {
+    min = Math.min(min, vertices[i]);
+  }
+  return min;
 }
 
 
@@ -1753,17 +1769,18 @@ export class Cell {
   scale: number; // width
   elastic: boolean;
   elastic_d: number;
-  elastic_x: number;
+  elastic_offset: number[] = [0, 0];
   amplitude: number;
   width: number;
   selected_mesh: Three.Mesh;
   coll: CollisionBox[];
   meta_data: any;
+  dims_without_elastic: number[];
 
   bounding_box: CollisionBox;
   d: number;
 
-  lines: GapBox;
+  gap: GapBox;
 
   constructor(type: string, vertices_flat: number[], vertices: number[], position: Three.Vector3, amplitude: number, width: number, cells: Cell[]) {
     this.type = type;
@@ -1781,7 +1798,7 @@ export class Cell {
     this.mesh = generate_object(vertices, COLOR_MESH);
     this.mesh_flat = generate_object(vertices_flat, COLOR_FLAT_MESH);
 
-    this.lines = new GapBox(this);
+    this.gap = new GapBox(this);
 
     this.gen_coll();
     this.update_gap(cells);
@@ -1794,7 +1811,7 @@ export class Cell {
   }
 
   update_gap(otherCells: Cell[], current_cell: Cell) {
-    this.lines.regenerate(otherCells, false, current_cell);
+    this.gap.regenerate(otherCells, false, current_cell);
   }
 
   add_bounding_box(scene: Three.Scene) {
@@ -1802,8 +1819,8 @@ export class Cell {
     // scene.add(this.lines.left);
     // scene.add(this.lines.up);
     // scene.add(this.lines.down);
-    scene.add(this.lines.boundingBox);
-    this.lines.boundingBox.position.copy(this.position);
+    scene.add(this.gap.boundingBox);
+    this.gap.boundingBox.position.copy(this.position);
   }
 
   get_corner_points(): [number, number][] {
@@ -1822,13 +1839,13 @@ export class Cell {
   gen_coll() {
     switch (this.type) {
       case "basic1d":
-        this.coll = generate_basic1d_collision([this.position.x, this.position.z], this.amplitude, this.width);
+        this.coll = generate_basic1d_collision([this.position.x + this.elastic_offset[0], this.position.z - this.elastic_offset[1]], this.amplitude, this.width);
         break;
       case "basic2d":
-        this.coll = generate_basic2d_collision([this.position.x, this.position.z], this.amplitude, this.width);
+        this.coll = generate_basic2d_collision([this.position.x + this.elastic_offset[0], this.position.z - this.elastic_offset[1]], this.amplitude, this.width);
         break;
       case "chained_basic_1d":
-        this.coll = generate_basic1d_chained_collision([this.position.x, this.position.z], this.amplitude, this.width, this.meta_data);
+        this.coll = generate_basic1d_chained_collision([this.position.x + this.elastic_offset[0], this.position.z - this.elastic_offset[1]], this.amplitude, this.width, this.meta_data);
         break;
       default:
         break;
@@ -1914,9 +1931,26 @@ export class Cell {
       default:
         break;
     }
-
+    
     this.vertices_flat = vertices_flat;
     this.vertices = vertices;
+    
+    this.dims_without_elastic = [this.get_width(), this.get_height()];
+
+    if (this.elastic) {
+      if (this.type.includes("1d")) {
+        vertices_flat.push(
+          ...generate_elastic_1d_cell(this),
+          // ...generate_selected_rect(this.get_width(), this.get_height())
+        );
+        this.elastic_offset = [-vertices_min_x(vertices_flat), -vertices_min_y(vertices_flat)];
+        vertices_flat = move_verticies(this.elastic_offset[0], 0, this.elastic_offset[1], vertices_flat);
+      }
+    } else {
+        this.elastic_offset = [0, 0]; 
+    }
+
+    this.vertices_flat = vertices_flat;
     
     // flat
     this.mesh_flat.geometry.dispose();
@@ -1979,4 +2013,36 @@ export class Cell {
 
     this.mesh.position.copy(this.mesh.position.add(new Three.Vector3(dir[0] * 1.0/distX * 50, 0, dir[1] * 1.0/distZ)));
   }
+}
+
+
+
+// Generate Elastic
+//
+//
+function generate_elastic_1d_cell(cell: Cell): number[] {
+  return generate_elastic_1d(cell.get_width(), cell.get_height(), cell.amplitude, cell.width, cell.gap.d[2], cell.gap.d[3], cell.elastic ? cell.elastic_d : -1);
+}
+
+function generate_elastic_1d(cellW: number, cellH: number, amplitude: number, width: number, gapUp: number, gapBo: number, elastic_val: number): number[] {
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+
+  const h = Math.max(cellH + DEFAULT_SIZE*2, b + 2* Math.max(gapBo, gapUp)); // max of d on top and bottom.
+  // TODO formula wrong 
+  const w = Math.max(cellW + DEFAULT_SIZE*4,width + 4 + (14 - elastic_val));
+  
+  const x = (w-cellW)/2.0;
+  const y = (h-cellH)/2.0;
+  
+  console.log(h, w, cellW, cellH, "real");
+
+  return [ 
+    ...rect(w, DEFAULT_SIZE, [-x, -y]),
+    ...rect(w, DEFAULT_SIZE, [-x, y + cellH]),
+    ...rect(DEFAULT_SIZE, h- DEFAULT_SIZE, [-x, -y + DEFAULT_SIZE]),
+    ...rect(DEFAULT_SIZE, h- DEFAULT_SIZE, [x + cellW - DEFAULT_SIZE, -y + DEFAULT_SIZE])
+  ];
+
 }

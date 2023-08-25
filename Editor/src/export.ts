@@ -23,15 +23,52 @@ const export_functions = {
 export function export_cells(cells: Cell[], format: string) {
   const writer: Writer = format == "svg" ? new SvgWriter(DEF_SIZE[0], DEF_SIZE[1]) : new DXFWriter();
   for (const cell of cells) {
+    const pos = [
+      cell.position.x + (cell.elastic ? cell.elastic_offset[0]: 0) + DEF_SIZE[0]/2.0,
+      cell.position.y - (cell.elastic ? cell.elastic_offset[1]: 0) + DEF_SIZE[1]/2.0 
+    ];
     if (cell.type in export_functions) {
-      export_functions[cell.type]([cell.position.x + DEF_SIZE[0]/2.0, (cell.position.z + DEF_SIZE[1]/2.0)], cell.amplitude, cell.width, cell.coll, writer);
+      export_functions[cell.type](pos, cell.amplitude, cell.width, cell.coll, writer);
     } else if (cell.type == "chained_basic_1d"){
-      basic1d_chained([cell.position.x + DEF_SIZE[0]/2.0, (cell.position.z + DEF_SIZE[1]/2.0)], cell.amplitude, cell.width, writer, cell.meta_data);
+      basic1d_chained(pos, cell.amplitude, cell.width, writer, cell.meta_data);
     } else {
       console.log(`Cant export ${cell.type}`);
     }
+    if (cell.elastic) { 
+      const pos2 = [
+        cell.position.x + DEF_SIZE[0]/2.0,
+        cell.position.y + DEF_SIZE[1]/2.0 
+      ];
+      elastic_1D(writer, pos, cell.amplitude, cell.width, cell.gap.d, cell.dims_without_elastic[0], cell.dims_without_elastic[1], cell.elastic_d);
+    }
   }
   writer.save();
+}
+
+function elastic_1D(writer: Writer, pos: [number, number], amplitude: number, width: number, gap: number[], cellW: number, cellH: number, elastic_val: number) {
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+
+  const h = Math.max(cellH + DEFAULT_SIZE*2, b + 2* Math.max(gap[2], gap[3])); // max of d on top and bottom.
+  // TODO formula wrong 
+  const w = Math.max(cellW + DEFAULT_SIZE*4,width + 4 + (14 - elastic_val));
+  
+  const x = (w-cellW)/2.0;
+  const y = (h-cellH)/2.0;
+  console.log(h, w, cellH, cellW);
+
+  // return [ 
+  //   ...rect(w, DEFAULT_SIZE, [-x, -y]),
+  //   ...rect(w, DEFAULT_SIZE, [-x, y + cellH]),
+  //   ...rect(DEFAULT_SIZE, h- DEFAULT_SIZE, [-x, -y + DEFAULT_SIZE]),
+  //   ...rect(DEFAULT_SIZE, h- DEFAULT_SIZE, [x + cellW - DEFAULT_SIZE, -y + DEFAULT_SIZE])
+  // ];
+  //
+  writer.rect(pos[0] - x, pos[1] + y, w, DEFAULT_SIZE);
+  writer.rect(pos[0] - x, pos[1] - y - cellH, w, DEFAULT_SIZE);
+  writer.rect(pos[0] - x, pos[1] + y - DEFAULT_SIZE, DEFAULT_SIZE, h - DEFAULT_SIZE);
+  writer.rect(pos[0] + x + cellW - DEFAULT_SIZE, pos[1] + y - DEFAULT_SIZE, DEFAULT_SIZE, h - DEFAULT_SIZE);
 }
 
 function angle1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: Writer) {

@@ -17,16 +17,19 @@ const DRAG_SPEED = .25;
 const EDITING_MODE_DEFAULT_DIST = 15.0;
 const AMPLITUDE_RANGE = [4, 20];
 const WIDTH_RANGE = [8, 40];
+const ELASTIC_RANGE = [4, 10];
 
 // State 
 // ######################################################
 var mode: String = "inspect"
 var cells: Cell[] = []
+var is_elastic = false;
 
 // Which type of thing is currently selected, changed with the buttons on the left.
 var selected_type = "basic1d"; // basic1d
 var amplitude_value = AMPLITUDE_RANGE[1]/2.0;
 var width_value = WIDTH_RANGE[1]/2.0;
+var elastic_value = ELASTIC_RANGE[0] + (ELASTIC_RANGE[1] - ELASTIC_RANGE[0])/2.0;
 var current_object: Cell = create_basic1d(amplitude_value, width_value, cells);
 
 // Setup three js scene 
@@ -111,7 +114,7 @@ function remove(cell: Cell) {
     scene.remove(cell.mesh);
     scene.remove(cell.mesh_flat);
     scene.remove(cell.selected_mesh);
-    scene.remove(cell.lines.boundingBox);
+    scene.remove(cell.gap.boundingBox);
     cells = cells.filter(item => item !== cell);
   }
 }
@@ -126,6 +129,11 @@ function place_current_selected_cell(position: Three.Vector3) {
   current_object.selected_mesh.position.x -= 1;
   current_object.selected_mesh.position.z += 1;
   current_object.mesh.position.y = 0.1;
+  // add offset of elastic to the 3d mesh so it is centered on the flat one first.
+  if (current_object.elastic) {
+    current_object.mesh.position.x += current_object.elastic_offset[0];
+    current_object.mesh.position.z -= current_object.elastic_offset[1];
+  }
 
   scene.add(current_object.mesh_flat);
   scene.add(current_object.mesh);
@@ -179,6 +187,7 @@ function update_current_cell() {
       set_sliders(current_object.amplitude, current_object.width, current_object.elastic_d);
     }
     check_gap();
+    place_current_selected_cell(current_object.position);
   }
 }
 
@@ -238,6 +247,7 @@ document.addEventListener("mousedown", function(event) {
 })
 // Add new btn/ Button
 document.getElementById("add")?.addEventListener("click", function () {
+  const is_now_elastic = current_object != null ? current_object.elastic: is_elastic;
   switch (selected_type) {
     case "basic1d":
       set_current_object(create_basic1d(amplitude_value, width_value, cells));
@@ -278,6 +288,10 @@ document.getElementById("add")?.addEventListener("click", function () {
       break;
   }
   place_current_selected_cell(orbitControl.target);
+  if (is_now_elastic) {
+    set_current_cell_elastic(true, elastic_value);
+    turn_elastic(current_object.elastic);
+  }
 })
 
 const raycaster = new Three.Raycaster();
@@ -328,7 +342,7 @@ function get_mouse_in_world(clientX, clientY): Three.Vector3 {
 function set_sliders(amplitude: number, width: number, elastic: number) {
   amplitude_slider.value = (amplitude - AMPLITUDE_RANGE[0]) / (AMPLITUDE_RANGE[1] - AMPLITUDE_RANGE[0]) * 100.0;
   width_slider.value = (width - WIDTH_RANGE[0]) / (WIDTH_RANGE[1] - WIDTH_RANGE[0]) * 100.0;
-  // TODO elastic slider
+  elastic_slider.value = (elastic - ELASTIC_RANGE[0]) / (ELASTIC_RANGE[1] - ELASTIC_RANGE[0]) * 100.0;
 }
 
 function set_current_object(newObj: Cell) {
@@ -339,11 +353,27 @@ function set_current_object(newObj: Cell) {
   current_object.set_selected_mesh(true, true);
 
   set_sliders(newObj.amplitude, newObj.width, newObj.elastic_d);
+  turn_elastic(newObj.elastic);
 
   amplitude_value = newObj.amplitude;
   width_value = newObj.width;
+  elastic_value = newObj.elastic_d;
+  is_elastic = newObj.elastic;
   amplitude_slider.dispatchEvent(new Event("input"));
   width_slider.dispatchEvent(new Event("input"));
+  elastic_slider.dispatchEvent(new Event("input"));
+}
+
+function turn_elastic(on: boolean) {
+  elasticToggle.checked = on; 
+  elasticToggle.dispatchEvent(new Event("input"));
+  if (elasticToggle.checked) {
+    is_elastic = true;
+    elastic_slider_visual.style.display = "block";
+  } else {
+    is_elastic = false;
+    elastic_slider_visual.style.display = "none";
+  }
 }
 
 function get_cell_by_mesh_uuid(id): Cell | null {
@@ -496,20 +526,33 @@ width_slider.oninput = function () {
   update_current_cell();
 }
 
-const deform_slider = document.getElementById("deform_slider")! as HTMLInputElement;
-deform_slider.oninput = function () {
-  deform_slider.value;
+const elastic_slider_visual = document.getElementById("deform_slider")!;
+const elastic_slider = document.getElementById("deform")!;
+elastic_slider.oninput = function () {
+  elastic_value = ELASTIC_RANGE[0] + elastic_slider.value / 100.0 * (ELASTIC_RANGE[1] - ELASTIC_RANGE[0]);
+  set_current_cell_elastic(is_elastic, elastic_value);
+  console.log(elastic_value, elastic_slider.value);
 }
 
-const toggleSwitch = document.getElementById('toggleSwitch') as HTMLInputElement;
-toggleSwitch.addEventListener('change', function () {
-  if (toggleSwitch.checked) {
-    deform_slider.style.display = "block";
+const elasticToggle = document.getElementById('toggleSwitch') as HTMLInputElement;
+elasticToggle.addEventListener('change', function () {
+  if (elasticToggle.checked) {
+    is_elastic = true;
+    elastic_slider_visual.style.display = "block";
   } else {
-    deform_slider.style.display = "none";
+    is_elastic = false;
+    elastic_slider_visual.style.display = "none";
   }
+  set_current_cell_elastic(is_elastic, elastic_value);
 });
 
+function set_current_cell_elastic(is_elastic: boolean, val: number) {
+  if (current_object != null) {
+    current_object.elastic = is_elastic;
+    current_object.elastic_d = val;
+    update_current_cell();
+  }
+}
 
 var export_type = "svg";
 
