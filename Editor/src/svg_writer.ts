@@ -1,6 +1,7 @@
 export interface Writer {
   rect(x: number, y: number, w: number, h: number, rounded: number | null, color: number | null): Writer;
   path(positions: [number, number][], color: number): Writer;
+  circle(x: number, y: number, width: number, radius: number);
   save(): void;
 }
 import { DxfWriter, HatchBoundaryPaths, HatchPolylineBoundary, HatchPredefinedPatterns, pattern, point3d, vertex } from "@tarikjabiri/dxf";
@@ -90,6 +91,10 @@ export class SvgWriter implements Writer {
 
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
+  }
+
+  circle(x: number, y: number, width: number, radius: number, color: number = 0) {
+    this.content += `<circle cx="${x}" cy="${y}" r="${radius}" stroke="${numberToHexColor(color)}" stroke-width="${width}" fill="none" />\n`;
   }
 
   rect(x:number, y:number, w:number, h:number, rounded:number=0, color:number=0): SvgWriter {

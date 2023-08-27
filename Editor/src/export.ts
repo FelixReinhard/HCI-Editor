@@ -2,7 +2,7 @@ import { Cell, formula, c1, c2, DEFAULT_SIZE } from "./generate";
 import { DXFWriter, SvgWriter, Writer } from "./svg_writer";
 import { CollisionBox } from "./collision.ts";
 
-const DEF_SIZE = [500, 500];
+const DEF_SIZE: [number, number] = [500, 500];
 
 const export_functions = {
   "basic1d": basic1D,
@@ -24,9 +24,10 @@ export function export_cells(cells: Cell[], format: string) {
   const writer: Writer = format == "svg" ? new SvgWriter(DEF_SIZE[0], DEF_SIZE[1]) : new DXFWriter();
   for (const cell of cells) {
     const pos = [
-      cell.position.x + (cell.elastic ? cell.elastic_offset[0]: 0) + DEF_SIZE[0]/2.0,
-      cell.position.y - (cell.elastic ? cell.elastic_offset[1]: 0) + DEF_SIZE[1]/2.0 
+      cell.mesh_flat.position.x + (cell.elastic ? cell.elastic_offset[0]: 0) + DEF_SIZE[0]/2,
+      cell.mesh_flat.position.z - (cell.elastic ? cell.elastic_offset[1]: 0) + DEF_SIZE[1]/2 - (cell.type.includes("2d") ? cell.dims_without_elastic[1]/2 : 0) 
     ];
+
     if (cell.type in export_functions) {
       export_functions[cell.type](pos, cell.amplitude, cell.width, cell.coll, writer);
     } else if (cell.type == "chained_basic_1d"){
@@ -39,7 +40,10 @@ export function export_cells(cells: Cell[], format: string) {
         cell.position.x + DEF_SIZE[0]/2.0,
         cell.position.y + DEF_SIZE[1]/2.0 
       ];
-      elastic_1D(writer, pos, cell.amplitude, cell.width, cell.gap.d, cell.dims_without_elastic[0], cell.dims_without_elastic[1], cell.elastic_d);
+      if (cell.type.includes("1d"))
+        elastic_1D(writer, pos, cell.amplitude, cell.width, cell.gap.d, cell.dims_without_elastic[0], cell.dims_without_elastic[1], cell.elastic_d);
+      else 
+        elastic_2D(writer, pos, cell.amplitude, cell.width, cell.type, cell.dims_without_elastic[0], cell.dims_without_elastic[1], cell.elastic_d);
     }
   }
   writer.save();
@@ -56,19 +60,25 @@ function elastic_1D(writer: Writer, pos: [number, number], amplitude: number, wi
   
   const x = (w-cellW)/2.0;
   const y = (h-cellH)/2.0;
-  console.log(h, w, cellH, cellW);
-
-  // return [ 
-  //   ...rect(w, DEFAULT_SIZE, [-x, -y]),
-  //   ...rect(w, DEFAULT_SIZE, [-x, y + cellH]),
-  //   ...rect(DEFAULT_SIZE, h- DEFAULT_SIZE, [-x, -y + DEFAULT_SIZE]),
-  //   ...rect(DEFAULT_SIZE, h- DEFAULT_SIZE, [x + cellW - DEFAULT_SIZE, -y + DEFAULT_SIZE])
-  // ];
-  //
   writer.rect(pos[0] - x, pos[1] + y, w, DEFAULT_SIZE);
   writer.rect(pos[0] - x, pos[1] - y - cellH, w, DEFAULT_SIZE);
   writer.rect(pos[0] - x, pos[1] + y - DEFAULT_SIZE, DEFAULT_SIZE, h - DEFAULT_SIZE);
   writer.rect(pos[0] + x + cellW - DEFAULT_SIZE, pos[1] + y - DEFAULT_SIZE, DEFAULT_SIZE, h - DEFAULT_SIZE);
+}
+
+function elastic_2D(writer: Writer, pos: [number, number], amplitude: number, width: number, type: string, cellW: number, cellH: number, elastic_val: number) {
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+  const l = Math.max(Math.max(cellW, cellH) + DEFAULT_SIZE*4, width + 4 + 2*(12 - elastic_val));
+  if (type == "right2d") {
+    const offset = - ((DEFAULT_SIZE*4 + 2*a + b)/2 - (DEFAULT_SIZE*2 + a*.6 + b/2)); 
+
+    writer.circle(pos[0] + cellW/2 , pos[1], DEFAULT_SIZE, l/2);
+  } else {
+    writer.circle(pos[0] + cellW/2 , pos[1], DEFAULT_SIZE, l/2);
+  }
 }
 
 function angle1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: Writer) {
@@ -183,6 +193,7 @@ function basic1d_chained(position: number[], amplitude: number, width: number, w
 }
 
 function basic1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: Writer) {
+  console.log(position);
   const f = formula(amplitude, width, c1); 
 
   const b = f[1];
@@ -212,8 +223,9 @@ function right2D(position: number[], amplitude: number, width: number, collision
 
   const b = f[1];
   const a = f[0];
-
-  const offsetY = position[1] - b - DEFAULT_SIZE/2.0;
+  
+  // we shift each 2d cell by its center regarding its height, but here the real center is not the geometric center so shift again by the difference.
+  const offsetY = position[1] + b/2 - ((DEFAULT_SIZE*4 + 2*a + b)/2 - (DEFAULT_SIZE*2 + a*.6 + b/2)); 
   const offsetX = position[0];
 
   writer.rect(offsetX, offsetY, DEFAULT_SIZE, b); 
@@ -243,12 +255,12 @@ function right2D(position: number[], amplitude: number, width: number, collision
     [offsetX + a*.6 + DEFAULT_SIZE*2.5 + b, offsetY + DEFAULT_SIZE/2.0],
   ]);
 
-  writer.rect(offsetX + DEFAULT_SIZE*2.5 + a*.6, offsetY - a - b - DEFAULT_SIZE*1.5, b, DEFAULT_SIZE);
+  writer.rect(offsetX + DEFAULT_SIZE*2.5 + a*.6, offsetY - a*.6 - b - DEFAULT_SIZE*1.5, b, DEFAULT_SIZE);
   writer.path([
     [offsetX + a*.6 + DEFAULT_SIZE*2.5 + b/2.0, offsetY - b/2.0 - DEFAULT_SIZE/2.0],
     [offsetX + a*.6 + DEFAULT_SIZE*2.5, offsetY - b - DEFAULT_SIZE/2.0],
-    [offsetX + a*.6 + DEFAULT_SIZE*2.5, offsetY - a - b - DEFAULT_SIZE/2.0],
-    [offsetX + a*.6 + DEFAULT_SIZE*2.5 + b, offsetY - a - b - DEFAULT_SIZE/2.0],
+    [offsetX + a*.6 + DEFAULT_SIZE*2.5, offsetY - a*.6 - b - DEFAULT_SIZE/2.0],
+    [offsetX + a*.6 + DEFAULT_SIZE*2.5 + b, offsetY - a*.6 - b - DEFAULT_SIZE/2.0],
     [offsetX + a*.6 + DEFAULT_SIZE*2.5 + b, offsetY - b - DEFAULT_SIZE/2.0],
   ]);
 }
@@ -260,8 +272,8 @@ function basic2D(position: number[], amplitude: number, width: number, collision
 
   const b = f[1];
   const a = f[0];
-  
-  const offsetY = position[1] - b - DEFAULT_SIZE/2.0;
+  // b/2 because we shift to center for y
+  const offsetY = position[1] + b/2;
   const offsetX = position[0];
   
   writer.rect(offsetX, offsetY, DEFAULT_SIZE, b); 
@@ -309,7 +321,7 @@ function full2D(position: number[], amplitude: number, width: number, collisions
   const b = f[1];
   const a = f[0];
   
-  const offsetY = position[1] - b - DEFAULT_SIZE/2.0;
+  const offsetY = position[1] + b/2;
   const offsetX = position[0];
   
   writer.rect(offsetX, offsetY, DEFAULT_SIZE, b); 
@@ -340,7 +352,7 @@ function slope72D(position: number[], amplitude: number, width: number, collisio
   const b = f[1];
   const a = f[0];
   
-  const offsetY = position[1] - b - DEFAULT_SIZE/2.0;
+  const offsetY = position[1] + b/2;
   const offsetX = position[0];
   
   writer.rect(offsetX, offsetY, DEFAULT_SIZE, b); 
@@ -387,7 +399,7 @@ function slope2D(position: number[], amplitude: number, width: number, collision
   const b = f[1];
   const a = f[0];
   
-  const offsetY = position[1] - b - DEFAULT_SIZE/2.0;
+  const offsetY = position[1] + b/2;
   const offsetX = position[0];
   
   writer.rect(offsetX, offsetY, DEFAULT_SIZE, b); 
@@ -427,7 +439,7 @@ function angle2D(position: number[], amplitude: number, width: number, collision
   const b = f[1];
   const a = f[0];
   
-  const offsetY = position[1] - b - DEFAULT_SIZE/2.0;
+  const offsetY = position[1] + b/2;
   const offsetX = position[0];
 
   const xOffsetAngle = -(a * Math.sin(20 * (Math.PI / 180.0))) / Math.sin(70 * (Math.PI / 180.0));

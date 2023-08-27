@@ -1943,9 +1943,13 @@ export class Cell {
           ...generate_elastic_1d_cell(this),
           // ...generate_selected_rect(this.get_width(), this.get_height())
         );
-        this.elastic_offset = [-vertices_min_x(vertices_flat), -vertices_min_y(vertices_flat)];
-        vertices_flat = move_verticies(this.elastic_offset[0], 0, this.elastic_offset[1], vertices_flat);
+      } else {
+        vertices_flat.push(
+          ...generate_elastic_2d_cell(this),
+        );
       }
+      this.elastic_offset = [-vertices_min_x(vertices_flat), -vertices_min_y(vertices_flat)];
+      vertices_flat = move_verticies(this.elastic_offset[0], 0, this.elastic_offset[1], vertices_flat);
     } else {
         this.elastic_offset = [0, 0]; 
     }
@@ -2024,6 +2028,10 @@ function generate_elastic_1d_cell(cell: Cell): number[] {
   return generate_elastic_1d(cell.get_width(), cell.get_height(), cell.amplitude, cell.width, cell.gap.d[2], cell.gap.d[3], cell.elastic ? cell.elastic_d : -1);
 }
 
+function generate_elastic_2d_cell(cell: Cell): number[] {
+  return generate_elastic_2d(cell.get_width(), cell.get_height(), cell.amplitude, cell.width, cell.gap.d[2], cell.gap.d[3], cell.elastic ? cell.elastic_d : -1);
+}
+
 function generate_elastic_1d(cellW: number, cellH: number, amplitude: number, width: number, gapUp: number, gapBo: number, elastic_val: number): number[] {
   const f = formula(amplitude, width, c1);
 
@@ -2036,7 +2044,7 @@ function generate_elastic_1d(cellW: number, cellH: number, amplitude: number, wi
   const x = (w-cellW)/2.0;
   const y = (h-cellH)/2.0;
   
-  console.log(h, w, cellW, cellH, "real");
+  console.log(generate_circle([], DEFAULT_SIZE, 10));
 
   return [ 
     ...rect(w, DEFAULT_SIZE, [-x, -y]),
@@ -2044,5 +2052,44 @@ function generate_elastic_1d(cellW: number, cellH: number, amplitude: number, wi
     ...rect(DEFAULT_SIZE, h- DEFAULT_SIZE, [-x, -y + DEFAULT_SIZE]),
     ...rect(DEFAULT_SIZE, h- DEFAULT_SIZE, [x + cellW - DEFAULT_SIZE, -y + DEFAULT_SIZE])
   ];
-
 }
+
+function generate_elastic_2d(cellW: number, cellH: number, amplitude: number, width: number, gapUp: number, gapBo: number, elastic_val: number): number[] {
+
+  const l = Math.max(Math.max(cellW, cellH) + DEFAULT_SIZE*2, width + 4 + 2*(12 - elastic_val));
+  
+  return generate_circle([cellW / 2, cellH / 2], DEFAULT_SIZE, l); //width + 4 + 2*(12 - elastic_val));
+}
+
+function generate_circle(center: [number, number], width: number = 2, diameter: number): number[] {
+  const innerRadius = diameter/2;
+  const outerRadius = innerRadius + width;
+  const thetaSegments = 32;
+  
+  const vertices = [];
+
+  for (let i = 0; i <= thetaSegments; i++) {
+    const segment = i / thetaSegments * (Math.PI * 2);
+    const nextSegment = (i + 1) / thetaSegments * (Math.PI * 2);
+
+  
+    const x1 = innerRadius * Math.cos(segment) + center[0];
+    const z1 = innerRadius * Math.sin(segment) + center[1];
+
+    const x2 = innerRadius * Math.cos(nextSegment) + center[0];
+    const z2 = innerRadius * Math.sin(nextSegment) + center[1];
+
+    const x3 = outerRadius * Math.cos(segment) + center[0];
+    const z3 = outerRadius * Math.sin(segment) + center[1];
+
+    const x4 = outerRadius * Math.cos(nextSegment) + center[0];
+    const z4 = outerRadius * Math.sin(nextSegment) + center[1];
+
+    vertices.push(...quad(
+      [x1, 0, z1], [x2, 0, z2],
+      [x3, 0, z3], [x4, 0, z4]
+    ));
+  }
+  return vertices;
+}
+
