@@ -1,7 +1,7 @@
 export interface Writer {
   rect(x: number, y: number, w: number, h: number, rounded: number | null, color: number | null): Writer;
   path(positions: [number, number][], color: number): Writer;
-  circle(x: number, y: number, width: number, radius: number);
+  circle(x: number, y: number, width: number, radius: number, color: number);
   save(): void;
 }
 import { DxfWriter, HatchBoundaryPaths, HatchPolylineBoundary, HatchPredefinedPatterns, pattern, point3d, vertex } from "@tarikjabiri/dxf";

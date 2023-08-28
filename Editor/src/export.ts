@@ -54,9 +54,9 @@ function elastic_1D(writer: Writer, pos: [number, number], amplitude: number, wi
 
   const b = f[1];
 
-  const h = Math.max(cellH + DEFAULT_SIZE*2, b + 2* Math.max(gap[2], gap[3])); // max of d on top and bottom.
+  const h = b + 2* Math.max(gap[2], gap[3]) + DEFAULT_SIZE*2 ; // max of d on top and bottom.D
   // TODO formula wrong 
-  const w = Math.max(cellW + DEFAULT_SIZE*4,width + 4 + (14 - elastic_val));
+  const w = width + 4 + (14 - elastic_val) + DEFAULT_SIZE*2;
   
   const x = (w-cellW)/2.0;
   const y = (h-cellH)/2.0;
@@ -71,13 +71,13 @@ function elastic_2D(writer: Writer, pos: [number, number], amplitude: number, wi
 
   const b = f[1];
   const a = f[0];
-  const l = Math.max(Math.max(cellW, cellH) + DEFAULT_SIZE*4, width + 4 + 2*(12 - elastic_val));
+  const l = width + 4 + 2*(12 - elastic_val) + DEFAULT_SIZE*2;
   if (type == "right2d") {
     const offset = - ((DEFAULT_SIZE*4 + 2*a + b)/2 - (DEFAULT_SIZE*2 + a*.6 + b/2)); 
 
-    writer.circle(pos[0] + cellW/2 , pos[1], DEFAULT_SIZE, l/2);
+    writer.circle(pos[0] + cellW/2 , pos[1], DEFAULT_SIZE, l/2, 0xFF0000);
   } else {
-    writer.circle(pos[0] + cellW/2 , pos[1], DEFAULT_SIZE, l/2);
+    writer.circle(pos[0] + cellW/2 , pos[1], DEFAULT_SIZE, l/2, 0xFF0000);
   }
 }
 
@@ -90,12 +90,6 @@ function angle1D(position: number[], amplitude: number, width: number,collisions
 
   const yOffset = -(a * Math.sin(20 * (Math.PI / 180.0))) / Math.sin(70 * (Math.PI / 180.0));
   position[1] += yOffset;
-  // ...quad(
-  //   [DEFAULT_SIZE*2, 0, 0], [DEFAULT_SIZE*2, 0, b], [DEFAULT_SIZE*2 + a, 0, yOffset], [DEFAULT_SIZE*2 + a, 0, yOffset + b]
-  // ),
-  // ...quad(
-  //   [DEFAULT_SIZE*3 + a, 0, yOffset], [DEFAULT_SIZE*3 + a, 0, yOffset + b], [DEFAULT_SIZE*3 + 2*a, 0, 0], [DEFAULT_SIZE*3 + 2*a, 0, b]
-  // ),
 
   writer.rect(position[0], position[1], DEFAULT_SIZE, b);
   writer.path([
@@ -170,12 +164,12 @@ function basic1d_chained(position: number[], amplitude: number, width: number, w
 
   const b = f[1];
   const a = f[0];
-
-  writer.rect(position[0], position[1], DEFAULT_SIZE, b);
-  writer.rect(position[0] + DEFAULT_SIZE*2, position[1], a, b);
-  writer.rect(position[0] + DEFAULT_SIZE*3 + a, position[1], a, b);
-
-  var xOffset = DEFAULT_SIZE*4 + a * 2;
+  
+  if (data.includes("t7")) {
+    // Add offset to pos.y if we have a angle1d
+    position[1] += -(a * Math.sin(20 * (Math.PI / 180.0))) / Math.sin(70 * (Math.PI / 180.0));
+  }
+  var xOffset = 0; 
 
   for (let i = 0; i < data.length; i++) {
     if (data[i] == "t1") {
@@ -187,13 +181,72 @@ function basic1d_chained(position: number[], amplitude: number, width: number, w
     } else if (data[i] == "t2") {
       writer.rect(position[0] + xOffset, position[1], a, b);
       xOffset += a + DEFAULT_SIZE;
+    } else if (data[i] == "t3") {
+      writer.rect(position[0] + xOffset, position[1], DEFAULT_SIZE, b);
+      writer.rect(position[0] + xOffset + DEFAULT_SIZE*2, position[1], a*.6, b);
+      writer.rect(position[0] + xOffset + DEFAULT_SIZE*3 + a*.6, position[1], a*1.4, b);
+
+      xOffset += 2*a + 4*DEFAULT_SIZE;
+    } else if (data[i] == "t4") {
+      writer.rect(position[0] + xOffset, position[1], DEFAULT_SIZE, b);
+      writer.rect(position[0] + xOffset + DEFAULT_SIZE*2, position[1], a*2 + DEFAULT_SIZE, b);
+
+      xOffset += 2*a + 4*DEFAULT_SIZE;
+    } else if (data[i] == "t5") {
+
+      writer.rect(position[0] + xOffset, position[1], DEFAULT_SIZE, b);
+      writer.path([
+        [position[0] + DEFAULT_SIZE*2 + xOffset, position[1] - b],
+        [position[0] + DEFAULT_SIZE*2 + a + xOffset, position[1] + b*.15 - b],
+        [position[0] + DEFAULT_SIZE*2 + a + xOffset, position[1] + b*.85 - b],
+        [position[0] + DEFAULT_SIZE*2 + xOffset, position[1]]
+      ]);
+      writer.path([
+        [position[0] + DEFAULT_SIZE*3 + a + xOffset, position[1] + b*.15 - b],
+        [position[0] + DEFAULT_SIZE*3 + 2*a + xOffset, position[1] - b],
+        [position[0] + DEFAULT_SIZE*3 + 2*a + xOffset, position[1]],
+        [position[0] + DEFAULT_SIZE*3 + a + xOffset, position[1] + b*.85 - b],
+      ]);
+
+      xOffset += 2*a + 4*DEFAULT_SIZE;
+    } else if (data[i] == "t6") {
+
+      writer.rect(position[0] + xOffset, position[1], DEFAULT_SIZE, b);
+      writer.path([
+        [position[0] + DEFAULT_SIZE*2 + xOffset, position[1] - b],
+        [position[0] + DEFAULT_SIZE*2 + a + xOffset, position[1] + b/2.0 - b],
+        [position[0] + DEFAULT_SIZE*2 + xOffset, position[1]]
+      ]);
+      writer.path([
+        [position[0] + DEFAULT_SIZE*3 + a + xOffset, position[1] + b/2.0 - b],
+        [position[0] + DEFAULT_SIZE*3 + 2*a + xOffset, position[1] - b],
+        [position[0] + DEFAULT_SIZE*3 + 2*a + xOffset, position[1]],
+      ]);
+      xOffset += 2*a + 4*DEFAULT_SIZE;
+    } else if (data[i] == "t7") {
+
+      const yOffset = -(a * Math.sin(20 * (Math.PI / 180.0))) / Math.sin(70 * (Math.PI / 180.0));
+
+      writer.rect(position[0] + xOffset, position[1], DEFAULT_SIZE, b);
+      writer.path([
+        [position[0] + DEFAULT_SIZE*2 + xOffset, position[1] - b],
+        [position[0] + DEFAULT_SIZE*2 + a + xOffset, position[1] - yOffset - b],
+        [position[0] + DEFAULT_SIZE*2 + a + xOffset, position[1] - yOffset],
+        [position[0] + DEFAULT_SIZE*2 + xOffset, position[1]],
+      ]);
+      writer.path([
+        [position[0] + DEFAULT_SIZE*3 + a + xOffset, position[1] - b - yOffset],
+        [position[0] + DEFAULT_SIZE*3 + a + xOffset, position[1] - yOffset],
+        [position[0] + DEFAULT_SIZE*3 + 2*a + xOffset, position[1]],
+        [position[0] + DEFAULT_SIZE*3 + 2*a + xOffset, position[1] - b],
+      ]);
+      xOffset += 2*a + 4*DEFAULT_SIZE;
     }
   }
   writer.rect(position[0] + xOffset, position[1], DEFAULT_SIZE, b);
 }
 
 function basic1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: Writer) {
-  console.log(position);
   const f = formula(amplitude, width, c1); 
 
   const b = f[1];

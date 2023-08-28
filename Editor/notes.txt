@@ -11,6 +11,9 @@ Todo:
   # merge basic1d left/right 
   # merge basic1d left/right (m)
   # export merged type.
-  - dist between primitavies
-  - 2d basic dist between 
-  - variable ampl for mergin t1
+  - merge update bounding box
+  - delete cell reset has_2d_cells
+  - 3d change view button
+  - thick axis
+  - weak, strong elastic slider
+  - add to canvas ui

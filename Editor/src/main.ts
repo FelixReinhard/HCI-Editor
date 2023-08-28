@@ -10,20 +10,21 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {Cell, create_right1d, create_basic1d, create_basic2d, will_1d_break, will_2d_break, create_full1d, create_slope701d, create_slope1d, create_angle1d, create_right2d, create_full2d, create_slope702d, create_slope2d, create_angle2d} from './generate.ts';
 import {make_3d_mesh_visible} from "./utils.ts";
 import { export_cells } from './export.ts';
-import { merge_1d, merge_1d_chain, merge_1d_chain_left, merge_1d_t2 } from './merge.ts';
+import { merge_1d, merge_1d_all, merge_1d_chain, merge_1d_chain_left, merge_1d_t2 } from './merge.ts';
 
 // controls the speed you can drag the camera with in editing mode.
 const DRAG_SPEED = .25;
 const EDITING_MODE_DEFAULT_DIST = 15.0;
 const AMPLITUDE_RANGE = [4, 20];
 const WIDTH_RANGE = [8, 40];
-const ELASTIC_RANGE = [4, 10];
+const ELASTIC_RANGE = [1, 10];
 
 // State 
 // ######################################################
 var mode: String = "inspect"
 var cells: Cell[] = []
 var is_elastic = false;
+var has_2d_cells = false;
 
 // Which type of thing is currently selected, changed with the buttons on the left.
 var selected_type = "basic1d"; // basic1d
@@ -116,6 +117,7 @@ function remove(cell: Cell) {
     scene.remove(cell.selected_mesh);
     scene.remove(cell.gap.boundingBox);
     cells = cells.filter(item => item !== cell);
+    has_2d_cells = cells.reduce((acc: boolean, value: Cell) => { return acc || value.type.includes("2d"); }, false);
   }
 }
 
@@ -125,6 +127,10 @@ function place_current_selected_cell(position: Three.Vector3) {
   current_object.position.copy(position);
   current_object.selected_mesh.position.copy(position);
   current_object.mesh.position.copy(position);
+
+  const PLANE_SCALAR = has_2d_cells ? 1.0/1.75 : .5;
+  current_object.mesh.position.x *= PLANE_SCALAR;
+  current_object.mesh.position.z *= (has_2d_cells) ? PLANE_SCALAR : 1;
   // add offset 
   current_object.selected_mesh.position.x -= 1;
   current_object.selected_mesh.position.z += 1;
@@ -144,6 +150,7 @@ function place_current_selected_cell(position: Three.Vector3) {
   current_object.position.copy(position);
   current_object.gen_coll();
   if (!cells.includes(current_object)) {
+    if (current_object.type.includes("2d")) has_2d_cells = true;
     cells.push(current_object);
     current_object.reset_displacement();
   }   
@@ -199,8 +206,9 @@ var clicked_on_cell = false;
 document.addEventListener("keydown", function(event) {
   switch (event.key) {
     case "e":
-      if (mode == "editing") switch_mode("inspect")
-      else switch_mode("editing")
+      if (mode == "editing") switch_mode("inspect");
+      else switch_mode("editing");
+      switch_mode_text.innerText = (mode == "editing") ? "3D (e)" : "2D (e)";
       break;
     case "w":
       moveY(-1)
@@ -415,6 +423,14 @@ document.addEventListener("mousemove", function(event) {
 // Setup buttons 
 //
 
+const btn_switch_mode = document.getElementById("switch_mode") as HTMLButtonElement;
+const switch_mode_text = document.getElementById("switch_mode_inner")!;
+btn_switch_mode.addEventListener("click", function () {
+  if (mode == "editing") switch_mode("inspect");
+  else switch_mode("editing");
+  switch_mode_text.innerText = (mode == "editing") ? "3D (e)" : "2D (e)";
+});
+
 const btn_basic1d = document.getElementById("basic1d") as HTMLButtonElement;
 btn_basic1d.addEventListener("click", function () {
   selected_type = "basic1d";
@@ -514,16 +530,21 @@ function enable_all_btns_not_me(not_disable_id: string) {
   document.getElementById(not_disable_id).disabled = true;
 }
 
+const amplitude_text = document.getElementById("amplitude_text")!;
+const width_text = document.getElementById("width_text")!;
+
 const amplitude_slider = document.getElementById("amplitude")!;
 amplitude_slider.oninput = function () {
   amplitude_value = AMPLITUDE_RANGE[0] + amplitude_slider.value / 100.0 * (AMPLITUDE_RANGE[1] - AMPLITUDE_RANGE[0]);
   update_current_cell();
+  amplitude_text.innerText = `Amplitude: ${amplitude_value.toFixed(2)}mm`;
 }
 
 const width_slider = document.getElementById("width")!;
 width_slider.oninput = function () {
   width_value = WIDTH_RANGE[0] + width_slider.value / 100.0 * (WIDTH_RANGE[1] - WIDTH_RANGE[0]);
   update_current_cell();
+  width_text.innerText = `Width: ${width_value.toFixed(2)}mm`;
 }
 
 const elastic_slider_visual = document.getElementById("deform_slider")!;
@@ -531,11 +552,15 @@ const elastic_slider = document.getElementById("deform")!;
 elastic_slider.oninput = function () {
   elastic_value = ELASTIC_RANGE[0] + elastic_slider.value / 100.0 * (ELASTIC_RANGE[1] - ELASTIC_RANGE[0]);
   set_current_cell_elastic(is_elastic, elastic_value);
-  console.log(elastic_value, elastic_slider.value);
 }
 
 const elasticToggle = document.getElementById('toggleSwitch') as HTMLInputElement;
 elasticToggle.addEventListener('change', function () {
+  if (current_object == null || current_object.type.includes("chained")) {
+    elasticToggle.checked = false; 
+    elasticToggle.dispatchEvent(new Event("input"));
+    return;
+  } 
   if (elasticToggle.checked) {
     is_elastic = true;
     elastic_slider_visual.style.display = "block";
@@ -575,78 +600,15 @@ function set_export_type(type: string) {
 
 // used on the mouseup event to check if a merging should be done.
 var collision_type: {} = {"type" : "none", "agent1": null, "agent2": null};
-var collision_callbacks = {};
 
-type CollisionCallback = (cell: Cell, other: Cell) => void;
-
-function add_coll_callback(cellType1: string, cellType2: string, type1: string, type2: string, callback: CollisionCallback) {
-  collision_callbacks[`${cellType1}_${cellType2}:${type1}_${type2}`] = callback;
-}
-// basic_1d outer 
-add_coll_callback("basic1d", "basic1d", "1d_left", "1d_right", function(cell: Cell, other: Cell) {
-  collision_type = {"type": "1d_right_left", "agent1": cell, "agent2": other};
-});
-
-add_coll_callback("basic1d", "basic1d", "1d_right", "1d_left", function(cell: Cell, other: Cell) {
-  collision_type = {"type": "1d_left_right", "agent1": cell, "agent2": other};
-});
-
-// basic_1d inner 
-// dragin: left, toMerge right/chained.
-add_coll_callback("basic1d", "chained_basic_1d", "1d_left", "1d_right", function(cell: Cell, other: Cell) {
-  collision_type = {"type": "1d_right_left_chain", "agent1": cell, "agent2": other};
-});
-
-add_coll_callback("basic1d", "chained_basic_1d", "1d_right", "1d_left", function(cell: Cell, other: Cell) {
-  collision_type = {"type": "1d_left_right_chain", "agent1": cell, "agent2": other};
-});
-
-add_coll_callback("basic1d", "basic1d", "1d_left_m", "1d_right_m", function(cell: Cell, other: Cell) {
-  collision_type = {"type": "1d_right_left_m", "agent1": cell, "agent2": other};
-});
-
-add_coll_callback("basic1d", "basic1d", "1d_right_m", "1d_left_m", function(cell: Cell, other: Cell) {
-  collision_type = {"type": "1d_left_right_m", "agent1": cell, "agent2": other};
-});
-
-// during moving the cell in 'mousemove' we check for collisions. The above add_coll_callback add a handler for a certain kind of collision. 
-// e.g. add_coll_callback("basic1d", "basic1d", "1d_right", "1d_left", ... adds a handler for when a basic1d cell is draged onto another basic1d
-// cell and the rightmost rect of the dragged cell intersects with the leftmost of the other cell. 
-// If then the mouse is released in this position a merge should happen. so the draged cell should be extended with a t1 merge and should stay at this position,
-// so this is handled in the check mergin function. 
-// Ik its really stupid and 
 function check_mergin() {
-  if (collision_type["type"] != "none") {
-    switch (collision_type["type"]) {
-      case "1d_right_left":
-        remove_selected_cell();
-        merge_1d(collision_type["agent1"], collision_type["agent2"], cells);
-        break;
-      case "1d_left_right":
-        collision_type["agent1"].amplitude = collision_type["agent2"].amplitude;
-        collision_type["agent1"].width = collision_type["agent2"].width;
-        merge_1d(collision_type["agent2"], collision_type["agent1"], cells);
-        remove(collision_type["agent2"]);
-        break;
-      case "1d_right_left_chain": 
-        remove_selected_cell();
-        merge_1d_chain(collision_type["agent1"], collision_type["agent2"], cells);
-        break;
-      case "1d_left_right_chain": 
-        collision_type["agent1"].meta_data = collision_type["agent2"].meta_data;
-        merge_1d_chain_left(collision_type["agent2"], collision_type["agent1"], cells);
-        remove(collision_type["agent2"]);
-        break;
-      case "1d_right_left_m":
-        merge_1d_t2(collision_type["agent1"], collision_type["agent2"], cells);
-        remove_selected_cell();
-        break;
-      case "1d_left_right_m":
-        collision_type["agent1"].meta_data = collision_type["agent2"].meta_data;
-        merge_1d_t2(collision_type["agent2"], collision_type["agent1"], cells);
-        remove(collision_type["agent2"]);
-        break;
+
+  if (collision_type["type"] == "1d") {
+    if ("type_override_other" in collision_type) {
+      collision_type["agent2"].type = collision_type["type_override_other"];
     }
+    merge_1d_all(collision_type["agent1"], collision_type["agent2"], cells);
+    remove(collision_type["agent2"]);
   }
 }
 // collision 
@@ -656,10 +618,21 @@ function checkCollision(cell: Cell) {
     for (let col1 of cell.coll) {
       if (other.coll == null) continue;
       for (let col2 of other.coll) { 
-        const key = `${cell.type}_${other.type}:${col1.meta}_${col2.meta}`;
-        if (key in collision_callbacks && col1.collisionBoxesIntersect(col2)) {
-          collision_callbacks[key](cell, other);
-          console.log(key);
+
+        // const key = `${cell.type}_${other.type}:${col1.meta}_${col2.meta}`;
+        // if (key in collision_callbacks && col1.collisionBoxesIntersect(col2)) {
+        //   collision_callbacks[key](cell, other);
+        // }
+        if (col1.collisionBoxesIntersect(col2)) {
+          if (col1.meta == "1d_left" && col2.meta == "1d_right") {
+            collision_type = {"type": "1d", "agent1": other, "agent2": cell};
+          } else if (col1.meta == "1d_right" && col2.meta == "1d_left") {
+            collision_type = {"type": "1d", "agent1": cell, "agent2": other};
+          } 
+          // special case 
+          else if (col1.meta == "1d_right_m" && col2.meta == "1d_left_m") {
+            collision_type = {"type": "1d", "agent1": cell, "agent2": other, "type_override_other": "basic1d_m"};
+          }
         }
       }
     }

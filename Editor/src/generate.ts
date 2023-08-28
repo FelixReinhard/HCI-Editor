@@ -123,13 +123,11 @@ function generate_basic1d_chained_flat(amplitude: number, width: number, data: s
   const b = f[1];
   const a = f[0];
   
-  var xOffset = DEFAULT_SIZE*4 + a * 2;
+  var xOffset = 0;
+  // move for angle1d
+  var yMove = 0;
   // t1 small, t2 big ones merge.
   var v = [
-    ...rect(DEFAULT_SIZE, b),
-    ...rect(a, b, [DEFAULT_SIZE*2, 0]),
-    ...rect(a, b, [DEFAULT_SIZE*3 + a, 0]),
-  //  ...rect(DEFAULT_SIZE, b, [DEFAULT_SIZE*4 + 2*a, 0]),
   ];
   for (let i = 0; i < data.length; i++) {
     if (data[i] == "t1") {
@@ -144,12 +142,72 @@ function generate_basic1d_chained_flat(amplitude: number, width: number, data: s
         ...rect(a, b, [xOffset, 0]),
       );
       xOffset += a + DEFAULT_SIZE;
+    } else if (data[i] == "t3") {
+      v.push(
+      ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
+      ...rect(a*.6, b, [xOffset + DEFAULT_SIZE*2, 0]),
+      ...rect(a*1.4, b, [xOffset + a*.6 + DEFAULT_SIZE*3, 0]),
+      );
+      xOffset += 2*a + 4*DEFAULT_SIZE;
+    } else if (data[i] == "t4") {
+      v.push(
+      ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
+      ...rect(a*2 + DEFAULT_SIZE, b, [xOffset + DEFAULT_SIZE*2, 0]),
+      );
+      xOffset += 2*a + 4*DEFAULT_SIZE;
+    } else if (data[i] == "t5") {
+      v.push(
+        ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
+        ...quad(
+          [xOffset + DEFAULT_SIZE*2 + a, 0, b*.15], 
+          [xOffset + DEFAULT_SIZE*2 + a, 0, b*.85], 
+          [xOffset + DEFAULT_SIZE*2, 0, 0], 
+          [xOffset + DEFAULT_SIZE*2, 0, b]
+        ),
+        ...quad(
+          [xOffset + DEFAULT_SIZE*3 + 2*a, 0, 0], 
+          [xOffset + DEFAULT_SIZE*3 + 2*a, 0, b], 
+          [xOffset + DEFAULT_SIZE*3 + a, 0, b*.15], 
+          [xOffset + DEFAULT_SIZE*3 + a, 0, b*.85]
+        ),
+      );
+      xOffset += 2*a + 4*DEFAULT_SIZE;
+    } else if (data[i] == "t6") {
+      v.push(
+        ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
+        ...quad(
+          [xOffset + DEFAULT_SIZE*2 + a, 0, b/2], 
+          [xOffset + DEFAULT_SIZE*2 + a, 0, b/2], 
+          [xOffset + DEFAULT_SIZE*2, 0, 0], 
+          [xOffset + DEFAULT_SIZE*2, 0, b]
+        ),
+        ...quad(
+          [xOffset + DEFAULT_SIZE*3 + 2*a, 0, 0], 
+          [xOffset + DEFAULT_SIZE*3 + 2*a, 0, b], 
+          [xOffset + DEFAULT_SIZE*3 + a, 0, b/2], 
+          [xOffset + DEFAULT_SIZE*3 + a, 0, b/2]
+        ),
+      );
+      xOffset += 2*a + 4*DEFAULT_SIZE;
+    } else if (data[i] == "t7") {
+      const yOffset = -(a * Math.sin(20 * (Math.PI / 180.0))) / Math.sin(70 * (Math.PI / 180.0));
+      yMove = yOffset;
+      v.push(
+        ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
+        ...quad(
+          [xOffset + DEFAULT_SIZE*2, 0, 0], [xOffset + DEFAULT_SIZE*2, 0, b], [xOffset + DEFAULT_SIZE*2 + a, 0, yOffset], [xOffset + DEFAULT_SIZE*2 + a, 0, yOffset + b]
+        ),
+        ...quad(
+          [xOffset + DEFAULT_SIZE*3 + a, 0, yOffset], [xOffset + DEFAULT_SIZE*3 + a, 0, yOffset + b], [xOffset + DEFAULT_SIZE*3 + 2*a, 0, 0], [xOffset + DEFAULT_SIZE*3 + 2*a, 0, b]
+        ),
+      );
+      xOffset += 2*a + 4*DEFAULT_SIZE;
     }
   }
   v.push(
     ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
   );
-  return v;
+  return move_verticies(0, 0, -yMove, v);
 }
 
 function generate_basic1d_chained(amplitude: number, width: number, data: string[]): number[] {
@@ -163,37 +221,16 @@ function generate_basic1d_chained(amplitude: number, width: number, data: string
   const a = f[0];
   
   var xOffset = 0;
-  var flatOffset = DEFAULT_SIZE*6 + a * 2;
+  var flatOffset = 0;
 
-  var vertices = [
-    ...quad(
-      [0, -DEFAULT_SIZE/2.0, 0], 
-      [0, -DEFAULT_SIZE/2.0, b],
-      [DEFAULT_SIZE, 0, 0], 
-      [DEFAULT_SIZE, 0, b],
-    ),
-    // ...rect(DEFAULT_SIZE, b, [center - DEFAULT_SIZE*2 - d/2.0, 0]),
-    ...quad(
-      [DEFAULT_SIZE*2, 0, 0], [DEFAULT_SIZE*2 + d/2.0, -c, 0],
-      [DEFAULT_SIZE*2, 0, b], [DEFAULT_SIZE*2 + d/2.0, -c, b],
-    ),
-    ...quad(
-      [DEFAULT_SIZE*2 + d/2.0,-c, 0], [DEFAULT_SIZE*2 + d, 0, 0], 
-      [DEFAULT_SIZE*2 + d/2.0, -c, b], [DEFAULT_SIZE* 2 + d, 0, b], 
-    ),
-  ];
+  // move for angle1d
+  var yMove = 0;
 
-  xOffset = DEFAULT_SIZE*3 + d;
+  var vertices = [];
 
   for (let i = 0; i < data.length; i++) {
     if (data[i] == "t1") { 
       vertices.push(
-        // ...quad(
-        //   [xOffset, 0, 0], 
-        //   [xOffset, 0, b],
-        //   [DEFAULT_SIZE, 0, 0], 
-        //   [DEFAULT_SIZE, 0, b],
-        // ),
         ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
         ...quad(
           [xOffset + DEFAULT_SIZE*2, 0, 0], [xOffset +  DEFAULT_SIZE*2 + d/2.0, -c, 0],
@@ -212,6 +249,70 @@ function generate_basic1d_chained(amplitude: number, width: number, data: string
       );
       xOffset += a + DEFAULT_SIZE;
       flatOffset += a;
+    } else if (data[i] == "t3") {
+      vertices.push(
+        ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
+        ...quad(
+          [xOffset + DEFAULT_SIZE*2, 0, 0], [xOffset +  DEFAULT_SIZE*2 + d/2.0 * .6, -c, 0],
+          [xOffset + DEFAULT_SIZE*2, 0, b], [xOffset + DEFAULT_SIZE*2 + d/2.0 * .6, -c, b],
+        ),
+        ...quad(
+          [xOffset + DEFAULT_SIZE*2 + d/2.0 * .6,-c, 0], [xOffset +  DEFAULT_SIZE*2 + d, 0, 0], 
+          [xOffset + DEFAULT_SIZE*2 + d/2.0 * .6, -c, b], [xOffset + DEFAULT_SIZE* 2 + d, 0, b], 
+        ),
+      );
+      xOffset += DEFAULT_SIZE*3 + d;
+      flatOffset += 2*a + 3*DEFAULT_SIZE;
+    } else if (data[i] == "t4") {
+      vertices.push(
+        ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
+        ...arc(xOffset + DEFAULT_SIZE*2 + d/2,d, c, b),
+      );
+      xOffset += DEFAULT_SIZE*3 + d;
+      flatOffset += 2*a + 3*DEFAULT_SIZE;
+    } else if (data[i] == "t5") {
+      const center = xOffset + DEFAULT_SIZE*2 + d/2;
+      vertices.push(
+        ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
+        ...quad(
+          [center - d/2.0, 0, 0], [center, -c, b*.15],
+          [center - d/2.0, 0, b], [center, -c, b*.85],
+        ),
+        ...quad(
+          [center, -c, b*.15], [center + d/2.0, 0, 0], 
+          [center, -c, b*.85], [center + d/2.0, 0, b], 
+        ),
+      );
+      xOffset += DEFAULT_SIZE*3 + d;
+      flatOffset += 2*a + 3*DEFAULT_SIZE;
+    } else if (data[i] == "t6") {
+      const center = xOffset + DEFAULT_SIZE*2 + d/2;
+      vertices.push(
+        ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
+        ...vertex([center - d/2.0, 0, 0], [center - d/2.0, 0, b], [center, -c, b/2.0]),
+        ...vertex([center + d/2.0, 0, 0], [center + d/2.0, 0, b], [center, -c, b/2.0]),
+      );
+      xOffset += DEFAULT_SIZE*3 + d;
+      flatOffset += 2*a + 3*DEFAULT_SIZE;
+    } else if (data[i] == "t7") {
+
+      const yOffset = -(a * Math.sin(20 * (Math.PI / 180.0))) / Math.sin(70 * (Math.PI / 180.0));
+      yMove = yOffset;
+
+      const center = xOffset + DEFAULT_SIZE*2 + d/2;
+      vertices.push(
+        ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
+        ...quad(
+          [center - d/2.0, 0, 0], [center, -c, yOffset],
+          [center - d/2.0, 0, b], [center, -c, b + yOffset],
+        ),
+        ...quad(
+          [center, -c, yOffset], [center + d/2.0, 0, 0], 
+          [center, -c, yOffset + b], [center + d/2.0, 0, b], 
+        ),
+      );
+      xOffset += DEFAULT_SIZE*3 + d;
+      flatOffset += 2*a + 3*DEFAULT_SIZE;
     }
   }
   
@@ -223,10 +324,14 @@ function generate_basic1d_chained(amplitude: number, width: number, data: string
       [xOffset + DEFAULT_SIZE, -DEFAULT_SIZE/2.0, b],
     ),
   );
+  // Make first rect point upwards. With that we can add flat ones for the normal generation as they are flat between two cells.
+  vertices[1] = -DEFAULT_SIZE/2.0;
+  vertices[7] = -DEFAULT_SIZE/2.0;
+  vertices[16] = -DEFAULT_SIZE/2.0;
   const w = vertices_width(vertices);
   const w_flat = flatOffset;
   
-  return move_verticies((w_flat - w) / 2.0, 0, 0, vertices);
+  return move_verticies((w_flat - w) / 2.0, 0, -yMove, vertices);
 }
 
 export const DEFAULT_SIZE = 2; // 2mm
@@ -1554,6 +1659,18 @@ function generate_object(vertices: number[], color: Three.Color): Three.Mesh {
   return mesh;
 }
 
+
+function generate_other1d_collision(position: number[], amplitude: number, width: number): CollisionBox[] {
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+
+  return [
+    new CollisionBox(position[0], position[1], DEFAULT_SIZE, b, "1d_left"),
+    new CollisionBox(position[0] + DEFAULT_SIZE*4 + 2*a, position[1], DEFAULT_SIZE, b, "1d_right")
+  ];
+}
 function generate_basic1d_collision(position: number[], amplitude: number, width: number): CollisionBox[] {
   const f = formula(amplitude, width, c1);
 
@@ -1572,13 +1689,10 @@ function generate_basic1d_chained_collision(position: number[], amplitude: numbe
   const f = formula(amplitude, width, c1);
 
   const b = f[1];
-  const a = f[0];
   const w = vertices_width(generate_basic1d_chained_flat(amplitude, width, data));
   return [
     new CollisionBox(position[0], position[1], DEFAULT_SIZE, b, "1d_left"),
-    new CollisionBox(position[0] + DEFAULT_SIZE*2, position[1], a, b, "1d_left_m"),
     new CollisionBox(position[0] + (w), position[1], DEFAULT_SIZE, b, "1d_right"),
-    new CollisionBox(position[0] + (w - 2*DEFAULT_SIZE - a), position[1], a, b, "1d_right_m"),
   ];
 }
 
@@ -1636,7 +1750,7 @@ class GapBox {
     this.boundingBox.geometry = geometry;
 
     const material = new Three.LineBasicMaterial( { 
-      side: Three.DoubleSide ,color: 0,
+      side: Three.DoubleSide ,color: 0xFF0000,
       opacity: 0.7,    
       transparent: true
     });
@@ -1681,8 +1795,7 @@ class GapBox {
         && center[1] <= this.cell.position.z + this.cell.get_height()
       ) {
         // right of cell
-        if (this.cell == selected_cell)
-          console.log("right")
+        // if (this.cell == selected_cell)
         update(this, oldR!, c, 1);
       }
       else if (center[0] <= this.cell.position.x
@@ -1691,8 +1804,7 @@ class GapBox {
       ) {
         // left of cell
         //
-        if (this.cell == selected_cell)
-          console.log("left")
+        // if (this.cell == selected_cell)
         update(this, oldL!, c, 0);
       } 
       else if (center[0] >= this.cell.position.x 
@@ -1700,39 +1812,34 @@ class GapBox {
         && center[1] >= this.cell.position.z + this.cell.get_height()
       ) {
         // top of cell
-        if (this.cell == selected_cell)
-        console.log("top")
+        // if (this.cell == selected_cell)
         update(this, oldU!, c, 2);
       } 
       else if (center[0] >= this.cell.position.x 
         && center[0] <= this.cell.position.x + this.cell.get_width()
         && center[1] <= this.cell.position.z
       ) {
-        if (this.cell == selected_cell)
-          console.log("bottom");
+        // if (this.cell == selected_cell)
         update(this, oldB!, c, 3);
       }
       else if (center[0] >= this.cell.position.x + this.cell.get_width()
         && center[1] >= this.cell.position.z + this.cell.get_height()
       ) {
-        if (this.cell == selected_cell)
-        console.log("right top");
+        // if (this.cell == selected_cell)
         update(this, oldR!, c, 1);
         update(this, oldU!, c, 2);
       }
       else if (center[0] <= this.cell.position.x 
         && center[1] >= this.cell.position.z + this.cell.get_height()
       ) {
-        if (this.cell == selected_cell)
-        console.log("left top");
+        // if (this.cell == selected_cell)
         update(this, oldL!, c, 0);
         update(this, oldU!, c, 2);
       }
       else if (center[0] >= this.cell.position.x + this.cell.get_width()
         && center[1] <= this.cell.position.z 
       ) {
-        if (this.cell == selected_cell)
-        console.log("right bottm");
+        // if (this.cell == selected_cell)
 
         update(this, oldR!, c, 1);
         update(this, oldB!, c, 3);
@@ -1740,8 +1847,7 @@ class GapBox {
       else if (center[0] <= this.cell.position.x
         && center[1] <= this.cell.position.z
       ) {
-        if (this.cell == selected_cell)
-        console.log("left bottom");
+        // if (this.cell == selected_cell)
         update(this, oldL!, c, 0);
         update(this, oldB!, c, 3);
       }
@@ -1841,6 +1947,13 @@ export class Cell {
       case "basic1d":
         this.coll = generate_basic1d_collision([this.position.x + this.elastic_offset[0], this.position.z - this.elastic_offset[1]], this.amplitude, this.width);
         break;
+      case "right1d":
+      case "full1d":
+      case "slope71d":
+      case "slope1d":
+      case "angle1d":
+        this.coll = generate_other1d_collision([this.position.x + this.elastic_offset[0], this.position.z - this.elastic_offset[1]], this.amplitude, this.width);
+        break;
       case "basic2d":
         this.coll = generate_basic2d_collision([this.position.x + this.elastic_offset[0], this.position.z - this.elastic_offset[1]], this.amplitude, this.width);
         break;
@@ -1939,12 +2052,12 @@ export class Cell {
 
     if (this.elastic) {
       if (this.type.includes("1d")) {
-        vertices_flat.push(
+        vertices.push(
           ...generate_elastic_1d_cell(this),
           // ...generate_selected_rect(this.get_width(), this.get_height())
         );
       } else {
-        vertices_flat.push(
+        vertices.push(
           ...generate_elastic_2d_cell(this),
         );
       }
@@ -2037,15 +2150,13 @@ function generate_elastic_1d(cellW: number, cellH: number, amplitude: number, wi
 
   const b = f[1];
 
-  const h = Math.max(cellH + DEFAULT_SIZE*2, b + 2* Math.max(gapBo, gapUp)); // max of d on top and bottom.
+  const h =  b + 2* Math.max(gapBo, gapUp) + DEFAULT_SIZE*2; // max of d on top and bottom.
   // TODO formula wrong 
-  const w = Math.max(cellW + DEFAULT_SIZE*4,width + 4 + (14 - elastic_val));
+  const w = width + 4 + (14 - elastic_val) + DEFAULT_SIZE*2;
   
   const x = (w-cellW)/2.0;
   const y = (h-cellH)/2.0;
   
-  console.log(generate_circle([], DEFAULT_SIZE, 10));
-
   return [ 
     ...rect(w, DEFAULT_SIZE, [-x, -y]),
     ...rect(w, DEFAULT_SIZE, [-x, y + cellH]),
@@ -2056,9 +2167,9 @@ function generate_elastic_1d(cellW: number, cellH: number, amplitude: number, wi
 
 function generate_elastic_2d(cellW: number, cellH: number, amplitude: number, width: number, gapUp: number, gapBo: number, elastic_val: number): number[] {
 
-  const l = Math.max(Math.max(cellW, cellH) + DEFAULT_SIZE*2, width + 4 + 2*(12 - elastic_val));
+  const l = width + 4 + 2*(12 - elastic_val) + DEFAULT_SIZE*2;
   
-  return generate_circle([cellW / 2, cellH / 2], DEFAULT_SIZE, l); //width + 4 + 2*(12 - elastic_val));
+  return generate_circle([cellW / 2, cellH / 2], DEFAULT_SIZE, width + 4 + 2*(12 - elastic_val) + DEFAULT_SIZE*2);
 }
 
 function generate_circle(center: [number, number], width: number = 2, diameter: number): number[] {

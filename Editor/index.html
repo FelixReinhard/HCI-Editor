@@ -12,11 +12,19 @@
 <body>
   <canvas id="editor"></canvas>
   <canvas id="preview">HELLO</canvas>
+  <div class="canvas-btn">
+    <button id="switch_mode" type="button" class="btn btn-dark btn-rounded">
+      <div id="switch_mode_inner">
+        2D (e)
+      </div>
+    </button>
+  </div>
   <div id="menu" class="modal-dialog" role="document">
     <div class="modal-content rounded-4 shadow">
       <div class="modal-body p-5">
         <div class="container">
           <div class="row">
+            <h1 class="text-center">Embrogami</h1>
             <!-- First Column - Labeled "1D" -->
             <div class="col-md-6">
               <h3 class="text-center">1D</h3>
@@ -196,13 +204,13 @@
           </div>
           <div class="row">
             <div class="mgn-50">
-              <label class="text-center form-label" for="amplitude">Amplitude</label>
+              <label class="text-center form-label" for="amplitude" id="amplitude_text">Amplitude</label>
               <div class="gap-12 range w75 p-25">
                 <input type="range" class="form-range" id="amplitude" />
               </div>
             </div>
             <div class="mgn-20">
-              <label class="text-center form-label" for="width">Width</label>
+              <label class="text-center form-label" for="width" id="width_text">Width</label>
               <div class="range w75 p-25">
                 <input type="range" class="form-range" id="width" />
               </div>
@@ -213,23 +221,38 @@
               <input class="form-check-input rp-35" type="checkbox" role="switch" id="toggleSwitch" />
             </div>
             <div class="mgn-20" style="display: none;" id="deform_slider">
-              <label class="text-center form-label" for="deform">Easy to deform</label>
-              <div class="range w75 p-25">
-                <input type="range" class="form-range" id="deform" />
+              <label class="text-center form-label" for="deform">Force feedback</label>
+
+              <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
+                <div>
+                  Weak
+                </div>
+                <div class="range w75 p-25" style="flex-grow: 1;">
+                  <input type="range" class="form-range" id="deform" />
+                </div>
+                <div>
+                  Strong
+                </div>
               </div>
             </div>
 
             <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
               <div class="mgn-20 d-col gap-2 container d-flex justify-content-center align-items-center">
-                <button id="add" type="button" class="btn btn-dark btn-rounded"> <i
-                    class="v-35 fas fa-plus"></i></button>
+                <button id="add" type="button" class="btn btn-dark btn-rounded">
+                  <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
+                    <i class="r-20 fas fa-plus"></i>
+                    <div>
+                      Add to canvas
+                    </div>
+                  </div>
+                </button>
               </div>
               <div class="mgn-20 d-col container d-flex justify-content-center align-items-center">
                 <button id="export" type="button" class="btn btn-dark rounded-left">
                   <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
                     <i class="r-20 fas fa-file-export"></i>
                     <div id="export_inner">
-                      Svg
+                      Export to svg
                     </div>
                   </div>
                 </button>
@@ -248,6 +271,12 @@
       integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm"
       crossorigin="anonymous"></script>
     <style>
+      .canvas-btn {
+        position: absolute;
+        left: 55%;
+        top: 3%;
+      }
+
       input[type="range"]::-webkit-slider-thumb:active {
         background-color: #888;
       }
