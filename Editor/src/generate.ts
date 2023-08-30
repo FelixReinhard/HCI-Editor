@@ -116,6 +116,154 @@ export function formula(amplitude: number, width: number, c: number[]): number[]
   return [a, b];
 }
 
+function generate_basic2d_chained_flat(amplitude: number, width: number, data: string[]): number[] {
+  const f = formula(amplitude, width, c2);
+  
+  const c = amplitude;
+  const d = width;
+  const b = f[1];
+  const a = f[0];
+  
+  var xOffset = 0;
+  // move for angle1d
+  var yMove = 0;
+  // t1 small, t2 big ones merge.
+  var v = [];
+  for (let i = 0; i < data.length; i++) {
+    if (data[i] == "t8") {
+      
+      const center = xOffset + DEFAULT_SIZE*2.5 + a + b/2;
+
+      const elem_len = a + b/2.0;
+      const elem_len_3d_triangle = (b/2.0)/elem_len * d/2.0;
+      const elem_len_3d_rect = a/elem_len * d/2.0;
+
+      return move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+        // left
+        ...vertex(
+          [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+          [center - DEFAULT_SIZE/2.0, -c, b/2.0], 
+          [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , b], 
+        ),
+        ...quad(
+          [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+          [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , b], 
+          [center - DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, 0], 
+          [center - DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, b], 
+        ),
+        ...quad(
+          [center - 3*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, 0], 
+          [center - 3*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, b], 
+          [center - 5*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, -DEFAULT_SIZE/2.0, 0], 
+          [center - 5*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, -DEFAULT_SIZE/2.0, b], 
+        ),
+
+        // right 
+        ...vertex(
+          [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+          [center + DEFAULT_SIZE/2.0, -c, b/2.0], 
+          [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , b], 
+        ),
+        // ...quad(
+        //   [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+        //   [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , b], 
+        //   [center + DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, 0], 
+        //   [center + DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, b], 
+        // ),
+        // ...quad(
+        //   [center + 3*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, 0], 
+        //   [center + 3*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, b], 
+        //   [center + 5*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, -DEFAULT_SIZE/2.0, 0], 
+        //   [center + 5*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, -DEFAULT_SIZE/2.0, b], 
+        // ),
+        // top 
+        ...vertex(
+          [center - b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle],
+          [center, -c, b/2.0 + DEFAULT_SIZE/2.0],
+          [center + b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle],
+        ),
+        ...quad(
+          [center - b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle],
+          [center + b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle],
+
+          [center - b/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+          [center + b/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+        ),
+        ...quad(
+          [center - b/2.0, 0, b/2.0 + 3*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+          [center + b/2.0, 0, b/2.0 + 3*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+          [center - b/2.0, -DEFAULT_SIZE/2.0, b/2.0 + 5*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+          [center + b/2.0, -DEFAULT_SIZE/2.0, b/2.0 + 5*DEFAULT_SIZE/2.0 + elem_len_3d_triangle + elem_len_3d_rect],
+        ),
+        // bottom
+        ...vertex(
+          [center - b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle],
+          [center, -c, b/2.0 - DEFAULT_SIZE/2.0],
+          [center + b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle],
+        ),
+        ...quad(
+          [center - b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle],
+          [center + b/2.0, -c*BASIC_2D_TRIANGLE_AMPL, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle],
+
+          [center - b/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+          [center + b/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+        ),
+        ...quad(
+          [center - b/2.0, 0, b/2.0 - 3*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+          [center + b/2.0, 0, b/2.0 - 3*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+          [center - b/2.0, -DEFAULT_SIZE/2.0, b/2.0 - 5*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+          [center + b/2.0, -DEFAULT_SIZE/2.0, b/2.0 - 5*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
+        ),
+      ]);
+    }
+  }
+  v.push(
+    ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
+  );
+  return move_verticies(0, 0, -yMove, v);
+}
+
+
+function generate_basic2d_chained(amplitude: number, width: number, data: string[]): number[] {
+
+  const c = amplitude;
+  const d = width;
+
+  const f = formula(amplitude, width, c1);
+
+  const b = f[1];
+  const a = f[0];
+  
+  var xOffset = 0;
+  var flatOffset = 0;
+
+  // move for angle1d
+  var yMove = 0;
+
+  var vertices = [];
+
+  for (let i = 0; i < data.length; i++) {
+    if (data[i] == "t1") { 
+    }
+  }
+  
+  vertices.push(
+    ...quad(
+      [xOffset, 0, 0], 
+      [xOffset, 0, b],
+      [xOffset + DEFAULT_SIZE, -DEFAULT_SIZE/2.0, 0], 
+      [xOffset + DEFAULT_SIZE, -DEFAULT_SIZE/2.0, b],
+    ),
+  );
+  // Make first rect point upwards. With that we can add flat ones for the normal generation as they are flat between two cells.
+  vertices[1] = -DEFAULT_SIZE/2.0;
+  vertices[7] = -DEFAULT_SIZE/2.0;
+  vertices[16] = -DEFAULT_SIZE/2.0;
+  const w = vertices_width(vertices);
+  const w_flat = flatOffset;
+  
+  return move_verticies((w_flat - w) / 2.0, 0, -yMove, vertices);
+}
 
 function generate_basic1d_chained_flat(amplitude: number, width: number, data: string[]): number[] {
   const f = formula(amplitude, width, c1);
@@ -2040,6 +2188,10 @@ export class Cell {
       case "chained_basic_1d":
         vertices_flat = generate_basic1d_chained_flat(amplitude, width, this.meta_data);
         vertices = generate_basic1d_chained(amplitude, width, this.meta_data);
+        break;
+      case "chained_basic_2d":
+        vertices_flat = generate_basic2d_chained_flat(amplitude, width, this.meta_data);
+        vertices = generate_basic2d_chained(amplitude, width, this.meta_data);
         break;
       default:
         break;

@@ -10,7 +10,7 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {Cell, create_right1d, create_basic1d, create_basic2d, will_1d_break, will_2d_break, create_full1d, create_slope701d, create_slope1d, create_angle1d, create_right2d, create_full2d, create_slope702d, create_slope2d, create_angle2d} from './generate.ts';
 import {make_3d_mesh_visible} from "./utils.ts";
 import { export_cells } from './export.ts';
-import { merge_1d, merge_1d_all, merge_1d_chain, merge_1d_chain_left, merge_1d_t2 } from './merge.ts';
+import { merge_1d, merge_1d_all, merge_1d_chain, merge_1d_chain_left, merge_1d_t2, merge_2d_all } from './merge.ts';
 
 // controls the speed you can drag the camera with in editing mode.
 const DRAG_SPEED = .25;
@@ -609,6 +609,13 @@ function check_mergin() {
     }
     merge_1d_all(collision_type["agent1"], collision_type["agent2"], cells);
     remove(collision_type["agent2"]);
+
+    check_gap();
+  } else if (collision_type["type"] == "2d") {
+    merge_2d_all(collision_type["agent1"], collision_type["agent2"], cells);
+    remove(collision_type["agent2"]);
+
+    check_gap();
   }
 }
 // collision 
@@ -623,6 +630,9 @@ function checkCollision(cell: Cell) {
         // if (key in collision_callbacks && col1.collisionBoxesIntersect(col2)) {
         //   collision_callbacks[key](cell, other);
         // }
+        if (col1.collisionBoxesIntersect(col2) && (col1.meta.includes("2d") || col2.meta.includes("2d"))) {
+          console.log(col1, col2);
+        }
         if (col1.collisionBoxesIntersect(col2)) {
           if (col1.meta == "1d_left" && col2.meta == "1d_right") {
             collision_type = {"type": "1d", "agent1": other, "agent2": cell};
@@ -632,6 +642,12 @@ function checkCollision(cell: Cell) {
           // special case 
           else if (col1.meta == "1d_right_m" && col2.meta == "1d_left_m") {
             collision_type = {"type": "1d", "agent1": cell, "agent2": other, "type_override_other": "basic1d_m"};
+          }
+
+          else if (col1.meta == "2d_left" && col2.meta == "2d_right") {
+            collision_type = {"type": "2d", "agent1": other, "agent2": cell};
+          } else if (col1.meta == "2d_right" && col2.meta == "2d_left") {
+            collision_type = {"type": "2d", "agent1": cell, "agent2": other};
           }
         }
       }

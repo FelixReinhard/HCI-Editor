@@ -60,10 +60,10 @@ function elastic_1D(writer: Writer, pos: [number, number], amplitude: number, wi
   
   const x = (w-cellW)/2.0;
   const y = (h-cellH)/2.0;
-  writer.rect(pos[0] - x, pos[1] + y, w, DEFAULT_SIZE);
-  writer.rect(pos[0] - x, pos[1] - y - cellH, w, DEFAULT_SIZE);
-  writer.rect(pos[0] - x, pos[1] + y - DEFAULT_SIZE, DEFAULT_SIZE, h - DEFAULT_SIZE);
-  writer.rect(pos[0] + x + cellW - DEFAULT_SIZE, pos[1] + y - DEFAULT_SIZE, DEFAULT_SIZE, h - DEFAULT_SIZE);
+  writer.rect(pos[0] - x, pos[1] + y, w, DEFAULT_SIZE, 0, 0xFF0000);
+  writer.rect(pos[0] - x, pos[1] - y - cellH, w, DEFAULT_SIZE, 0, 0xFF0000);
+  writer.rect(pos[0] - x, pos[1] + y - DEFAULT_SIZE, DEFAULT_SIZE, h - DEFAULT_SIZE, 0, 0xFF0000);
+  writer.rect(pos[0] + x + cellW - DEFAULT_SIZE, pos[1] + y - DEFAULT_SIZE, DEFAULT_SIZE, h - DEFAULT_SIZE, 0, 0xFF0000);
 }
 
 function elastic_2D(writer: Writer, pos: [number, number], amplitude: number, width: number, type: string, cellW: number, cellH: number, elastic_val: number) {
@@ -73,8 +73,7 @@ function elastic_2D(writer: Writer, pos: [number, number], amplitude: number, wi
   const a = f[0];
   const l = width + 4 + 2*(12 - elastic_val) + DEFAULT_SIZE*2;
   if (type == "right2d") {
-    const offset = - ((DEFAULT_SIZE*4 + 2*a + b)/2 - (DEFAULT_SIZE*2 + a*.6 + b/2)); 
-
+    const offset = -((DEFAULT_SIZE*4 + 2*a + b)/2 - (DEFAULT_SIZE*2 + a*.6 + b/2)); 
     writer.circle(pos[0] + cellW/2 , pos[1], DEFAULT_SIZE, l/2, 0xFF0000);
   } else {
     writer.circle(pos[0] + cellW/2 , pos[1], DEFAULT_SIZE, l/2, 0xFF0000);

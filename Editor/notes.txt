@@ -11,9 +11,9 @@ Todo:
   # merge basic1d left/right 
   # merge basic1d left/right (m)
   # export merged type.
-  - merge update bounding box
-  - delete cell reset has_2d_cells
-  - 3d change view button
-  - thick axis
-  - weak, strong elastic slider
-  - add to canvas ui
+  # merge update bounding box
+  # delete cell reset has_2d_cells
+  # 3d change view button
+  ? thick axis
+  # weak, strong elastic slider
+  # add to canvas ui
