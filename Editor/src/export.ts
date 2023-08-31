@@ -172,19 +172,123 @@ function full1D(position: number[], amplitude: number, width: number,collisions:
 
 
 function basic2d_chained(position: number[], amplitude: number, width: number, writer: Writer, data: string[]) {
-  const f = formula(amplitude, width, c1); 
+  const f = formula(amplitude, width, c2); 
 
   const b = f[1];
   const a = f[0];
   
-  if (data.includes("t7")) {
-    // Add offset to pos.y if we have a angle1d
-    position[1] += -(a * Math.sin(20 * (Math.PI / 180.0))) / Math.sin(70 * (Math.PI / 180.0));
-  }
-  var xOffset = 0; 
+  var offsetX = position[0]; 
+  var offsetY = position[1] + b/2;
 
   for (let i = 0; i < data.length; i++) {
+    if (data[i] == "t8") {
+      // v.push(...move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2, [
+      //   // left
+      //   ...rect(DEFAULT_SIZE, b, [xOffset, 0 ]),
+      //   ...rect(a, b, [xOffset + DEFAULT_SIZE*2, 0]),
+      //   ...vertex([xOffset + DEFAULT_SIZE*2 + a, 0, 0], [xOffset + DEFAULT_SIZE*2 + a + b/2.0, 0, b/2.0], [xOffset + DEFAULT_SIZE*2 +a, 0, b]),
+      //   //right
+      //   ...vertex([xOffset + DEFAULT_SIZE*3 + a + b, 0, 0], [xOffset + DEFAULT_SIZE*2 + a + b/2.0 + DEFAULT_SIZE, 0, b/2.0], [xOffset + DEFAULT_SIZE*3 + a + b, 0, b]),
+      //   ...rect(a, b, [xOffset + DEFAULT_SIZE*3 + a+ b, 0]),
+      //   // ...rect(DEFAULT_SIZE, b, [xOffset + DEFAULT_SIZE*4 + 2*a + b, 0]),
+      //   // top,
+      //   ...vertex([xOffset + DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, 0, b + DEFAULT_SIZE/2.0],
+      //     [xOffset + DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0 + b, 0, b + DEFAULT_SIZE/2.0], 
+      //     [xOffset + DEFAULT_SIZE*2 + a + b/2.0 + DEFAULT_SIZE/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0] 
+      //   ),
+      //   ...rect(b, a, [xOffset + DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, b + DEFAULT_SIZE/2.0]),
+      //   ...rect(b, DEFAULT_SIZE, [xOffset + DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, b + DEFAULT_SIZE/2.0 + a + DEFAULT_SIZE]),
+      //   // down
+      //   ...vertex([xOffset + DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, 0, -DEFAULT_SIZE/2.0],
+      //     [xOffset + DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0 + b, 0, -DEFAULT_SIZE/2.0], 
+      //     [xOffset + DEFAULT_SIZE*2 + a + b/2.0 + DEFAULT_SIZE/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0] 
+      //   ),
+      //   ...rect(b, a, [xOffset + DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, -a -DEFAULT_SIZE/2.0]),
+      //   ...rect(b, DEFAULT_SIZE, [xOffset + DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, -DEFAULT_SIZE/2.0 - a - DEFAULT_SIZE*2]),
+      //   ]));
+      
+      writer.rect(offsetX, offsetY, DEFAULT_SIZE, b); 
+      writer.path([
+        [offsetX + DEFAULT_SIZE*2, offsetY],
+        [offsetX + DEFAULT_SIZE*2 + a, offsetY],
+        [offsetX + DEFAULT_SIZE*2 + a + b/2.0, offsetY - b/2.0],
+        [offsetX + DEFAULT_SIZE*2 + a, offsetY - b],
+        [offsetX + DEFAULT_SIZE*2, offsetY - b],
+      ]);
+
+      //writer.rect(offsetX + DEFAULT_SIZE*4 + 2*a + b, offsetY, DEFAULT_SIZE, b);
+      writer.path([
+        [offsetX + DEFAULT_SIZE*3 + a + b/2.0, offsetY - b/2.0],
+        [offsetX + DEFAULT_SIZE*3 + a + b, offsetY],
+        [offsetX + DEFAULT_SIZE*3 + 2*a + b, offsetY],
+        [offsetX + DEFAULT_SIZE*3 + 2*a + b, offsetY - b],
+        [offsetX + DEFAULT_SIZE*3 + a + b, offsetY - b],
+      ]);
+
+      writer.rect(offsetX + DEFAULT_SIZE*2.5 + a, offsetY + a + DEFAULT_SIZE*2.5, b, DEFAULT_SIZE);
+      writer.path([
+        [offsetX + a + DEFAULT_SIZE*2.5 + b/2.0, offsetY - b/2.0 + DEFAULT_SIZE/2.0],
+        [offsetX + a + DEFAULT_SIZE*2.5, offsetY + DEFAULT_SIZE/2.0],
+        [offsetX + a + DEFAULT_SIZE*2.5, offsetY + a + DEFAULT_SIZE/2.0],
+        [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY + a + DEFAULT_SIZE/2.0],
+        [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY + DEFAULT_SIZE/2.0],
+      ]);
+
+      writer.rect(offsetX + DEFAULT_SIZE*2.5 + a, offsetY - a - b - DEFAULT_SIZE*1.5, b, DEFAULT_SIZE);
+      writer.path([
+        [offsetX + a + DEFAULT_SIZE*2.5 + b/2.0, offsetY - b/2.0 - DEFAULT_SIZE/2.0],
+        [offsetX + a + DEFAULT_SIZE*2.5, offsetY - b - DEFAULT_SIZE/2.0],
+        [offsetX + a + DEFAULT_SIZE*2.5, offsetY - a - b - DEFAULT_SIZE/2.0],
+        [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY - a - b - DEFAULT_SIZE/2.0],
+        [offsetX + a + DEFAULT_SIZE*2.5 + b, offsetY - b - DEFAULT_SIZE/2.0],
+      ]);
+      offsetX += DEFAULT_SIZE*4 + 2*a + b; 
+    } else if (data[i] == "t9") {
+      // v.push(...move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+      //   ...vertex([xOffset - DEFAULT_SIZE + b/2.0, 0, b/2.0], [xOffset - DEFAULT_SIZE, 0, 0], [xOffset - DEFAULT_SIZE, 0, b]),
+      //   ...vertex([xOffset + b/2.0, 0, b/2.0], [xOffset + b, 0, 0], [xOffset + b, 0, b]),
+      //   ...rect(a, b, [xOffset + b, 0]),
+      //   ...vertex([xOffset + b/2 - DEFAULT_SIZE/2.0, 0, b/2 + DEFAULT_SIZE/2], [xOffset - DEFAULT_SIZE/2.0, 0, b + DEFAULT_SIZE/2], [xOffset + b - DEFAULT_SIZE/2.0, 0, b + DEFAULT_SIZE/2]),
+      //   ...rect(b, a, [xOffset  - DEFAULT_SIZE/2, b + DEFAULT_SIZE/2]),
+      //   ...rect(b, DEFAULT_SIZE, [xOffset - DEFAULT_SIZE/2, b + DEFAULT_SIZE*1.5 + a]),
+      //   ...vertex([xOffset + b/2 - DEFAULT_SIZE/2, 0, b/2 - DEFAULT_SIZE/2], [xOffset - DEFAULT_SIZE/2, 0, -DEFAULT_SIZE/2], [xOffset + b - DEFAULT_SIZE/2.0, 0, -DEFAULT_SIZE/2]),
+      //   ...rect(b, a, [xOffset - DEFAULT_SIZE/2, -DEFAULT_SIZE/2 - a]),
+      //   ...rect(b, DEFAULT_SIZE, [xOffset - DEFAULT_SIZE/2, - DEFAULT_SIZE*2.5 - a]),
+      // ]));
+      writer.path([
+        [offsetX - DEFAULT_SIZE, offsetY], [offsetX - DEFAULT_SIZE, offsetY - b], [offsetX - DEFAULT_SIZE + b/2, offsetY - b/2]
+      ]);
+      writer.path([
+        [offsetX + b/2, offsetY - b/2],
+        [offsetX + b, offsetY],
+        [offsetX + b + a, offsetY],
+        [offsetX + b + a, offsetY - b],
+        [offsetX + b, offsetY - b],         
+      ]);
+      // top
+      writer.path([
+        [offsetX + b/2 - DEFAULT_SIZE/2, offsetY - DEFAULT_SIZE/2 - b/2], 
+        [offsetX - DEFAULT_SIZE/2, offsetY - b - DEFAULT_SIZE/2],
+        [offsetX - DEFAULT_SIZE/2, offsetY - b - a - DEFAULT_SIZE/2 ],
+        [offsetX + b - DEFAULT_SIZE/2, offsetY - b - a - DEFAULT_SIZE/2],
+        [offsetX + b - DEFAULT_SIZE/2, offsetY - b - DEFAULT_SIZE/2]
+      ]);
+      writer.rect(offsetX - DEFAULT_SIZE/2, offsetY - DEFAULT_SIZE*1.5 - b - a, b, DEFAULT_SIZE);
+      
+      writer.path([
+        [offsetX + b/2 - DEFAULT_SIZE/2, offsetY + DEFAULT_SIZE/2 - b/2], 
+        [offsetX - DEFAULT_SIZE/2, offsetY + DEFAULT_SIZE/2],
+        [offsetX - DEFAULT_SIZE/2, offsetY + a + DEFAULT_SIZE/2 ],
+        [offsetX + b - DEFAULT_SIZE/2, offsetY + a + DEFAULT_SIZE/2],
+        [offsetX + b - DEFAULT_SIZE/2, offsetY + DEFAULT_SIZE/2]
+      ]);
+      writer.rect(offsetX - DEFAULT_SIZE/2, offsetY + a + DEFAULT_SIZE*2.5, b, DEFAULT_SIZE);
+      offsetX += b + a + DEFAULT_SIZE; 
+    }
   }
+
+  writer.rect(offsetX, offsetY, DEFAULT_SIZE, b);
+
 }
 function basic1d_chained(position: number[], amplitude: number, width: number, writer: Writer, data: string[]) {
   const f = formula(amplitude, width, c1); 

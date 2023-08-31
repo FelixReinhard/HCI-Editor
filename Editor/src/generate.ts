@@ -131,7 +131,7 @@ function generate_basic2d_chained_flat(amplitude: number, width: number, data: s
   var v = [];
   for (let i = 0; i < data.length; i++) {
     if (data[i] == "t8") {
-    v.push(...move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+    v.push(...move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2, [
       // left
       ...rect(DEFAULT_SIZE, b, [xOffset, 0 ]),
       ...rect(a, b, [xOffset + DEFAULT_SIZE*2, 0]),
