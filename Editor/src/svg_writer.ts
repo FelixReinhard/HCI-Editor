@@ -2,66 +2,9 @@ export interface Writer {
   rect(x: number, y: number, w: number, h: number, rounded: number | null, color: number | null): Writer;
   path(positions: [number, number][], color: number): Writer;
   circle(x: number, y: number, width: number, radius: number, color: number);
-  save(): void;
+  save(name: string): void;
+  clear(): void;
 }
-import { DxfWriter, HatchBoundaryPaths, HatchPolylineBoundary, HatchPredefinedPatterns, pattern, point3d, vertex } from "@tarikjabiri/dxf";
-
-export class DXFWriter implements Writer {
-  writer: DxfWriter;
-  constructor() {
-    this.writer = new DxfWriter();
-    this.writer.setVariable("$INSUNITS", { 70: 4, 271: 2 });
-  }
-
-  rect(x: number, y: number, w: number, h: number, rounded: number=0, color: number=0): DXFWriter {
-    const polyline = new HatchPolylineBoundary(); 
-    polyline.add(vertex(x, y));
-    polyline.add(vertex(x+w, y));
-    polyline.add(vertex(x+w, y-h));
-    polyline.add(vertex(x, y-h));
-
-    const boundary = new HatchBoundaryPaths();
-    boundary.addPolylineBoundary(polyline); 
-    const solid = pattern({
-      name: HatchPredefinedPatterns.SOLID
-    });
-    this.writer.addHatch(boundary, solid);
-    return this;
-  }
-
-
-  path(positions: [number, number][], color:number): DXFWriter {
-    const polyline = new HatchPolylineBoundary(); 
-    for (let pos of positions) {
-      polyline.add(vertex(pos[0], pos[1]));
-    }
-
-    const boundary = new HatchBoundaryPaths();
-    boundary.addPolylineBoundary(polyline); 
-    const solid = pattern({
-      name: HatchPredefinedPatterns.SOLID
-    });
-    this.writer.addHatch(boundary, solid);
-    return this;
-  }
-
-  save() {
-    const content = this.writer.stringify();
-    const blob = new Blob([content], {type: 'text/plain'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.download = `file_${formatFullDate(new Date())}.dxf`;
-
-    document.body.appendChild(a);
-    a.click();
-
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-  }
-}
-
 export class SvgWriter implements Writer {
   content: string;
   width: number;
@@ -76,15 +19,21 @@ export class SvgWriter implements Writer {
       <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
       <svg width="100%" height="100%" viewBox="0 0 ${width} ${height}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">\n`;
   }
+
+  clear() {
+    this.content =`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n
+      <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+      <svg width="100%" height="100%" viewBox="0 0 ${this.width} ${this.height}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">\n`; 
+  }
   
-  save() {
+  save(name: string) {
     this.content += '</svg>';
     const blob = new Blob([this.content], {type: 'text/plain'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.style.display = 'none';
     a.href = url;
-    a.download = `file_${formatFullDate(new Date())}.svg`;
+    a.download = `${name}_${formatFullDate(new Date())}.svg`;
 
     document.body.appendChild(a);
     a.click();
@@ -122,7 +71,7 @@ function formatFullDate(date: Date): string {
   const minutes = date.getMinutes().toString().padStart(2, '0');
   const seconds = date.getSeconds().toString().padStart(2, '0');
 
-  return `${year}:${month}:${day}:${hours}:${minutes}:${seconds}`;
+  return `${year}#${month}#${day}#${hours}#${minutes}#${seconds}`;
 }
 
 function numberToHexColor(number: number): string {

@@ -10,7 +10,7 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {Cell, create_right1d, create_basic1d, create_basic2d, will_1d_break, will_2d_break, create_full1d, create_slope701d, create_slope1d, create_angle1d, create_right2d, create_full2d, create_slope702d, create_slope2d, create_angle2d} from './generate.ts';
 import {make_3d_mesh_visible} from "./utils.ts";
 import { export_cells } from './export.ts';
-import { merge_1d, merge_1d_all, merge_1d_chain, merge_1d_chain_left, merge_1d_t2, merge_2d_all } from './merge.ts';
+import { merge_1d_all, merge_2d_all } from './merge.ts';
 
 // controls the speed you can drag the camera with in editing mode.
 const DRAG_SPEED = .25;
@@ -184,6 +184,7 @@ function update_current_cell() {
       case "slope72d":
       case "slope2d":
       case "angle2d":
+      case "chained_basic_2d":
         will_break = will_2d_break(amplitude_value, width_value);
         break;
     }
@@ -222,6 +223,9 @@ document.addEventListener("keydown", function(event) {
     case "a":
       moveX(-1)
       break;
+    case " ":
+      add_btn.dispatchEvent(new Event("click"));
+      break;
     case "Delete":
       remove_selected_cell();
       break;
@@ -253,8 +257,12 @@ document.addEventListener("mousedown", function(event) {
   } 
   clicked_on_cell = false;
 })
+
 // Add new btn/ Button
-document.getElementById("add")?.addEventListener("click", function () {
+//
+//// amplitude_slider.dispatchEvent(new Event("input"));
+const add_btn = document.getElementById("add")!;
+add_btn.addEventListener("click", function () {
   const is_now_elastic = current_object != null ? current_object.elastic: is_elastic;
   switch (selected_type) {
     case "basic1d":
@@ -612,6 +620,9 @@ function check_mergin() {
 
     check_gap();
   } else if (collision_type["type"] == "2d") {
+    if ("type_override_other" in collision_type) {
+      collision_type["agent2"].type = collision_type["type_override_other"];
+    }
     merge_2d_all(collision_type["agent1"], collision_type["agent2"], cells);
     remove(collision_type["agent2"]);
 
@@ -631,7 +642,7 @@ function checkCollision(cell: Cell) {
         //   collision_callbacks[key](cell, other);
         // }
         if (col1.collisionBoxesIntersect(col2) && (col1.meta.includes("2d") || col2.meta.includes("2d"))) {
-          console.log(col1, col2);
+          console.log(col1.meta, col2.meta);
         }
         if (col1.collisionBoxesIntersect(col2)) {
           if (col1.meta == "1d_left" && col2.meta == "1d_right") {
@@ -639,15 +650,23 @@ function checkCollision(cell: Cell) {
           } else if (col1.meta == "1d_right" && col2.meta == "1d_left") {
             collision_type = {"type": "1d", "agent1": cell, "agent2": other};
           } 
-          // special case 
+          // special case 1d
           else if (col1.meta == "1d_right_m" && col2.meta == "1d_left_m") {
             collision_type = {"type": "1d", "agent1": cell, "agent2": other, "type_override_other": "basic1d_m"};
+          } else if (col1.meta == "1d_left_m" && col2.meta == "1d_right_m") {
+            collision_type = {"type": "1d", "agent1": other, "agent2": cell, "type_override_other": "basic1d_m"};
           }
 
           else if (col1.meta == "2d_left" && col2.meta == "2d_right") {
             collision_type = {"type": "2d", "agent1": other, "agent2": cell};
           } else if (col1.meta == "2d_right" && col2.meta == "2d_left") {
             collision_type = {"type": "2d", "agent1": cell, "agent2": other};
+          }
+
+          else if(col1.meta == "2d_right_m" && col2.meta == "2d_left_m") {
+            collision_type = {"type": "2d", "agent1": cell, "agent2": other, "type_override_other": "basic2d_m"};
+          } else if (col1.meta == "2d_left_m" && col2.meta == "2d_right_m") {
+            collision_type = {"type": "2d", "agent1": other, "agent2": cell, "type_override_other": "basic2d_m"};
           }
         }
       }

@@ -131,15 +131,84 @@ function generate_basic2d_chained_flat(amplitude: number, width: number, data: s
   var v = [];
   for (let i = 0; i < data.length; i++) {
     if (data[i] == "t8") {
-      
-      const center = xOffset + DEFAULT_SIZE*2.5 + a + b/2;
+    v.push(...move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+      // left
+      ...rect(DEFAULT_SIZE, b, [xOffset, 0 ]),
+      ...rect(a, b, [xOffset + DEFAULT_SIZE*2, 0]),
+      ...vertex([xOffset + DEFAULT_SIZE*2 + a, 0, 0], [xOffset + DEFAULT_SIZE*2 + a + b/2.0, 0, b/2.0], [xOffset + DEFAULT_SIZE*2 +a, 0, b]),
+      //right
+      ...vertex([xOffset + DEFAULT_SIZE*3 + a + b, 0, 0], [xOffset + DEFAULT_SIZE*2 + a + b/2.0 + DEFAULT_SIZE, 0, b/2.0], [xOffset + DEFAULT_SIZE*3 + a + b, 0, b]),
+      ...rect(a, b, [xOffset + DEFAULT_SIZE*3 + a+ b, 0]),
+      // ...rect(DEFAULT_SIZE, b, [xOffset + DEFAULT_SIZE*4 + 2*a + b, 0]),
+      // top,
+      ...vertex([xOffset + DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, 0, b + DEFAULT_SIZE/2.0],
+        [xOffset + DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0 + b, 0, b + DEFAULT_SIZE/2.0], 
+        [xOffset + DEFAULT_SIZE*2 + a + b/2.0 + DEFAULT_SIZE/2.0, 0, b/2.0 + DEFAULT_SIZE/2.0] 
+      ),
+      ...rect(b, a, [xOffset + DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, b + DEFAULT_SIZE/2.0]),
+      ...rect(b, DEFAULT_SIZE, [xOffset + DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, b + DEFAULT_SIZE/2.0 + a + DEFAULT_SIZE]),
+      // down
+      ...vertex([xOffset + DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, 0, -DEFAULT_SIZE/2.0],
+        [xOffset + DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0 + b, 0, -DEFAULT_SIZE/2.0], 
+        [xOffset + DEFAULT_SIZE*2 + a + b/2.0 + DEFAULT_SIZE/2.0, 0, b/2.0 - DEFAULT_SIZE/2.0] 
+      ),
+      ...rect(b, a, [xOffset + DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, -a -DEFAULT_SIZE/2.0]),
+      ...rect(b, DEFAULT_SIZE, [xOffset + DEFAULT_SIZE*2 + a + DEFAULT_SIZE/2.0, -DEFAULT_SIZE/2.0 - a - DEFAULT_SIZE*2]),
+      ]));
+      xOffset += DEFAULT_SIZE*4 + 2*a + b; 
+    } else if (data[i] == "t9") {
+      v.push(...move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+        ...vertex([xOffset - DEFAULT_SIZE + b/2.0, 0, b/2.0], [xOffset - DEFAULT_SIZE, 0, 0], [xOffset - DEFAULT_SIZE, 0, b]),
+        ...vertex([xOffset + b/2.0, 0, b/2.0], [xOffset + b, 0, 0], [xOffset + b, 0, b]),
+        ...rect(a, b, [xOffset + b, 0]),
+        ...vertex([xOffset + b/2 - DEFAULT_SIZE/2.0, 0, b/2 + DEFAULT_SIZE/2], [xOffset - DEFAULT_SIZE/2.0, 0, b + DEFAULT_SIZE/2], [xOffset + b - DEFAULT_SIZE/2.0, 0, b + DEFAULT_SIZE/2]),
+        ...rect(b, a, [xOffset  - DEFAULT_SIZE/2, b + DEFAULT_SIZE/2]),
+        ...rect(b, DEFAULT_SIZE, [xOffset - DEFAULT_SIZE/2, b + DEFAULT_SIZE*1.5 + a]),
+        ...vertex([xOffset + b/2 - DEFAULT_SIZE/2, 0, b/2 - DEFAULT_SIZE/2], [xOffset - DEFAULT_SIZE/2, 0, -DEFAULT_SIZE/2], [xOffset + b - DEFAULT_SIZE/2.0, 0, -DEFAULT_SIZE/2]),
+        ...rect(b, a, [xOffset - DEFAULT_SIZE/2, -DEFAULT_SIZE/2 - a]),
+        ...rect(b, DEFAULT_SIZE, [xOffset - DEFAULT_SIZE/2, - DEFAULT_SIZE*2.5 - a]),
+      ]));
+      xOffset += b + a + DEFAULT_SIZE; 
+    }
+  }
+  v.push(
+    ...rect(DEFAULT_SIZE, b, [xOffset, a + DEFAULT_SIZE*2.5]),
+  );
+  return move_verticies(0, 0, -yMove, v);
+}
 
+
+function generate_basic2d_chained(amplitude: number, width: number, data: string[]): number[] {
+
+  const c = amplitude;
+  const d = width;
+
+  const f = formula(amplitude, width, c2);
+
+  const b = f[1];
+  const a = f[0];
+  
+  var xOffset = 0;
+  var flatOffset = 0;
+
+  var vertices = [];
+
+  for (let i = 0; i < data.length; i++) {
+    if (data[i] == "t8") { 
+
+      const center = xOffset + DEFAULT_SIZE*2.5 + a + b/2;
       const elem_len = a + b/2.0;
       const elem_len_3d_triangle = (b/2.0)/elem_len * d/2.0;
       const elem_len_3d_rect = a/elem_len * d/2.0;
 
-      return move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+      vertices.push(...move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
         // left
+        ...quad(
+          [center - 3*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, 0], 
+          [center - 3*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, b], 
+          [center - 5*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, 0], 
+          [center - 5*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, b], 
+        ),
         ...vertex(
           [center - DEFAULT_SIZE/2.0 - elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
           [center - DEFAULT_SIZE/2.0, -c, b/2.0], 
@@ -151,12 +220,6 @@ function generate_basic2d_chained_flat(amplitude: number, width: number, data: s
           [center - DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, 0], 
           [center - DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, b], 
         ),
-        ...quad(
-          [center - 3*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, 0], 
-          [center - 3*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, 0, b], 
-          [center - 5*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, -DEFAULT_SIZE/2.0, 0], 
-          [center - 5*DEFAULT_SIZE/2.0 - elem_len_3d_rect - elem_len_3d_triangle, -DEFAULT_SIZE/2.0, b], 
-        ),
 
         // right 
         ...vertex(
@@ -164,12 +227,12 @@ function generate_basic2d_chained_flat(amplitude: number, width: number, data: s
           [center + DEFAULT_SIZE/2.0, -c, b/2.0], 
           [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , b], 
         ),
-        // ...quad(
-        //   [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
-        //   [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , b], 
-        //   [center + DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, 0], 
-        //   [center + DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, b], 
-        // ),
+        ...quad(
+          [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , 0], 
+          [center + DEFAULT_SIZE/2.0 + elem_len_3d_triangle, -c*BASIC_2D_TRIANGLE_AMPL , b], 
+          [center + DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, 0], 
+          [center + DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, b], 
+        ),
         // ...quad(
         //   [center + 3*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, 0], 
         //   [center + 3*DEFAULT_SIZE/2.0 + elem_len_3d_rect + elem_len_3d_triangle, 0, b], 
@@ -214,55 +277,45 @@ function generate_basic2d_chained_flat(amplitude: number, width: number, data: s
           [center - b/2.0, -DEFAULT_SIZE/2.0, b/2.0 - 5*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
           [center + b/2.0, -DEFAULT_SIZE/2.0, b/2.0 - 5*DEFAULT_SIZE/2.0 - elem_len_3d_triangle - elem_len_3d_rect],
         ),
-      ]);
+
+      ]));
+      xOffset += d + DEFAULT_SIZE*4;
+      flatOffset += DEFAULT_SIZE*4 + 2*a + b;
+    } else if (data[i] == "t9") {
+      const start = xOffset + a + b/2 - d/2.0 - DEFAULT_SIZE;
+
+      vertices.push(...move_verticies(0, 0, a+DEFAULT_SIZE/2.0 + DEFAULT_SIZE*2,[
+        ...vertex([start, 0, 0], [start, 0, b], [start + b/2, 0, b/2]),
+        ...vertex([start + b + DEFAULT_SIZE/2, 0, 0], [start + b + DEFAULT_SIZE/2, 0, b], [start + b/2 + DEFAULT_SIZE/2, 0, b/2]),
+        ...rect(a, b, [start + b + DEFAULT_SIZE/2, 0]),
+        ...vertex([start + b/2 + DEFAULT_SIZE/4, 0, b/2 + DEFAULT_SIZE/2], [start + DEFAULT_SIZE/4, 0, b + DEFAULT_SIZE/2], [start + b + DEFAULT_SIZE/4.0, 0, b + DEFAULT_SIZE/2]),
+        ...vertex([start + b/2 + DEFAULT_SIZE/4, 0,  b/2 - DEFAULT_SIZE/2], [start + DEFAULT_SIZE/4, 0, -DEFAULT_SIZE/2], [start + b + DEFAULT_SIZE/4.0, 0,  -DEFAULT_SIZE/2 ]),
+        ...rect(b, a, [start +  DEFAULT_SIZE/4, b + DEFAULT_SIZE/2]),
+        ...rect(b, DEFAULT_SIZE, [start +  DEFAULT_SIZE/4, b + a + DEFAULT_SIZE*1.5]),
+        ...rect(b, a, [start +  DEFAULT_SIZE/4, -a  - DEFAULT_SIZE/2]),
+        ...rect(b, DEFAULT_SIZE, [start +  DEFAULT_SIZE/4, -a - DEFAULT_SIZE*2.5]),
+      ]));
+      xOffset += b + a + DEFAULT_SIZE/2;
+      flatOffset += DEFAULT_SIZE + a + b;
     }
   }
-  v.push(
-    ...rect(DEFAULT_SIZE, b, [xOffset, 0]),
-  );
-  return move_verticies(0, 0, -yMove, v);
-}
 
-
-function generate_basic2d_chained(amplitude: number, width: number, data: string[]): number[] {
-
-  const c = amplitude;
-  const d = width;
-
-  const f = formula(amplitude, width, c1);
-
-  const b = f[1];
-  const a = f[0];
-  
-  var xOffset = 0;
-  var flatOffset = 0;
-
-  // move for angle1d
-  var yMove = 0;
-
-  var vertices = [];
-
-  for (let i = 0; i < data.length; i++) {
-    if (data[i] == "t1") { 
-    }
-  }
-  
-  vertices.push(
-    ...quad(
+  xOffset +=  a + b/2 - d/2.0;
+  vertices.push(...move_verticies(0, 0, a + DEFAULT_SIZE*2.5, quad(
       [xOffset, 0, 0], 
-      [xOffset, 0, b],
+      [xOffset, 0, b], 
       [xOffset + DEFAULT_SIZE, -DEFAULT_SIZE/2.0, 0], 
-      [xOffset + DEFAULT_SIZE, -DEFAULT_SIZE/2.0, b],
-    ),
-  );
-  // Make first rect point upwards. With that we can add flat ones for the normal generation as they are flat between two cells.
-  vertices[1] = -DEFAULT_SIZE/2.0;
+      [xOffset + DEFAULT_SIZE, -DEFAULT_SIZE/2.0, b], 
+  )));
+
   vertices[7] = -DEFAULT_SIZE/2.0;
+  vertices[13] = -DEFAULT_SIZE/2.0;
   vertices[16] = -DEFAULT_SIZE/2.0;
+  //vertices[16] = -DEFAULT_SIZE/2.0;
   const w = vertices_width(vertices);
   const w_flat = flatOffset;
   
-  return move_verticies((w_flat - w) / 2.0, 0, -yMove, vertices);
+  return move_verticies((w_flat - w) / 2.0, 0, 0, vertices);
 }
 
 function generate_basic1d_chained_flat(amplitude: number, width: number, data: string[]): number[] {
@@ -1844,6 +1897,21 @@ function generate_basic1d_chained_collision(position: number[], amplitude: numbe
   ];
 }
 
+function generate_basic2d_chained_collision(position: number[], amplitude: number, width: number, data): CollisionBox[] {
+  const f = formula(amplitude, width, c1);
+  
+  const a = f[0];
+  const b = f[1];
+
+  const w = vertices_width(generate_basic2d_chained_flat(amplitude, width, data));
+  return [
+    new CollisionBox(position[0], position[1] + a + DEFAULT_SIZE*2.5, DEFAULT_SIZE, b, "2d_left"),
+    new CollisionBox(position[0] + DEFAULT_SIZE*2, position[1] + a + DEFAULT_SIZE*2.5, a, b, "2d_left_m"),
+    new CollisionBox(position[0] + w - DEFAULT_SIZE*2 - a, position[1] + a + DEFAULT_SIZE*2.5, a, b, "2d_left_m"),
+    new CollisionBox(position[0] + w, position[1] + a + DEFAULT_SIZE*2.5, DEFAULT_SIZE, b, "2d_right"),
+  ];
+}
+
 function generate_basic2d_collision(position: number[], amplitude: number, width: number): CollisionBox[] {
   const f = formula(amplitude, width, c2);
 
@@ -1855,9 +1923,9 @@ function generate_basic2d_collision(position: number[], amplitude: number, width
   // only collisionshape for the outer ones, maybe add for other later.
   return [
     new CollisionBox(position[0], position[1] + yOffset, DEFAULT_SIZE, b, "2d_left"),
+    new CollisionBox(position[0] + DEFAULT_SIZE*2, position[1] + yOffset, a, b, "2d_left_m"),
     new CollisionBox(position[0] + DEFAULT_SIZE*4 + 2*a + b, position[1] + yOffset, DEFAULT_SIZE, b, "2d_right"),
-    new CollisionBox(position[0] + DEFAULT_SIZE*2.5 + a, position[1] + yOffset + DEFAULT_SIZE*2.5 + a + b, b, DEFAULT_SIZE, "2d_top"),
-    new CollisionBox(position[0] + DEFAULT_SIZE*2.5 + a, position[1] + yOffset -DEFAULT_SIZE*.25 - a, b, DEFAULT_SIZE, "2d_down"),
+    new CollisionBox(position[0] + DEFAULT_SIZE*2 + a + b, position[1] + yOffset, a, b, "2d_right_m"),
   ];
 }
 
@@ -2107,6 +2175,9 @@ export class Cell {
         break;
       case "chained_basic_1d":
         this.coll = generate_basic1d_chained_collision([this.position.x + this.elastic_offset[0], this.position.z - this.elastic_offset[1]], this.amplitude, this.width, this.meta_data);
+        break;
+      case "chained_basic_2d":
+        this.coll = generate_basic2d_chained_collision([this.position.x + this.elastic_offset[0], this.position.z - this.elastic_offset[1]], this.amplitude, this.width, this.meta_data);
         break;
       default:
         break;

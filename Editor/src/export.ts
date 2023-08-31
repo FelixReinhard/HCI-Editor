@@ -1,5 +1,5 @@
 import { Cell, formula, c1, c2, DEFAULT_SIZE } from "./generate";
-import { DXFWriter, SvgWriter, Writer } from "./svg_writer";
+import { SvgWriter, Writer } from "./svg_writer";
 import { CollisionBox } from "./collision.ts";
 
 const DEF_SIZE: [number, number] = [500, 500];
@@ -21,7 +21,7 @@ const export_functions = {
 }
 
 export function export_cells(cells: Cell[], format: string) {
-  const writer: Writer = format == "svg" ? new SvgWriter(DEF_SIZE[0], DEF_SIZE[1]) : new DXFWriter();
+  const writer: Writer = new SvgWriter(DEF_SIZE[0], DEF_SIZE[1]); 
   for (const cell of cells) {
     const pos = [
       cell.mesh_flat.position.x + (cell.elastic ? cell.elastic_offset[0]: 0) + DEF_SIZE[0]/2,
@@ -32,13 +32,24 @@ export function export_cells(cells: Cell[], format: string) {
       export_functions[cell.type](pos, cell.amplitude, cell.width, cell.coll, writer);
     } else if (cell.type == "chained_basic_1d"){
       basic1d_chained(pos, cell.amplitude, cell.width, writer, cell.meta_data);
+    } else if (cell.type == "chained_basic_2d") {
+      basic2d_chained(pos, cell.amplitude, cell.width, writer, cell.meta_data);
     } else {
       console.log(`Cant export ${cell.type}`);
     }
+  }
+  writer.save("file");
+  writer.clear();
+
+  const has_2d_cells = cells.reduceRight((cell: Cell, b: boolean) => {return b || cell.type.includes("2d")}, false);
+  const PLANE_SCALAR = has_2d_cells ? 1.0/1.75 : .5;
+
+  // fabric is stretched 200% for printing the flat ones. then relaxed and therefore the scalar must be applied for the elastic exportl.
+  for (const cell of cells) {
     if (cell.elastic) { 
-      const pos2 = [
-        cell.position.x + DEF_SIZE[0]/2.0,
-        cell.position.y + DEF_SIZE[1]/2.0 
+      const pos = [
+        (cell.mesh_flat.position.x + (cell.elastic ? cell.elastic_offset[0]: 0)) * PLANE_SCALAR + DEF_SIZE[0]/2,
+        (cell.mesh_flat.position.z - (cell.elastic ? cell.elastic_offset[1]: 0)) * PLANE_SCALAR + DEF_SIZE[1]/2 - (cell.type.includes("2d") ? cell.dims_without_elastic[1]/2 : 0) 
       ];
       if (cell.type.includes("1d"))
         elastic_1D(writer, pos, cell.amplitude, cell.width, cell.gap.d, cell.dims_without_elastic[0], cell.dims_without_elastic[1], cell.elastic_d);
@@ -46,7 +57,7 @@ export function export_cells(cells: Cell[], format: string) {
         elastic_2D(writer, pos, cell.amplitude, cell.width, cell.type, cell.dims_without_elastic[0], cell.dims_without_elastic[1], cell.elastic_d);
     }
   }
-  writer.save();
+  writer.save("elastic");
 }
 
 function elastic_1D(writer: Writer, pos: [number, number], amplitude: number, width: number, gap: number[], cellW: number, cellH: number, elastic_val: number) {
@@ -157,6 +168,23 @@ function full1D(position: number[], amplitude: number, width: number,collisions:
   writer.rect(position[0], position[1], DEFAULT_SIZE, b);
   writer.rect(position[0] + DEFAULT_SIZE*2, position[1], a*2 + DEFAULT_SIZE, b);
   writer.rect(position[0] + DEFAULT_SIZE*4 + 2*a , position[1], DEFAULT_SIZE, b);
+}
+
+
+function basic2d_chained(position: number[], amplitude: number, width: number, writer: Writer, data: string[]) {
+  const f = formula(amplitude, width, c1); 
+
+  const b = f[1];
+  const a = f[0];
+  
+  if (data.includes("t7")) {
+    // Add offset to pos.y if we have a angle1d
+    position[1] += -(a * Math.sin(20 * (Math.PI / 180.0))) / Math.sin(70 * (Math.PI / 180.0));
+  }
+  var xOffset = 0; 
+
+  for (let i = 0; i < data.length; i++) {
+  }
 }
 function basic1d_chained(position: number[], amplitude: number, width: number, writer: Writer, data: string[]) {
   const f = formula(amplitude, width, c1); 
