@@ -13,7 +13,7 @@
   <canvas id="editor"></canvas>
   <canvas id="preview">HELLO</canvas>
   <div class="canvas-btn">
-    <button id="switch_mode" type="button" class="btn btn-dark btn-rounded">
+    <button id="switch_mode" type="button" class="custom-button">
       <div id="switch_mode_inner">
         2D (e)
       </div>
@@ -30,55 +30,61 @@
               <h3 class="text-center">1D</h3>
               <!-- Add content for the first column here -->
               <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
-                <button type="button" id="basic1d" class="btn btn-dark" data-mdb-toggle="button">
-                  <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg">
-                    <rect rx="2" x="0" y="20" width="4" height="20" fill="white" />
-                    <rect rx="2" x="8" y="20" width="20" height="20" fill="white" />
-                    <rect rx="2" x="32" y="20" width="20" height="20" fill="white" />
-                    <rect rx="2" x="56" y="20" width="4" height="20" fill="white" />
-                  </svg>
+                <button type="button" id="basic1d" class="custom-button-scaled custom-button" data-mdb-toggle="button">
+                  <!-- <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"> -->
+                  <!--   <rect rx="2" x="0" y="20" width="4" height="20" fill="white" /> -->
+                  <!--   <rect rx="2" x="8" y="20" width="20" height="20" fill="white" /> -->
+                  <!--   <rect rx="2" x="32" y="20" width="20" height="20" fill="white" /> -->
+                  <!--   <rect rx="2" x="56" y="20" width="4" height="20" fill="white" /> -->
+                  <!-- </svg> -->
+                  <img src="src/basic1d.png" width="50" height="50" alt="">
                 </button>
-                <button type="button" id="right1d" class="btn btn-dark" data-mdb-toggle="button">
-                  <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg">
-                    <rect rx="2" x="0" y="20" width="4" height="20" fill="white" />
-                    <rect rx="2" x="8" y="20" width="12" height="20" fill="white" />
-                    <rect rx="2" x="24" y="20" width="28" height="20" fill="white" />
-                    <rect rx="2" x="56" y="20" width="4" height="20" fill="white" />
-                  </svg>
+                <button type="button" id="right1d" class="custom-button-scaled custom-button" data-mdb-toggle="button">
+                  <!-- <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"> -->
+                  <!--   <rect rx="2" x="0" y="20" width="4" height="20" fill="white" /> -->
+                  <!--   <rect rx="2" x="8" y="20" width="12" height="20" fill="white" /> -->
+                  <!--   <rect rx="2" x="24" y="20" width="28" height="20" fill="white" /> -->
+                  <!--   <rect rx="2" x="56" y="20" width="4" height="20" fill="white" /> -->
+                  <!-- </svg> -->
+                  <img src="src/right1d.png" width="50" height="50" alt="">
                 </button>
-                <button type="button" id="full1d" class="btn btn-dark" data-mdb-toggle="button">
-                  <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg">
-                    <rect rx="2" x="0" y="20" width="4" height="20" fill="white" />
-                    <rect rx="2" x="8" y="20" width="44" height="20" fill="white" />
-                    <rect rx="2" x="56" y="20" width="4" height="20" fill="white" />
-                  </svg>
+                <button type="button" id="full1d" class="custom-button-scaled custom-button" data-mdb-toggle="button">
+                  <!-- <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"> -->
+                  <!--   <rect rx="2" x="0" y="20" width="4" height="20" fill="white" /> -->
+                  <!--   <rect rx="2" x="8" y="20" width="44" height="20" fill="white" /> -->
+                  <!--   <rect rx="2" x="56" y="20" width="4" height="20" fill="white" /> -->
+                  <!-- </svg> -->
+                  <img src="src/flat1d.png" width="50" height="50" alt="">
                 </button>
               </div>
               <!-- new row -->
               <div class="d-row mgn-10 gap-2 container d-flex justify-content-center align-items-center">
-                <button type="button" id="slope71d" class="btn btn-dark" data-mdb-toggle="button">
-                  <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg">
-                    <rect rx="2" x="0" y="20" width="4" height="20" fill="white" />
-                    <polygon points="8,40 28,37 28,23 8,20" fill="white" />
-                    <polygon points="32,37 52,40 52,20 32,23" fill="white" />
-                    <rect rx="2" x="56" y="20" width="4" height="20" fill="white" />
-                  </svg>
+                <button type="button" id="slope71d" class="custom-button custom-button-scaled" data-mdb-toggle="button">
+                  <!-- <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"> -->
+                  <!--   <rect rx="2" x="0" y="20" width="4" height="20" fill="white" /> -->
+                  <!--   <polygon points="8,40 28,37 28,23 8,20" fill="white" /> -->
+                  <!--   <polygon points="32,37 52,40 52,20 32,23" fill="white" /> -->
+                  <!--   <rect rx="2" x="56" y="20" width="4" height="20" fill="white" /> -->
+                  <!-- </svg> -->
+                  <img src="src/slope71d.png" width="50" height="50" alt="">
                 </button>
-                <button type="button" id="slope1d" class="btn btn-dark" data-mdb-toggle="button">
-                  <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg">
-                    <rect rx="2" x="0" y="20" width="4" height="20" fill="white" />
-                    <polygon points="8,40 28,30 8,20" fill="white" />
-                    <polygon points="32,30 52,40 52,20" fill="white" />
-                    <rect rx="2" x="56" y="20" width="4" height="20" fill="white" />
-                  </svg>
+                <button type="button" id="slope1d" class="custom-button-scaled custom-button" data-mdb-toggle="button">
+                  <!-- <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"> -->
+                  <!--   <rect rx="2" x="0" y="20" width="4" height="20" fill="white" /> -->
+                  <!--   <polygon points="8,40 28,30 8,20" fill="white" /> -->
+                  <!--   <polygon points="32,30 52,40 52,20" fill="white" /> -->
+                  <!--   <rect rx="2" x="56" y="20" width="4" height="20" fill="white" /> -->
+                  <!-- </svg> -->
+                  <img src="src/slope1d.png" width="50" height="50" alt="">
                 </button>
-                <button type="button" id="angle1d" class="btn btn-dark" data-mdb-toggle="button">
-                  <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg">
-                    <rect rx="2" x="0" y="20" width="4" height="20" fill="white" />
-                    <polygon points="8,20 28,30 28,50 8,40" fill="white" />
-                    <polygon points="32,30 32,50 52,40 52,20" fill="white" />
-                    <rect rx="2" x="56" y="20" width="4" height="20" fill="white" />
-                  </svg>
+                <button type="button" id="angle1d" class="custom-button custom-button-scaled" data-mdb-toggle="button">
+                  <!-- <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"> -->
+                  <!--   <rect rx="2" x="0" y="20" width="4" height="20" fill="white" /> -->
+                  <!--   <polygon points="8,20 28,30 28,50 8,40" fill="white" /> -->
+                  <!--   <polygon points="32,30 32,50 52,40 52,20" fill="white" /> -->
+                  <!--   <rect rx="2" x="56" y="20" width="4" height="20" fill="white" /> -->
+                  <!-- </svg> -->
+                  <img src="src/angle1d.png" width="50" height="50" alt="">
                 </button>
               </div>
             </div>
@@ -88,116 +94,121 @@
               <h3 class="text-center">2D</h3>
               <!-- Add content for the second column here -->
               <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
-                <button type="button" id="basic2d" class="btn btn-dark" data-mdb-toggle="button">
-                  <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg">
-                    <rect rx="1" x="0" y="20" width="4" height="18" fill="white" />
-                    <rect rx="1" x="6" y="20" width="12" height="18" fill="white" />
-
-                    <rect rx="1" x="42" y="20" width="12" height="18" fill="white" />
-                    <rect rx="1" x="56" y="20" width="4" height="18" fill="white" />
-
-                    <rect rx="1" x="21" y="0" width="18" height="4" fill="white" />
-                    <rect rx="1" x="21" y="6" width="18" height="12" fill="white" />
-
-                    <rect rx="1" x="21" y="42" width="18" height="12" fill="white" />
-                    <rect rx="1" x="21" y="56" width="18" height="4" fill="white" />
-
-                    <polygon points="18,20 18,38 26,29" fill="white" />
-                    <polygon points="42,20 42,38 34,29" fill="white" />
-                    <polygon points="21,18 39,18 30,28" fill="white" />
-                    <polygon points="21,42 39,42 30,32" fill="white" />
-                  </svg>
+                <button type="button" id="basic2d" class="custom-button-scaled custom-button" data-mdb-toggle="button">
+                  <!-- <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"> -->
+                  <!--   <rect rx="1" x="0" y="20" width="4" height="18" fill="white" /> -->
+                  <!--   <rect rx="1" x="6" y="20" width="12" height="18" fill="white" /> -->
+                  <!---->
+                  <!--   <rect rx="1" x="42" y="20" width="12" height="18" fill="white" /> -->
+                  <!--   <rect rx="1" x="56" y="20" width="4" height="18" fill="white" /> -->
+                  <!---->
+                  <!--   <rect rx="1" x="21" y="0" width="18" height="4" fill="white" /> -->
+                  <!--   <rect rx="1" x="21" y="6" width="18" height="12" fill="white" /> -->
+                  <!---->
+                  <!--   <rect rx="1" x="21" y="42" width="18" height="12" fill="white" /> -->
+                  <!--   <rect rx="1" x="21" y="56" width="18" height="4" fill="white" /> -->
+                  <!---->
+                  <!--   <polygon points="18,20 18,38 26,29" fill="white" /> -->
+                  <!--   <polygon points="42,20 42,38 34,29" fill="white" /> -->
+                  <!--   <polygon points="21,18 39,18 30,28" fill="white" /> -->
+                  <!--   <polygon points="21,42 39,42 30,32" fill="white" /> -->
+                  <!-- </svg> -->
+                  <img src="src/basic2d.png" width="50" height="50" alt="">
                 </button>
 
-                <button type="button" id="right2d" class="btn btn-dark" data-mdb-toggle="button">
-                  <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg">
-                    <g transform="scale(0.86, 0.86)">
-                      <rect rx="1" x="0" y="16" width="4" height="18" fill="white" />
-                      <rect rx="1" x="6" y="16" width="8" height="18" fill="white" />
-
-                      <rect rx="1" x="42" y="16" width="20" height="18" fill="white" />
-                      <rect rx="1" x="64" y="16" width="4" height="18" fill="white" />
-
-                      <rect rx="1" x="19" y="0" width="18" height="4" fill="white" />
-                      <rect rx="1" x="19" y="6" width="18" height="8" fill="white" />
-
-                      <rect rx="1" x="19" y="38" width="18" height="20" fill="white" />
-                      <rect rx="1" x="19" y="60" width="18" height="4" fill="white" />
-
-                      <polygon points="14,16 14,34 22,25" fill="white" />
-                      <polygon points="42,16 42,34 34,25" fill="white" />
-                      <polygon points="19,14 37,14 28,24" fill="white" />
-                      <polygon points="19,39 37,39 28,28" fill="white" />
-                    </g>
-                  </svg>
+                <button type="button" id="right2d" class="custom-button-scaled custom-button" data-mdb-toggle="button">
+                  <!-- <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"> -->
+                  <!--   <g transform="scale(0.86, 0.86)"> -->
+                  <!--     <rect rx="1" x="0" y="16" width="4" height="18" fill="white" /> -->
+                  <!--     <rect rx="1" x="6" y="16" width="8" height="18" fill="white" /> -->
+                  <!---->
+                  <!--     <rect rx="1" x="42" y="16" width="20" height="18" fill="white" /> -->
+                  <!--     <rect rx="1" x="64" y="16" width="4" height="18" fill="white" /> -->
+                  <!---->
+                  <!--     <rect rx="1" x="19" y="0" width="18" height="4" fill="white" /> -->
+                  <!--     <rect rx="1" x="19" y="6" width="18" height="8" fill="white" /> -->
+                  <!---->
+                  <!--     <rect rx="1" x="19" y="38" width="18" height="20" fill="white" /> -->
+                  <!--     <rect rx="1" x="19" y="60" width="18" height="4" fill="white" /> -->
+                  <!---->
+                  <!--     <polygon points="14,16 14,34 22,25" fill="white" /> -->
+                  <!--     <polygon points="42,16 42,34 34,25" fill="white" /> -->
+                  <!--     <polygon points="19,14 37,14 28,24" fill="white" /> -->
+                  <!--     <polygon points="19,39 37,39 28,28" fill="white" /> -->
+                  <!--   </g> -->
+                  <!-- </svg> -->
+                  <img src="src/right2d.png" width="50" height="50" alt="">
                 </button>
 
-                <button type="button" id="full2d" class="btn btn-dark" data-mdb-toggle="button">
-                  <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg">
-                    <rect rx="1" x="0" y="20" width="4" height="18" fill="white" />
-                    <rect rx="1" x="6" y="20" width="48" height="18" fill="white" />
-                    <rect rx="1" x="56" y="20" width="4" height="18" fill="white" />
-
-                    <rect rx="1" x="21" y="0" width="18" height="4" fill="white" />
-                    <rect rx="1" x="21" y="6" width="18" height="48" fill="white" />
-                    <rect rx="1" x="21" y="56" width="18" height="4" fill="white" />
-                  </svg>
+                <button type="button" id="full2d" class="custom-button-scaled custom-button" data-mdb-toggle="button">
+                  <!-- <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"> -->
+                  <!--   <rect rx="1" x="0" y="20" width="4" height="18" fill="white" /> -->
+                  <!--   <rect rx="1" x="6" y="20" width="48" height="18" fill="white" /> -->
+                  <!--   <rect rx="1" x="56" y="20" width="4" height="18" fill="white" /> -->
+                  <!---->
+                  <!--   <rect rx="1" x="21" y="0" width="18" height="4" fill="white" /> -->
+                  <!--   <rect rx="1" x="21" y="6" width="18" height="48" fill="white" /> -->
+                  <!--   <rect rx="1" x="21" y="56" width="18" height="4" fill="white" /> -->
+                  <!-- </svg> -->
+                  <img src="src/flat2d.png" width="50" height="50" alt="">
                 </button>
               </div>
               <div class="d-row gap-2 mgn-10 container d-flex justify-content-center align-items-center">
-                <button type="button" id="slope72d" class="btn btn-dark" data-mdb-toggle="button">
-                  <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg">
-                    <rect rx="1" x="0" y="20" width="4" height="18" fill="white" />
-                    <rect rx="1" x="6" y="20" width="8" height="18" fill="white" />
-
-                    <rect rx="1" x="46" y="20" width="8" height="18" fill="white" />
-                    <rect rx="1" x="56" y="20" width="4" height="18" fill="white" />
-
-                    <rect rx="1" x="21" y="0" width="18" height="4" fill="white" />
-                    <rect rx="1" x="21" y="6" width="18" height="8" fill="white" />
-
-                    <rect rx="1" x="21" y="46" width="18" height="8" fill="white" />
-                    <rect rx="1" x="21" y="56" width="18" height="4" fill="white" />
-
-                    <polygon points="14,20 14,38 26,29" fill="white" />
-                    <polygon points="46,20 46,38 34,29" fill="white" />
-                    <polygon points="21,14 39,14 30,28" fill="white" />
-                    <polygon points="21,46 39,46 30,32" fill="white" />
-                  </svg>
+                <button type="button" id="slope72d" class="custom-button-scaled custom-button" data-mdb-toggle="button">
+                  <!-- <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"> -->
+                  <!--   <rect rx="1" x="0" y="20" width="4" height="18" fill="white" /> -->
+                  <!--   <rect rx="1" x="6" y="20" width="8" height="18" fill="white" /> -->
+                  <!---->
+                  <!--   <rect rx="1" x="46" y="20" width="8" height="18" fill="white" /> -->
+                  <!--   <rect rx="1" x="56" y="20" width="4" height="18" fill="white" /> -->
+                  <!---->
+                  <!--   <rect rx="1" x="21" y="0" width="18" height="4" fill="white" /> -->
+                  <!--   <rect rx="1" x="21" y="6" width="18" height="8" fill="white" /> -->
+                  <!---->
+                  <!--   <rect rx="1" x="21" y="46" width="18" height="8" fill="white" /> -->
+                  <!--   <rect rx="1" x="21" y="56" width="18" height="4" fill="white" /> -->
+                  <!---->
+                  <!--   <polygon points="14,20 14,38 26,29" fill="white" /> -->
+                  <!--   <polygon points="46,20 46,38 34,29" fill="white" /> -->
+                  <!--   <polygon points="21,14 39,14 30,28" fill="white" /> -->
+                  <!--   <polygon points="21,46 39,46 30,32" fill="white" /> -->
+                  <!-- </svg> -->
+                  <img src="src/slope72d.png" width="50" height="50" alt="">
                 </button>
-                <button type="button" id="slope2d" class="btn btn-dark" data-mdb-toggle="button">
-                  <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg">
-                    <rect rx="1" x="0" y="20" width="4" height="18" fill="white" />
-                    <rect rx="1" x="56" y="20" width="4" height="18" fill="white" />
-                    <rect rx="1" x="21" y="0" width="18" height="4" fill="white" />
-                    <rect rx="1" x="21" y="56" width="18" height="4" fill="white" />
-
-                    <polygon points="6,20 6,38 26,29" fill="white" />
-                    <polygon points="54,20 54,38 34,29" fill="white" />
-                    <polygon points="21,6 39,6 30,28" fill="white" />
-                    <polygon points="21,54 39,54 30,32" fill="white" />
-                  </svg>
+                <button type="button" id="slope2d" class="custom-button custom-button-scaled" data-mdb-toggle="button">
+                  <!-- <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"> -->
+                  <!--   <rect rx="1" x="0" y="20" width="4" height="18" fill="white" /> -->
+                  <!--   <rect rx="1" x="56" y="20" width="4" height="18" fill="white" /> -->
+                  <!--   <rect rx="1" x="21" y="0" width="18" height="4" fill="white" /> -->
+                  <!--   <rect rx="1" x="21" y="56" width="18" height="4" fill="white" /> -->
+                  <!---->
+                  <!--   <polygon points="6,20 6,38 26,29" fill="white" /> -->
+                  <!--   <polygon points="54,20 54,38 34,29" fill="white" /> -->
+                  <!--   <polygon points="21,6 39,6 30,28" fill="white" /> -->
+                  <!--   <polygon points="21,54 39,54 30,32" fill="white" /> -->
+                  <!-- </svg> -->
+                  <img src="src/slope2d.png" width="50" height="50" alt="">
                 </button>
-
-                <button type="button" id="angle2d" class="btn btn-dark" data-mdb-toggle="button">
-                  <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg">
-                    <rect rx="1" x="0" y="20" width="4" height="18" fill="white" />
-                    <rect rx="1" x="6" y="20" width="12" height="18" fill="white" />
-
-                    <rect rx="1" x="42" y="20" width="12" height="18" fill="white" />
-                    <rect rx="1" x="56" y="20" width="4" height="18" fill="white" />
-
-                    <rect rx="1" x="17" y="0" width="18" height="4" fill="white" />
-                    <!-- <rect rx="1" x="17" y="6" width="18" height="12" fill="white" /> -->
-
-                    <!-- <rect rx="1" x="17" y="42" width="18" height="12" fill="white" /> -->
-                    <rect rx="1" x="17" y="56" width="18" height="4" fill="white" />
-
-                    <polygon points="18,20 18,38 26,29" fill="white" />
-                    <polygon points="42,20 42,38 34,29" fill="white" />
-                    <polygon points="17,6 21,18 30,28 39,18 35,6" fill="white" />
-                    <polygon points="17,54 21,42 30,32 39,42 35,54" fill="white" />
-                  </svg>
+                <button type="button" id="angle2d" class="custom-button-scaled custom-button" data-mdb-toggle="button">
+                  <!-- <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"> -->
+                  <!--   <rect rx="1" x="0" y="20" width="4" height="18" fill="white" /> -->
+                  <!--   <rect rx="1" x="6" y="20" width="12" height="18" fill="white" /> -->
+                  <!---->
+                  <!--   <rect rx="1" x="42" y="20" width="12" height="18" fill="white" /> -->
+                  <!--   <rect rx="1" x="56" y="20" width="4" height="18" fill="white" /> -->
+                  <!---->
+                  <!--   <rect rx="1" x="17" y="0" width="18" height="4" fill="white" /> -->
+                  <!--   <rect rx="1" x="17" y="6" width="18" height="12" fill="white" /> --> 
+                  <!---->
+                  <!--    <rect rx="1" x="17" y="42" width="18" height="12" fill="white" /> --> 
+                  <!--   <rect rx="1" x="17" y="56" width="18" height="4" fill="white" /> -->
+                  <!---->
+                  <!--   <polygon points="18,20 18,38 26,29" fill="white" /> -->
+                  <!--   <polygon points="42,20 42,38 34,29" fill="white" /> -->
+                  <!--   <polygon points="17,6 21,18 30,28 39,18 35,6" fill="white" /> -->
+                  <!--   <polygon points="17,54 21,42 30,32 39,42 35,54" fill="white" /> -->
+                  <!-- </svg> -->
+                  <img src="src/angle2d.png" width="50" height="50" alt="">
                 </button>
               </div>
             </div>
@@ -238,7 +249,7 @@
 
             <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
               <div class="mgn-20 d-col gap-2 container d-flex justify-content-center align-items-center">
-                <button id="add" type="button" class="btn btn-dark btn-rounded">
+                <button id="add" type="button" class="custom-button">
                   <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
                     <i class="r-20 fas fa-plus"></i>
                     <div>
@@ -248,7 +259,7 @@
                 </button>
               </div>
               <div class="mgn-20 d-col container d-flex justify-content-center align-items-center">
-                <button id="export" type="button" class="btn btn-dark rounded-left">
+                <button id="export" type="button" class="custom-button ">
                   <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
                     <i class="r-20 fas fa-file-export"></i>
                     <div id="export_inner">
@@ -271,6 +282,7 @@
       integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm"
       crossorigin="anonymous"></script>
     <style>
+
       .canvas-btn {
         position: absolute;
         left: 55%;
