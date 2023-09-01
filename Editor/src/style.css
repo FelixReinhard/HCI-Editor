@@ -40,8 +40,6 @@ canvas {
 /* Disabled button style */
 .custom-button:disabled {
   border-width: 4px;
-  background-color: #fff;
-  color: #FFF;
 }
 
 .custom-button:hover{
