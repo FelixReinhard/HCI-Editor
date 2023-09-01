@@ -21,7 +21,7 @@ const export_functions = {
 }
 
 export function export_cells(cells: Cell[], format: string) {
-  const writer: Writer = new SvgWriter(DEF_SIZE[0], DEF_SIZE[1]); 
+  const writer = new SvgWriter(DEF_SIZE[0], DEF_SIZE[1]); 
   for (const cell of cells) {
     const pos = [
       cell.mesh_flat.position.x + (cell.elastic ? cell.elastic_offset[0]: 0) + DEF_SIZE[0]/2,
@@ -60,7 +60,7 @@ export function export_cells(cells: Cell[], format: string) {
   writer.save("elastic");
 }
 
-function elastic_1D(writer: Writer, pos: [number, number], amplitude: number, width: number, gap: number[], cellW: number, cellH: number, elastic_val: number) {
+function elastic_1D(writer: SvgWriter, pos: [number, number], amplitude: number, width: number, gap: number[], cellW: number, cellH: number, elastic_val: number) {
   const f = formula(amplitude, width, c1);
 
   const b = f[1];
@@ -77,7 +77,7 @@ function elastic_1D(writer: Writer, pos: [number, number], amplitude: number, wi
   writer.rect(pos[0] + x + cellW - DEFAULT_SIZE, pos[1] + y - DEFAULT_SIZE, DEFAULT_SIZE, h - DEFAULT_SIZE, 0, 0xFF0000);
 }
 
-function elastic_2D(writer: Writer, pos: [number, number], amplitude: number, width: number, type: string, cellW: number, cellH: number, elastic_val: number) {
+function elastic_2D(writer: SvgWriter, pos: [number, number], amplitude: number, width: number, type: string, cellW: number, cellH: number, elastic_val: number) {
   const f = formula(amplitude, width, c1);
 
   const b = f[1];
@@ -91,7 +91,7 @@ function elastic_2D(writer: Writer, pos: [number, number], amplitude: number, wi
   }
 }
 
-function angle1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: Writer) {
+function angle1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: SvgWriter) {
   const f = formula(amplitude, width, c1); 
 
   const b = f[1];
@@ -117,7 +117,7 @@ function angle1D(position: number[], amplitude: number, width: number,collisions
   writer.rect(position[0] + DEFAULT_SIZE*4 + 2*a , position[1], DEFAULT_SIZE, b);
 }
 
-function slope1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: Writer) {
+function slope1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: SvgWriter) {
   const f = formula(amplitude, width, c1); 
 
   const b = f[1];
@@ -137,7 +137,7 @@ function slope1D(position: number[], amplitude: number, width: number,collisions
   writer.rect(position[0] + DEFAULT_SIZE*4 + 2*a , position[1], DEFAULT_SIZE, b);
 }
 
-function slope71D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: Writer) {
+function slope71D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: SvgWriter) {
   const f = formula(amplitude, width, c1); 
 
   const b = f[1];
@@ -158,7 +158,7 @@ function slope71D(position: number[], amplitude: number, width: number,collision
   ]);
   writer.rect(position[0] + DEFAULT_SIZE*4 + 2*a , position[1], DEFAULT_SIZE, b);
 }
-function full1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: Writer) {
+function full1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: SvgWriter) {
   const f = formula(amplitude, width, c1); 
 
   const b = f[1];
@@ -171,7 +171,7 @@ function full1D(position: number[], amplitude: number, width: number,collisions:
 }
 
 
-function basic2d_chained(position: number[], amplitude: number, width: number, writer: Writer, data: string[]) {
+function basic2d_chained(position: number[], amplitude: number, width: number, writer: SvgWriter, data: string[]) {
   const f = formula(amplitude, width, c2); 
 
   const b = f[1];
@@ -290,7 +290,7 @@ function basic2d_chained(position: number[], amplitude: number, width: number, w
   writer.rect(offsetX, offsetY, DEFAULT_SIZE, b);
 
 }
-function basic1d_chained(position: number[], amplitude: number, width: number, writer: Writer, data: string[]) {
+function basic1d_chained(position: number[], amplitude: number, width: number, writer: SvgWriter, data: string[]) {
   const f = formula(amplitude, width, c1); 
 
   const b = f[1];
@@ -377,7 +377,7 @@ function basic1d_chained(position: number[], amplitude: number, width: number, w
   writer.rect(position[0] + xOffset, position[1], DEFAULT_SIZE, b);
 }
 
-function basic1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: Writer) {
+function basic1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: SvgWriter) {
   const f = formula(amplitude, width, c1); 
 
   const b = f[1];
@@ -389,7 +389,7 @@ function basic1D(position: number[], amplitude: number, width: number,collisions
   writer.rect(position[0] + DEFAULT_SIZE*4 + 2*a , position[1], DEFAULT_SIZE, b);
 }
 
-function right1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: Writer) {
+function right1D(position: number[], amplitude: number, width: number,collisions: CollisionBox[], writer: SvgWriter) {
   const f = formula(amplitude, width, c1); 
 
   const b = f[1];
@@ -401,7 +401,7 @@ function right1D(position: number[], amplitude: number, width: number,collisions
   writer.rect(position[0] + DEFAULT_SIZE*4 + 2*a , position[1], DEFAULT_SIZE, b);
 }
 
-function right2D(position: number[], amplitude: number, width: number, collisions: CollisionBox[],  writer: Writer) {
+function right2D(position: number[], amplitude: number, width: number, collisions: CollisionBox[],  writer: SvgWriter) {
   
   const f = formula(amplitude, width, c2); 
 
@@ -450,7 +450,7 @@ function right2D(position: number[], amplitude: number, width: number, collision
 }
 
 
-function basic2D(position: number[], amplitude: number, width: number, collisions: CollisionBox[],  writer: Writer) {
+function basic2D(position: number[], amplitude: number, width: number, collisions: CollisionBox[],  writer: SvgWriter) {
 
   const f = formula(amplitude, width, c2); 
 
@@ -498,7 +498,7 @@ function basic2D(position: number[], amplitude: number, width: number, collision
 }
 
 
-function full2D(position: number[], amplitude: number, width: number, collisions: CollisionBox[], writer: Writer) {
+function full2D(position: number[], amplitude: number, width: number, collisions: CollisionBox[], writer: SvgWriter) {
 
   const f = formula(amplitude, width, c2); 
 
@@ -530,7 +530,7 @@ function full2D(position: number[], amplitude: number, width: number, collisions
 }
 
 
-function slope72D(position: number[], amplitude: number, width: number, collisions: CollisionBox[], writer: Writer) {
+function slope72D(position: number[], amplitude: number, width: number, collisions: CollisionBox[], writer: SvgWriter) {
   const f = formula(amplitude, width, c2); 
 
   const b = f[1];
@@ -577,7 +577,7 @@ function slope72D(position: number[], amplitude: number, width: number, collisio
 }
 
 
-function slope2D(position: number[], amplitude: number, width: number, collisions: CollisionBox[], writer: Writer) {
+function slope2D(position: number[], amplitude: number, width: number, collisions: CollisionBox[], writer: SvgWriter) {
   const f = formula(amplitude, width, c2); 
 
   const b = f[1];
@@ -616,7 +616,7 @@ function slope2D(position: number[], amplitude: number, width: number, collision
 }
 
 
-function angle2D(position: number[], amplitude: number, width: number, collisions: CollisionBox[],  writer: Writer) {
+function angle2D(position: number[], amplitude: number, width: number, collisions: CollisionBox[],  writer: SvgWriter) {
 
   const f = formula(amplitude, width, c2); 
 

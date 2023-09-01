@@ -100,7 +100,7 @@ function moveY(dir: number) {
   camera.position.z += dir;
 }
 
-function moveX(dir) {
+function moveX(dir: number) {
   orbitControl.target.x += dir;
   camera.position.x += dir;
 }
@@ -332,8 +332,8 @@ canvas?.addEventListener("click", function(event) {
 function get_clicked_on(clientX: number, clientY: number) {
 
   const mouse = new Three.Vector2();
-  mouse.x = ( clientX / canvas?.offsetWidth) * 2 - 1;
-	mouse.y = - ( clientY / canvas?.offsetHeight) * 2 + 1;
+  mouse.x = ( clientX / canvas!.offsetWidth) * 2 - 1;
+	mouse.y = - ( clientY / canvas!.offsetHeight) * 2 + 1;
 
   raycaster.setFromCamera( mouse, camera );
 
@@ -342,10 +342,10 @@ function get_clicked_on(clientX: number, clientY: number) {
   return raycaster.intersectObjects(scene.children);
 }
 
-function get_mouse_in_world(clientX, clientY): Three.Vector3 {
+function get_mouse_in_world(clientX: number, clientY: number): Three.Vector3 {
   const mouse = new Three.Vector2();
-  mouse.x = ( clientX / canvas?.offsetWidth) * 2 - 1;
-  mouse.y = - ( clientY / canvas?.offsetHeight) * 2 + 1;
+  mouse.x = ( clientX / canvas!.offsetWidth) * 2 - 1;
+  mouse.y = - ( clientY / canvas!.offsetHeight) * 2 + 1;
 
   raycaster.setFromCamera( mouse, camera );
   const plane = new Three.Plane( new Three.Vector3( 0, 1, 0 ), 0 );
@@ -356,9 +356,9 @@ function get_mouse_in_world(clientX, clientY): Three.Vector3 {
 }
 
 function set_sliders(amplitude: number, width: number, elastic: number) {
-  amplitude_slider.value = (amplitude - AMPLITUDE_RANGE[0]) / (AMPLITUDE_RANGE[1] - AMPLITUDE_RANGE[0]) * 100.0;
-  width_slider.value = (width - WIDTH_RANGE[0]) / (WIDTH_RANGE[1] - WIDTH_RANGE[0]) * 100.0;
-  elastic_slider.value = (elastic - ELASTIC_RANGE[0]) / (ELASTIC_RANGE[1] - ELASTIC_RANGE[0]) * 100.0;
+  amplitude_slider.value = ((amplitude - AMPLITUDE_RANGE[0]) / (AMPLITUDE_RANGE[1] - AMPLITUDE_RANGE[0]) * 100.0).toString();
+  width_slider.value = ((width - WIDTH_RANGE[0]) / (WIDTH_RANGE[1] - WIDTH_RANGE[0]) * 100.0).toString();
+  elastic_slider.value = ((elastic - ELASTIC_RANGE[0]) / (ELASTIC_RANGE[1] - ELASTIC_RANGE[0]) * 100.0).toString();
 }
 
 function set_current_object(newObj: Cell) {
@@ -392,7 +392,7 @@ function turn_elastic(on: boolean) {
   }
 }
 
-function get_cell_by_mesh_uuid(id): Cell | null {
+function get_cell_by_mesh_uuid(id: number): Cell | null {
   for (const item of cells) {
     if (item.mesh.userData == id || item.mesh_flat.userData == id) {
       return item;
@@ -535,30 +535,30 @@ function enable_all_btns_not_me(not_disable_id: string) {
   btn_slope2d.disabled = false;
   btn_angle2d.disabled = false;
   
-  document.getElementById(not_disable_id).disabled = true;
+  (document.getElementById(not_disable_id)! as HTMLButtonElement).disabled = true;
 }
 
 const amplitude_text = document.getElementById("amplitude_text")!;
 const width_text = document.getElementById("width_text")!;
 
-const amplitude_slider = document.getElementById("amplitude")!;
+const amplitude_slider = document.getElementById("amplitude")! as HTMLInputElement;
 amplitude_slider.oninput = function () {
-  amplitude_value = AMPLITUDE_RANGE[0] + amplitude_slider.value / 100.0 * (AMPLITUDE_RANGE[1] - AMPLITUDE_RANGE[0]);
+  amplitude_value = AMPLITUDE_RANGE[0] + parseInt(amplitude_slider.value) / 100.0 * (AMPLITUDE_RANGE[1] - AMPLITUDE_RANGE[0]);
   update_current_cell();
   amplitude_text.innerText = `Amplitude: ${amplitude_value.toFixed(2)}mm`;
 }
 
-const width_slider = document.getElementById("width")!;
+const width_slider = document.getElementById("width")! as HTMLInputElement;
 width_slider.oninput = function () {
-  width_value = WIDTH_RANGE[0] + width_slider.value / 100.0 * (WIDTH_RANGE[1] - WIDTH_RANGE[0]);
+  width_value = WIDTH_RANGE[0] + parseInt(width_slider.value) / 100.0 * (WIDTH_RANGE[1] - WIDTH_RANGE[0]);
   update_current_cell();
   width_text.innerText = `Width: ${width_value.toFixed(2)}mm`;
 }
 
 const elastic_slider_visual = document.getElementById("deform_slider")!;
-const elastic_slider = document.getElementById("deform")!;
+const elastic_slider = document.getElementById("deform")! as HTMLInputElement;
 elastic_slider.oninput = function () {
-  elastic_value = ELASTIC_RANGE[0] + elastic_slider.value / 100.0 * (ELASTIC_RANGE[1] - ELASTIC_RANGE[0]);
+  elastic_value = ELASTIC_RANGE[0] + parseInt(elastic_slider.value) / 100.0 * (ELASTIC_RANGE[1] - ELASTIC_RANGE[0]);
   set_current_cell_elastic(is_elastic, elastic_value);
 }
 
@@ -589,42 +589,25 @@ function set_current_cell_elastic(is_elastic: boolean, val: number) {
 
 var export_type = "svg";
 
-const export_text = document.getElementById("export_inner")!;
-
-function set_export_type(type: string) {
-  switch (type) {
-    case "svg":
-      export_type = "svg";
-      export_text.textContent = "Svg"
-      break;
-    case "dxf":
-      export_type = "dxf";
-      export_text.textContent = "Dxf"
-      break;
-    default:
-      break;
-  }
-}
-
 // used on the mouseup event to check if a merging should be done.
-var collision_type: {} = {"type" : "none", "agent1": null, "agent2": null};
+var collision_type: {[key: string]: string | null | Cell} = {"type" : "none", "agent1": null, "agent2": null};
 
 function check_mergin() {
 
   if (collision_type["type"] == "1d") {
     if ("type_override_other" in collision_type) {
-      collision_type["agent2"].type = collision_type["type_override_other"];
+      (collision_type["agent2"] as Cell).type = collision_type["type_override_other"] as string;
     }
-    merge_1d_all(collision_type["agent1"], collision_type["agent2"], cells);
-    remove(collision_type["agent2"]);
+    merge_1d_all(collision_type["agent1"] as Cell, collision_type["agent2"] as Cell, cells);
+    remove(collision_type["agent2"] as Cell);
 
     check_gap();
   } else if (collision_type["type"] == "2d") {
     if ("type_override_other" in collision_type) {
-      collision_type["agent2"].type = collision_type["type_override_other"];
+      (collision_type["agent2"] as Cell).type = collision_type["type_override_other"] as string;
     }
-    merge_2d_all(collision_type["agent1"], collision_type["agent2"], cells);
-    remove(collision_type["agent2"]);
+    merge_2d_all(collision_type["agent1"] as Cell, collision_type["agent2"] as Cell, cells);
+    remove(collision_type["agent2"] as Cell);
 
     check_gap();
   }

@@ -1,6 +1,6 @@
 import { Cell } from "./generate";
 
-const types = {
+const types: {[key: string]: string} = {
   "basic1d": "t1",
   "basic1d_m": "t2",
   "right1d": "t3",

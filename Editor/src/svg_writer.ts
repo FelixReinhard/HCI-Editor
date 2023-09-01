@@ -1,11 +1,11 @@
 export interface Writer {
   rect(x: number, y: number, w: number, h: number, rounded: number | null, color: number | null): Writer;
   path(positions: [number, number][], color: number): Writer;
-  circle(x: number, y: number, width: number, radius: number, color: number);
+  circle(x: number, y: number, width: number, radius: number, color: number): void;
   save(name: string): void;
   clear(): void;
 }
-export class SvgWriter implements Writer {
+export class SvgWriter {
   content: string;
   width: number;
   height: number;
@@ -46,7 +46,7 @@ export class SvgWriter implements Writer {
     this.content += `<circle cx="${x}" cy="${y}" r="${radius}" stroke="${numberToHexColor(color)}" stroke-width="${width}" fill="none" />\n`;
   }
 
-  rect(x:number, y:number, w:number, h:number, rounded:number=0, color:number=0): SvgWriter {
+  rect(x:number, y:number, w:number, h:number, color:number=0): SvgWriter {
     this.content += `<rect x="${x}" y="${y-h}" width="${w}" height="${h}" fill="${numberToHexColor(color)}" />\n`;
     return this;
   }
