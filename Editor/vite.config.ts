@@ -5,7 +5,7 @@ export default defineConfig({
   clearScreen: false,
   // Tauri expects a fixed port, fail if that port is not available
   server: {
-    strictPort: true,
+    strictPort: false,
   },
   // to make use of `TAURI_PLATFORM`, `TAURI_ARCH`, `TAURI_FAMILY`,
   // `TAURI_PLATFORM_VERSION`, `TAURI_PLATFORM_TYPE` and `TAURI_DEBUG`

@@ -21,3 +21,27 @@ canvas {
   width: 35%;
   height: 95%;
 }
+
+
+.custom-button-scaled {
+  width: 85px;
+  height: 70px;
+}
+.custom-button {
+  background-color: white;
+  color: black;
+  border: 2px solid black;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* Disabled button style */
+.custom-button:disabled {
+  border-width: 4px;
+}
+
+.custom-button:hover{
+  border-width: 3px;
+}
