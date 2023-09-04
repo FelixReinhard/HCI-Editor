@@ -1948,8 +1948,18 @@ class GapBox {
   }
 
   overlaps(other: GapBox): boolean {
-    const c1 = new CollisionBox(this.cell.position.x - this.d[0], this.cell.position.z - this.d[2], this.cell.get_width() + this.d[1], this.cell.get_height() + this.d[3], "");
-    const c2 = new CollisionBox(other.cell.position.x - other.d[0], other.cell.position.z - other.d[2], other.cell.get_width() + other.d[1], other.cell.get_height() + other.d[3], "");
+    const c1 = new CollisionBox(
+      this.cell.position.x - this.d[0]/2,
+      this.cell.position.z - this.d[3]/2 - this.cell.get_height(), 
+      this.cell.get_width() + this.d[0]/2 + this.d[1]/2,
+      this.cell.get_height() + this.d[3]/2 + this.d[2]/2, 
+      "");
+    const c2 = new CollisionBox(
+      other.cell.position.x - other.d[0]/2,
+      other.cell.position.z - other.d[3]/2 - other.cell.get_height(),
+      other.cell.get_width() + other.d[0]/2 + other.d[1]/2,
+      other.cell.get_height() + other.d[3]/2 + other.d[2]/2,
+      "");
     return c1.collisionBoxesIntersect(c2);
   }
 
@@ -1960,6 +1970,11 @@ class GapBox {
       ...rect(this.cell.get_width() + d[0]/2 + d[1]/2, LINE_THICKNESS, [-d[0]/2, this.cell.get_height() + d[3]/2]),
       ...rect(LINE_THICKNESS, this.cell.get_height() + d[2]/2 + d[3]/2, [-d[0]/2, -d[2]/2]),
       ...rect(LINE_THICKNESS, this.cell.get_height() + d[2]/2 + d[3]/2, [this.cell.get_width() + d[1]/2, -d[2]/2]),
+      // ...rect(
+      //   this.cell.get_width() + this.d[1]/2 + this.d[0]/2,
+      //   this.cell.get_height() + this.d[3]/2 + this.d[2]/2, 
+      //   [-this.cell.position.x + this.cell.position.x - this.d[0]/2, 
+      //     this.cell.position.z - this.cell.position.z - this.d[2]/2])
     ];
 
     this.boundingBox.visible = true;
@@ -2147,16 +2162,8 @@ export class Cell {
     return [this.position.x + this.get_width() / 2, this.position.z + this.get_height() / 2];
   }
 
-  update_gap(otherCells: Cell[], current_cell: Cell) {
+  update_gap(otherCells: Cell[], current_cell: Cell, regen: boolean = true) {
     this.gap.regenerate(otherCells, false, current_cell);
-    this.gap.boundingBox.visible = false;
-    if (otherCells.length <= 1) return;
-    for (let other of otherCells) {
-      if (other == this) continue;
-      if (other.gap.overlaps(this.gap)) {
-        this.gap.boundingBox.visible = true;
-      }
-    }
   }
 
   add_bounding_box(scene: Three.Scene) {
@@ -2397,8 +2404,8 @@ function generate_elastic_1d(cellW: number, cellH: number, amplitude: number, wi
   const b = f[1];
   
   // Add the 2DEFAULT_SIZE important for scale of left and right most rects 
-  const h =  b + 2* Math.max(gapBo, gapUp) + DEFAULT_SIZE*2; // max of d on top and bottom.
-  // TODO formula wrong 
+  // 2*Math.max(...)
+  const h =  b + Math.max(gapBo, gapUp); // max of d on top and bottom.
   const w = width + 4 + (14 - elastic_val) + DEFAULT_SIZE*2;
   
   const x = (w-cellW)/2.0;

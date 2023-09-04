@@ -674,9 +674,6 @@ function checkCollision(cell: Cell) {
         // if (key in collision_callbacks && col1.collisionBoxesIntersect(col2)) {
         //   collision_callbacks[key](cell, other);
         // }
-        if (col1.collisionBoxesIntersect(col2) && (col1.meta.includes("2d") || col2.meta.includes("2d"))) {
-          console.log(col1.meta, col2.meta);
-        }
         if (col1.collisionBoxesIntersect(col2)) {
           if (col1.meta == "1d_left" && col2.meta == "1d_right") {
             collision_type = {"type": "1d", "agent1": other, "agent2": cell};
@@ -721,6 +718,16 @@ function check_gap() {
 
   for (let c of cells) {
     c.update_gap(cells, current_object);
+  }
+  if (cells.length <= 1) return;
+  for (let cell of cells) {
+    cell.gap.boundingBox.visible = false;
+    for (let other of cells) {
+      if (other == cell) continue;
+      if (other.gap.overlaps(cell.gap)) {
+        cell.gap.boundingBox.visible = true;
+      }
+    }
   }
 }
 
