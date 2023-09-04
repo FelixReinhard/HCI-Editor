@@ -53,28 +53,40 @@ const lineGeometry = new Three.BufferGeometry().setFromPoints([
     new Three.Vector3(0, -250, 0), // Start point
     new Three.Vector3(0, 250, 0), // End point (change Y value to adjust the height)
 ]);
-const lineMaterial = new Three.LineBasicMaterial({ color: 0x000000 }); 
 // Create the line object and add it to the scene
-const line = new Three.Line(lineGeometry, lineMaterial);
+const line = new Three.Line(lineGeometry, 
+  new Three.LineBasicMaterial({ color: 0x0000FF })
+); 
 scene.add(line);
 
 const line2 = new Three.Line(new Three.BufferGeometry().setFromPoints([
     new Three.Vector3(-250, 0, 0), // Start point
     new Three.Vector3(250, 0, 0), // End point (change Y value to adjust the height)
-]), lineMaterial);
+]), new Three.LineBasicMaterial({ color: 0xFF0000 }));  
 scene.add(line2);
 
 const line3 = new Three.Line(new Three.BufferGeometry().setFromPoints([
     new Three.Vector3(0, 0, -250), // Start point
     new Three.Vector3(0, 0, 250), // End point (change Y value to adjust the height)
-]), lineMaterial);
+]), new Three.LineBasicMaterial({ color: 0x00FF00 }));
 scene.add(line3);
+
+const r1 = new Three.Mesh(
+  new Three.PlaneGeometry(225, 225),
+  new Three.MeshBasicMaterial({
+    color: 0xffff00, // Set the color you desire
+    transparent: true,
+    opacity: 0.5, // Adjust the opacity (0.0 = fully transparent, 1.0 = fully opaque)
+  })
+);
+r1.position.x = 115
+scene.add(
+  r1
+);
 
 const orbitControl = new OrbitControls(camera, renderer.domElement);
 //scene.add( new Three.GridHelper(500, 50) );
  
-
-
 function animate() {
   requestAnimationFrame(animate);
   orbitControl.update();
