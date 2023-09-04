@@ -31,7 +31,7 @@ var selected_type = "basic1d"; // basic1d
 var amplitude_value = AMPLITUDE_RANGE[1]/2.0;
 var width_value = WIDTH_RANGE[1]/2.0;
 var elastic_value = ELASTIC_RANGE[0] + (ELASTIC_RANGE[1] - ELASTIC_RANGE[0])/2.0;
-var current_object: Cell = create_basic1d(amplitude_value, width_value, cells);
+var current_object: Cell = null;// create_basic1d(amplitude_value, width_value, cells);
 
 // Setup three js scene 
 // ######################################################
@@ -50,16 +50,28 @@ camera.rotation.set(0, -Math.PI / 2, 0)
 // ######################################################
 
 const lineGeometry = new Three.BufferGeometry().setFromPoints([
-    new Three.Vector3(0, 0, 0), // Start point
-    new Three.Vector3(0, 100, 0), // End point (change Y value to adjust the height)
+    new Three.Vector3(0, -250, 0), // Start point
+    new Three.Vector3(0, 250, 0), // End point (change Y value to adjust the height)
 ]);
 const lineMaterial = new Three.LineBasicMaterial({ color: 0x000000 }); 
 // Create the line object and add it to the scene
 const line = new Three.Line(lineGeometry, lineMaterial);
 scene.add(line);
 
+const line2 = new Three.Line(new Three.BufferGeometry().setFromPoints([
+    new Three.Vector3(-250, 0, 0), // Start point
+    new Three.Vector3(250, 0, 0), // End point (change Y value to adjust the height)
+]), lineMaterial);
+scene.add(line2);
+
+const line3 = new Three.Line(new Three.BufferGeometry().setFromPoints([
+    new Three.Vector3(0, 0, -250), // Start point
+    new Three.Vector3(0, 0, 250), // End point (change Y value to adjust the height)
+]), lineMaterial);
+scene.add(line3);
+
 const orbitControl = new OrbitControls(camera, renderer.domElement);
-scene.add( new Three.GridHelper(500, 50) );
+//scene.add( new Three.GridHelper(500, 50) );
  
 
 
@@ -121,6 +133,13 @@ function remove(cell: Cell) {
   }
 }
 
+function update_cell_position(cell: Cell) {
+  const position = cell.position;
+  cell.mesh_flat.position.copy(position);
+  cell.selected_mesh.position.copy(position);
+  cell.mesh.position.copy(position);
+}
+
 function place_current_selected_cell(position: Three.Vector3) {
   if (current_object == null) return;
   current_object.mesh_flat.position.copy(position);
@@ -129,8 +148,8 @@ function place_current_selected_cell(position: Three.Vector3) {
   current_object.mesh.position.copy(position);
 
   const PLANE_SCALAR = has_2d_cells ? 1.0/1.75 : .5;
-  current_object.mesh.position.x *= PLANE_SCALAR;
-  current_object.mesh.position.z *= (has_2d_cells) ? PLANE_SCALAR : 1;
+  current_object.mesh.position.x = (current_object.mesh.position.x - current_object.get_width()/2) * PLANE_SCALAR;
+  current_object.mesh.position.z = (has_2d_cells) ? (current_object.mesh.position.z - current_object.get_width()/2) * PLANE_SCALAR : current_object.mesh.position.z;
   // add offset 
   current_object.selected_mesh.position.x -= 1;
   current_object.selected_mesh.position.z += 1;
@@ -150,7 +169,9 @@ function place_current_selected_cell(position: Three.Vector3) {
   current_object.position.copy(position);
   current_object.gen_coll();
   if (!cells.includes(current_object)) {
-    if (current_object.type.includes("2d")) has_2d_cells = true;
+    if (current_object.type.includes("2d") && !has_2d_cells) {
+      has_2d_cells = true;
+    }
     cells.push(current_object);
     current_object.reset_displacement();
   }   
@@ -545,14 +566,14 @@ const amplitude_slider = document.getElementById("amplitude")! as HTMLInputEleme
 amplitude_slider.oninput = function () {
   amplitude_value = AMPLITUDE_RANGE[0] + parseInt(amplitude_slider.value) / 100.0 * (AMPLITUDE_RANGE[1] - AMPLITUDE_RANGE[0]);
   update_current_cell();
-  amplitude_text.innerText = `Amplitude: ${amplitude_value.toFixed(2)}mm`;
+  amplitude_text.innerHTML= `<strong>Amplitude:</strong> ${amplitude_value.toFixed(2)}mm`;
 }
 
 const width_slider = document.getElementById("width")! as HTMLInputElement;
 width_slider.oninput = function () {
   width_value = WIDTH_RANGE[0] + parseInt(width_slider.value) / 100.0 * (WIDTH_RANGE[1] - WIDTH_RANGE[0]);
   update_current_cell();
-  width_text.innerText = `Width: ${width_value.toFixed(2)}mm`;
+  width_text.innerHTML= `<strong>Width:</strong> ${width_value.toFixed(2)}mm`;
 }
 
 const elastic_slider_visual = document.getElementById("deform_slider")!;
@@ -668,6 +689,7 @@ function check_gap() {
   //   cell.mesh.position.z += offset[1];
   // }
   // center = newCenter;
+
   for (let c of cells) {
     c.update_gap(cells, current_object);
   }
@@ -675,5 +697,8 @@ function check_gap() {
 
 // basic1d is selected by default.
 enable_all_btns_not_me("basic1d");
+
+amplitude_slider.dispatchEvent(new Event("input"));
+width_slider.dispatchEvent(new Event("input"));
 
 animate();

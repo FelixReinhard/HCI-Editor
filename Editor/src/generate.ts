@@ -1947,6 +1947,12 @@ class GapBox {
     this.d = [v, v, v, v];
   }
 
+  overlaps(other: GapBox): boolean {
+    const c1 = new CollisionBox(this.cell.position.x - this.d[0], this.cell.position.z - this.d[2], this.cell.get_width() + this.d[1], this.cell.get_height() + this.d[3], "");
+    const c2 = new CollisionBox(other.cell.position.x - other.d[0], other.cell.position.z - other.d[2], other.cell.get_width() + other.d[1], other.cell.get_height() + other.d[3], "");
+    return c1.collisionBoxesIntersect(c2);
+  }
+
   update_bounding_box() {
     const d = this.d;
     const vertices = [
@@ -1974,7 +1980,7 @@ class GapBox {
     this.boundingBox.material = material;
   }
 
-  regenerate(cells: Cell[], mouse_up: boolean, selected_cell: Cell) {
+  regenerate(cells: Cell[], mouse_up: boolean, selected_cell: Cell, has_2d_cells: boolean = false) {
 
     const v = this.cell.amplitude * 2 +1;
     this.d = [v, v, v, v];
@@ -1983,7 +1989,7 @@ class GapBox {
       this.update_bounding_box();
       return;
     }
-    // first sort all other cells into coll boxes
+
     let oldR: Cell | null = null;
     let oldU: Cell | null = null;
     let oldB: Cell | null = null;
@@ -1994,11 +2000,20 @@ class GapBox {
     const w = this.cell.get_width();
       
     function update(t: GapBox, old: Cell, c: Cell, i: number) {
-      if (old != null && old.amplitude > c.amplitude) 
-        t.d[i] = Math.max(old.amplitude, t.cell.amplitude)*2 + 1;
-      else {
-        t.d[i] = Math.max(c.amplitude, t.cell.amplitude)*2 + 1;
-        old = c;
+      if (i <= 1) {
+        if (old != null && old.amplitude > c.amplitude) 
+          t.d[i] = Math.max(old.amplitude, t.cell.amplitude)*2 + 1;
+        else {
+          t.d[i] = Math.max(c.amplitude, t.cell.amplitude)*2 + 1;
+          old = c;
+        }
+      } else {
+        if (old != null && old.amplitude > c.amplitude) 
+          t.d[i] = Math.max(old.amplitude, t.cell.amplitude) + (has_2d_cells? .7: 0) + 1;
+        else {
+          t.d[i] = Math.max(c.amplitude, t.cell.amplitude) + (has_2d_cells? .7: 0) + 1;
+          old = c;
+        }
       }
     }
 
@@ -2134,6 +2149,14 @@ export class Cell {
 
   update_gap(otherCells: Cell[], current_cell: Cell) {
     this.gap.regenerate(otherCells, false, current_cell);
+    this.gap.boundingBox.visible = false;
+    if (otherCells.length <= 1) return;
+    for (let other of otherCells) {
+      if (other == this) continue;
+      if (other.gap.overlaps(this.gap)) {
+        this.gap.boundingBox.visible = true;
+      }
+    }
   }
 
   add_bounding_box(scene: Three.Scene) {
@@ -2372,7 +2395,8 @@ function generate_elastic_1d(cellW: number, cellH: number, amplitude: number, wi
   const f = formula(amplitude, width, c1);
 
   const b = f[1];
-
+  
+  // Add the 2DEFAULT_SIZE important for scale of left and right most rects 
   const h =  b + 2* Math.max(gapBo, gapUp) + DEFAULT_SIZE*2; // max of d on top and bottom.
   // TODO formula wrong 
   const w = width + 4 + (14 - elastic_val) + DEFAULT_SIZE*2;
