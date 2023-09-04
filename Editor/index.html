@@ -13,7 +13,7 @@
   <canvas id="editor"></canvas>
   <canvas id="preview">HELLO</canvas>
   <div class="canvas-btn">
-    <button id="switch_mode" type="button" class="custom-button">
+    <button id="switch_mode" type="button" class="custom-button-cool">
       <div id="switch_mode_inner">
         2D (e)
       </div>
@@ -27,10 +27,10 @@
             <h1 class="text-center">Embrogami</h1>
             <!-- First Column - Labeled "1D" -->
             <div class="col-md-6">
-              <h3 class="text-center">1D</h3>
+              <h3 class="text-center">Linear</h3>
               <!-- Add content for the first column here -->
               <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
-                <button type="button" id="basic1d" class="custom-button-scaled custom-button" data-mdb-toggle="button">
+                <button type="button" id="basic1d" class="flat-button custom-button-scaled custom-button" data-mdb-toggle="button">
                   <!-- <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"> -->
                   <!--   <rect rx="2" x="0" y="20" width="4" height="20" fill="white" /> -->
                   <!--   <rect rx="2" x="8" y="20" width="20" height="20" fill="white" /> -->
@@ -91,7 +91,7 @@
 
             <!-- Second Column - Labeled "2D" -->
             <div class="col-md-6">
-              <h3 class="text-center">2D</h3>
+              <h3 class="text-center">Radial</h3>
               <!-- Add content for the second column here -->
               <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
                 <button type="button" id="basic2d" class="custom-button-scaled custom-button" data-mdb-toggle="button">
@@ -113,7 +113,7 @@
                   <!--   <polygon points="21,18 39,18 30,28" fill="white" /> -->
                   <!--   <polygon points="21,42 39,42 30,32" fill="white" /> -->
                   <!-- </svg> -->
-                  <img src="src/basic2d.png" width="50" height="50" alt="">
+                  <img src="src/test.jpeg" width="50" height="40" alt="">
                 </button>
 
                 <button type="button" id="right2d" class="custom-button-scaled custom-button" data-mdb-toggle="button">
@@ -215,7 +215,11 @@
           </div>
           <div class="row">
             <div class="mgn-50">
-              <label class="text-center form-label" for="amplitude" id="amplitude_text">Amplitude</label>
+              <label class="text-center form-label" for="amplitude" id="amplitude_text">
+                  <strong>
+                  Amplitude
+                  </strong>
+                </label>
               <div class="gap-12 range w75 p-25">
                 <input type="range" class="form-range" id="amplitude" />
               </div>
@@ -228,7 +232,7 @@
             </div>
 
             <div class="form-check form-switch mgn-20">
-              <label checked class="form-check-label rp-35" for="flexSwitchCheckDefault">Elastic</label>
+              <label checked class="form-check-label rp-35" for="flexSwitchCheckDefault"><strong>Elastic</strong></label>
               <input class="form-check-input rp-35" type="checkbox" role="switch" id="toggleSwitch" />
             </div>
             <div class="mgn-20" style="display: none;" id="deform_slider">
@@ -247,9 +251,9 @@
               </div>
             </div>
 
-            <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
-              <div class="mgn-20 d-col gap-2 container d-flex justify-content-center align-items-center">
-                <button id="add" type="button" class="custom-button">
+            <div class="d-row mgn-50 gap-20 container d-flex justify-content-center align-items-center">
+              <div class="mgn-20 d-col gap-20 container d-flex justify-content-center align-items-center">
+                <button id="add" type="button" class="custom-button-cool">
                   <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
                     <i class="r-20 fas fa-plus"></i>
                     <div>
@@ -259,7 +263,7 @@
                 </button>
               </div>
               <div class="mgn-20 d-col container d-flex justify-content-center align-items-center">
-                <button id="export" type="button" class="custom-button ">
+                <button id="export" type="button" class="custom-button-cool">
                   <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
                     <i class="r-20 fas fa-file-export"></i>
                     <div id="export_inner">

@@ -23,6 +23,7 @@ export function merge_1d_all(cell1: Cell, cell2: Cell, cells: Cell[]) {
 
   cell1.type = "chained_basic_1d";
   cell1.meta_data = data;
+  cell1.elastic = false;
   cell1.regenerate(cell1.amplitude, cell1.width, cells);
 }
 
@@ -36,5 +37,6 @@ export function merge_2d_all(cell1: Cell, cell2: Cell, cells: Cell[]) {
   
   cell1.type = "chained_basic_2d";
   cell1.meta_data = data;
+  cell1.elastic = false;
   cell1.regenerate(cell1.amplitude, cell1.width, cells);
 }
