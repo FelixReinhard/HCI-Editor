@@ -1,6 +1,7 @@
 import { Cell, formula, c1, c2, DEFAULT_SIZE } from "./generate";
 import { SvgWriter, Writer } from "./svg_writer";
 import { CollisionBox } from "./collision.ts";
+import { scalar } from "./main.ts";
 
 const DEF_SIZE: [number, number] = [500, 500];
 
@@ -42,7 +43,7 @@ export function export_cells(cells: Cell[], format: string) {
   writer.clear();
 
   const has_2d_cells = cells.reduceRight((cell: Cell, b: boolean) => {return b || cell.type.includes("2d")}, false);
-  const PLANE_SCALAR = has_2d_cells ? 1.0/1.75 : .5;
+  const PLANE_SCALAR = has_2d_cells ? scalar[0] : scalar[1];
 
   // fabric is stretched 200% for printing the flat ones. then relaxed and therefore the scalar must be applied for the elastic exportl.
   for (const cell of cells) {
