@@ -140,7 +140,7 @@ function remove(cell: Cell) {
   }
 }
 
-export const scalar = [1/1.75, .5];
+export const scalar = [.8, .8];
 
 function update_cell_position(cell: Cell) {
   const position = cell.position;
