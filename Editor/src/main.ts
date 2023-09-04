@@ -50,8 +50,8 @@ camera.rotation.set(0, -Math.PI / 2, 0)
 // ######################################################
 
 const lineGeometry = new Three.BufferGeometry().setFromPoints([
-    new Three.Vector3(0, -250, 0), // Start point
-    new Three.Vector3(0, 250, 0), // End point (change Y value to adjust the height)
+    new Three.Vector3(0, 0, 0), // Start point
+    new Three.Vector3(0, 50, 0), // End point (change Y value to adjust the height)
 ]);
 // Create the line object and add it to the scene
 const line = new Three.Line(lineGeometry, 
@@ -60,29 +60,16 @@ const line = new Three.Line(lineGeometry,
 scene.add(line);
 
 const line2 = new Three.Line(new Three.BufferGeometry().setFromPoints([
-    new Three.Vector3(-250, 0, 0), // Start point
-    new Three.Vector3(250, 0, 0), // End point (change Y value to adjust the height)
+    new Three.Vector3(0, 0, 0), // Start point
+    new Three.Vector3(50, 0, 0), // End point (change Y value to adjust the height)
 ]), new Three.LineBasicMaterial({ color: 0xFF0000 }));  
 scene.add(line2);
 
 const line3 = new Three.Line(new Three.BufferGeometry().setFromPoints([
-    new Three.Vector3(0, 0, -250), // Start point
-    new Three.Vector3(0, 0, 250), // End point (change Y value to adjust the height)
+    new Three.Vector3(0, 0, 0), // Start point
+    new Three.Vector3(0, 0, -50), // End point (change Y value to adjust the height)
 ]), new Three.LineBasicMaterial({ color: 0x00FF00 }));
 scene.add(line3);
-
-const r1 = new Three.Mesh(
-  new Three.PlaneGeometry(225, 225),
-  new Three.MeshBasicMaterial({
-    color: 0xffff00, // Set the color you desire
-    transparent: true,
-    opacity: 0.5, // Adjust the opacity (0.0 = fully transparent, 1.0 = fully opaque)
-  })
-);
-r1.position.x = 115
-scene.add(
-  r1
-);
 
 const orbitControl = new OrbitControls(camera, renderer.domElement);
 //scene.add( new Three.GridHelper(500, 50) );
@@ -141,36 +128,63 @@ function remove(cell: Cell) {
     scene.remove(cell.selected_mesh);
     scene.remove(cell.gap.boundingBox);
     cells = cells.filter(item => item !== cell);
+
+    const old_has2 = has_2d_cells;
     has_2d_cells = cells.reduce((acc: boolean, value: Cell) => { return acc || value.type.includes("2d"); }, false);
+    if (old_has2 != has_2d_cells && old_has2) {
+      // was on now off so change all ones.
+      for (let cell of cells) {
+        update_cell_position(cell);
+      }
+    }
   }
 }
 
+export const scalar = [1/1.75, .5];
+
 function update_cell_position(cell: Cell) {
   const position = cell.position;
+
   cell.mesh_flat.position.copy(position);
   cell.selected_mesh.position.copy(position);
   cell.mesh.position.copy(position);
+
+  const PLANE_SCALAR = has_2d_cells ? scalar[0] : scalar[1];
+  cell.mesh.position.x = (cell.mesh.position.x - cell.get_width()/2) * PLANE_SCALAR;
+  cell.mesh.position.z = (has_2d_cells) ? (cell.mesh.position.z - cell.get_width()/2) * PLANE_SCALAR : cell.mesh.position.z;
+  // add offset 
+  cell.selected_mesh.position.x -= 1;
+  cell.selected_mesh.position.z += 1;
+  cell.mesh.position.y = 0.1;
+  // add offset of elastic to the 3d mesh so it is centered on the flat one first.
+  if (cell.elastic) {
+    cell.mesh.position.x += cell.elastic_offset[0];
+    cell.mesh.position.z -= cell.elastic_offset[1];
+  }
+
 }
 
 function place_current_selected_cell(position: Three.Vector3) {
   if (current_object == null) return;
-  current_object.mesh_flat.position.copy(position);
   current_object.position.copy(position);
-  current_object.selected_mesh.position.copy(position);
-  current_object.mesh.position.copy(position);
 
-  const PLANE_SCALAR = has_2d_cells ? 1.0/1.75 : .5;
-  current_object.mesh.position.x = (current_object.mesh.position.x - current_object.get_width()/2) * PLANE_SCALAR;
-  current_object.mesh.position.z = (has_2d_cells) ? (current_object.mesh.position.z - current_object.get_width()/2) * PLANE_SCALAR : current_object.mesh.position.z;
-  // add offset 
-  current_object.selected_mesh.position.x -= 1;
-  current_object.selected_mesh.position.z += 1;
-  current_object.mesh.position.y = 0.1;
-  // add offset of elastic to the 3d mesh so it is centered on the flat one first.
-  if (current_object.elastic) {
-    current_object.mesh.position.x += current_object.elastic_offset[0];
-    current_object.mesh.position.z -= current_object.elastic_offset[1];
-  }
+  // current_object.mesh_flat.position.copy(position);
+  // current_object.selected_mesh.position.copy(position);
+  // current_object.mesh.position.copy(position);
+  //
+  // const PLANE_SCALAR = has_2d_cells ? 1.0/1.75 : .5;
+  // current_object.mesh.position.x = (current_object.mesh.position.x - current_object.get_width()/2) * PLANE_SCALAR;
+  // current_object.mesh.position.z = (has_2d_cells) ? (current_object.mesh.position.z - current_object.get_width()/2) * PLANE_SCALAR : current_object.mesh.position.z;
+  // // add offset 
+  // current_object.selected_mesh.position.x -= 1;
+  // current_object.selected_mesh.position.z += 1;
+  // current_object.mesh.position.y = 0.1;
+  // // add offset of elastic to the 3d mesh so it is centered on the flat one first.
+  // if (current_object.elastic) {
+  //   current_object.mesh.position.x += current_object.elastic_offset[0];
+  //   current_object.mesh.position.z -= current_object.elastic_offset[1];
+  // }
+  update_cell_position(current_object);
 
   scene.add(current_object.mesh_flat);
   scene.add(current_object.mesh);
@@ -229,6 +243,9 @@ function update_current_cell() {
     }
     check_gap();
     place_current_selected_cell(current_object.position);
+    for (let cell of cells) {
+      update_cell_position(cell);
+    }
   }
 }
 
