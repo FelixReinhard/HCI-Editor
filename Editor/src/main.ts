@@ -170,9 +170,11 @@ function update_cell_position(cell: Cell) {
   //     cell.mesh.position.z = cell.mesh.position.z * PLANE_SCALAR;
   //   }
   // }
-  cell.mesh.position.x *= PLANE_SCALAR;
+  console.log(cell.mesh.position.x, cell.get_width()/2)
+  cell.mesh.position.x = (cell.mesh.position.x + cell.get_width()/2) * PLANE_SCALAR - cell.get_width()/2;
   if (has_2d_cells) {
-    cell.mesh.position.z *= PLANE_SCALAR;
+    cell.mesh.position.z = (cell.mesh.position.z - cell.get_height()/2) * PLANE_SCALAR + cell.get_height()/2;
+
   }
   // cell.mesh.position.z = (has_2d_cells) ? (cell.mesh.position.z - cell.get_height()/2 + cell.get_height_mesh()/2) * PLANE_SCALAR : cell.mesh.position.z ;
   // add offset 
