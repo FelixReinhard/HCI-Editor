@@ -2213,11 +2213,27 @@ export class Cell {
         break;
     }
   }
+  
+  get_width_mesh() {
+    var max = 0.0;
+    for (let i = 0; i < this.vertices.length; i += 3) {
+      max = Math.max(max, this.vertices[i]);
+    }
+    return max;
+  }
 
   get_width() {
     var max = 0.0;
     for (let i = 0; i < this.vertices_flat.length; i += 3) {
       max = Math.max(max, this.vertices_flat[i]);
+    }
+    return max;
+  }
+
+  get_height_mesh() {
+    var max = 0.0;
+    for (let i = 2; i < this.vertices.length; i += 3) {
+      max = Math.max(max, this.vertices[i]);
     }
     return max;
   }
@@ -2391,14 +2407,14 @@ export class Cell {
 //
 //
 function generate_elastic_1d_cell(cell: Cell): number[] {
-  return generate_elastic_1d(cell.get_width(), cell.get_height(), cell.amplitude, cell.width, cell.gap.d[2], cell.gap.d[3], cell.elastic ? cell.elastic_d : -1);
+  return generate_elastic_1d(cell.get_width(), cell.get_height(), cell.amplitude, cell.width, cell.gap.d[2], cell.gap.d[3], cell.elastic ? cell.elastic_d : -1, cell.type);
 }
 
 function generate_elastic_2d_cell(cell: Cell): number[] {
   return generate_elastic_2d(cell.get_width(), cell.get_height(), cell.amplitude, cell.width, cell.gap.d[2], cell.gap.d[3], cell.elastic ? cell.elastic_d : -1);
 }
 
-function generate_elastic_1d(cellW: number, cellH: number, amplitude: number, width: number, gapUp: number, gapBo: number, elastic_val: number): number[] {
+function generate_elastic_1d(cellW: number, cellH: number, amplitude: number, width: number, gapUp: number, gapBo: number, elastic_val: number, type: string): number[] {
   const f = formula(amplitude, width, c1);
 
   const b = f[1];
@@ -2408,9 +2424,14 @@ function generate_elastic_1d(cellW: number, cellH: number, amplitude: number, wi
   const h =  b + Math.max(gapBo, gapUp); // max of d on top and bottom.
   const w = width + 4 + (14 - elastic_val) + DEFAULT_SIZE*2;
   
-  const x = (w-cellW)/2.0;
-  const y = (h-cellH)/2.0;
+  let x = (w-cellW)/2.0;
+  let y = (h-cellH)/2.0;
   
+  if (type == "right1d") {
+    x += 2*DEFAULT_SIZE;
+    cellW -= 2*DEFAULT_SIZE;
+  }
+
   return [ 
     ...rect(w, DEFAULT_SIZE, [-x, -y]),
     ...rect(w, DEFAULT_SIZE, [-x, y + cellH]),
