@@ -30,7 +30,8 @@
               <h3 class="text-center">Linear</h3>
               <!-- Add content for the first column here -->
               <div class="d-row gap-2 container d-flex justify-content-center align-items-center">
-                <button type="button" id="basic1d" class="flat-button custom-button-scaled custom-button" data-mdb-toggle="button">
+                <button type="button" id="basic1d" class="flat-button custom-button-scaled custom-button"
+                  data-mdb-toggle="button">
                   <!-- <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"> -->
                   <!--   <rect rx="2" x="0" y="20" width="4" height="20" fill="white" /> -->
                   <!--   <rect rx="2" x="8" y="20" width="20" height="20" fill="white" /> -->
@@ -198,9 +199,9 @@
                   <!--   <rect rx="1" x="56" y="20" width="4" height="18" fill="white" /> -->
                   <!---->
                   <!--   <rect rx="1" x="17" y="0" width="18" height="4" fill="white" /> -->
-                  <!--   <rect rx="1" x="17" y="6" width="18" height="12" fill="white" /> --> 
+                  <!--   <rect rx="1" x="17" y="6" width="18" height="12" fill="white" /> -->
                   <!---->
-                  <!--    <rect rx="1" x="17" y="42" width="18" height="12" fill="white" /> --> 
+                  <!--    <rect rx="1" x="17" y="42" width="18" height="12" fill="white" /> -->
                   <!--   <rect rx="1" x="17" y="56" width="18" height="4" fill="white" /> -->
                   <!---->
                   <!--   <polygon points="18,20 18,38 26,29" fill="white" /> -->
@@ -216,10 +217,10 @@
           <div class="row">
             <div class="mgn-50">
               <label class="text-center form-label" for="amplitude" id="amplitude_text">
-                  <strong>
+                <strong>
                   Amplitude
-                  </strong>
-                </label>
+                </strong>
+              </label>
               <div class="gap-12 range w75 p-25">
                 <input type="range" class="form-range" id="amplitude" />
               </div>
@@ -231,9 +232,13 @@
               </div>
             </div>
 
-            <div class="form-check form-switch mgn-20">
-              <label checked class="form-check-label rp-35" for="flexSwitchCheckDefault"><strong>Elastic</strong></label>
-              <input class="form-check-input rp-35" type="checkbox" role="switch" id="toggleSwitch" />
+            <div class="d-row gap-2 container d-flex ">
+              <div class="text-center mgn-20 ">
+                <strong>Elastic</strong>
+              </div>
+              <div class="rp-35 form-check form-switch mgn-20">
+                <input class="form-check-input rp-35" type="checkbox" role="switch" id="toggleSwitch" />
+              </div>
             </div>
             <div class="mgn-20" style="display: none;" id="deform_slider">
               <label class="text-center form-label" for="deform">Force feedback</label>
@@ -286,7 +291,6 @@
       integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm"
       crossorigin="anonymous"></script>
     <style>
-
       .canvas-btn {
         position: absolute;
         left: 55%;

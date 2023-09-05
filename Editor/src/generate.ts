@@ -2422,14 +2422,14 @@ function generate_elastic_1d(cellW: number, cellH: number, amplitude: number, wi
   // Add the 2DEFAULT_SIZE important for scale of left and right most rects 
   // 2*Math.max(...)
   const h =  b + Math.max(gapBo, gapUp); // max of d on top and bottom.
-  const w = width + 4 + (14 - elastic_val) + DEFAULT_SIZE*2;
+  let w = width + 4 + (14 - elastic_val) + DEFAULT_SIZE*2;
   
   let x = (w-cellW)/2.0;
   let y = (h-cellH)/2.0;
   
-  if (type == "right1d") {
-    x += 2*DEFAULT_SIZE;
-    cellW -= 2*DEFAULT_SIZE;
+  if (type == "right1d") { 
+    x += 1.5*DEFAULT_SIZE;
+    cellW -= 3 *DEFAULT_SIZE;
   }
 
   return [ 
