@@ -150,7 +150,6 @@ function update_cell_position(cell: Cell) {
   cell.mesh.position.copy(position);
 
   const PLANE_SCALAR = has_2d_cells ? scalar[0] : scalar[1];
-  console.log(cell.position.x, cell.mesh.position.x, cell.get_width(), (cell.mesh.position.x - cell.get_width()/2.0 * (cell.position.x + cell.get_width()/2.0 < 0 ? -1 : 1)) * PLANE_SCALAR);
   // if (cell.type.includes("1d")) {
   //   if (Math.abs(cell.position.x) > cell.get_width()/2) {
   //     const center_dir_x = cell.position.x + cell.get_width()/2 < 0 ? -1 : 1;
@@ -170,7 +169,6 @@ function update_cell_position(cell: Cell) {
   //     cell.mesh.position.z = cell.mesh.position.z * PLANE_SCALAR;
   //   }
   // }
-  console.log(cell.mesh.position.x, cell.get_width()/2)
   cell.mesh.position.x = (cell.mesh.position.x + cell.get_width()/2) * PLANE_SCALAR - cell.get_width()/2;
   if (has_2d_cells) {
     cell.mesh.position.z = (cell.mesh.position.z - cell.get_height()/2) * PLANE_SCALAR + cell.get_height()/2;
