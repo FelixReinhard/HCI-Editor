@@ -126,7 +126,6 @@ export function export_cells(cells: Cell[], format: string) {
       //   ...rect(DEFAULT_SIZE, vh + h - DEFAULT_SIZE, [vw + x - DEFAULT_SIZE, -y + DEFAULT_SIZE])
       // );
     }
-    console.log(cell.type, cell.meta_data)
   }
   writer.save("elastic");
 }
