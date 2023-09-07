@@ -42,7 +42,7 @@ const renderer = new Three.WebGLRenderer({
 });
 scene.background = new Three.Color(0xffffff);
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth * 0.6, window.innerHeight);
+renderer.setSize(window.innerWidth * 0.5, window.innerHeight);
 camera.position.setZ(EDITING_MODE_DEFAULT_DIST);
 camera.rotation.set(0, -Math.PI / 2, 0)
 
@@ -150,8 +150,30 @@ function update_cell_position(cell: Cell) {
   cell.mesh.position.copy(position);
 
   const PLANE_SCALAR = has_2d_cells ? scalar[0] : scalar[1];
-  cell.mesh.position.x = (cell.mesh.position.x - cell.get_width()/2) * PLANE_SCALAR;
-  cell.mesh.position.z = (has_2d_cells) ? (cell.mesh.position.z - cell.get_width()/2) * PLANE_SCALAR : cell.mesh.position.z;
+  // if (cell.type.includes("1d")) {
+  //   if (Math.abs(cell.position.x) > cell.get_width()/2) {
+  //     const center_dir_x = cell.position.x + cell.get_width()/2 < 0 ? -1 : 1;
+  //     cell.mesh.position.x = (cell.mesh.position.x) * PLANE_SCALAR - cell.get_width()/2 * center_dir_x;
+  //     if (has_2d_cells) {
+  //       const center_dir_y = cell.position.y + cell.get_height()/2 < 0 ? -1 : 1;
+  //       cell.mesh.position.z = cell.mesh.position.z * PLANE_SCALAR - cell.get_height()/2 * center_dir_y;
+  //     }
+  //   } else {
+  //     cell.mesh.position.x = -cell.get_width()/2;
+  //   }
+  // } else {
+  //   const center_dir_x = cell.position.x + cell.get_width()/2 < 0 ? -1 : 1;
+  //   cell.mesh.position.x = (cell.mesh.position.x) * PLANE_SCALAR; 
+  //   if (has_2d_cells) {
+  //     const center_dir_y = cell.position.y + cell.get_height()/2 < 0 ? -1 : 1;
+  //     cell.mesh.position.z = cell.mesh.position.z * PLANE_SCALAR;
+  //   }
+  // }
+  cell.mesh.position.x = (cell.mesh.position.x + cell.get_width()/2) * PLANE_SCALAR - cell.get_width()/2;
+  if (has_2d_cells) {
+    cell.mesh.position.z = (cell.mesh.position.z - cell.get_height()/2) * PLANE_SCALAR + cell.get_height()/2;
+  }
+  // cell.mesh.position.z = (has_2d_cells) ? (cell.mesh.position.z - cell.get_height()/2 + cell.get_height_mesh()/2) * PLANE_SCALAR : cell.mesh.position.z ;
   // add offset 
   cell.selected_mesh.position.x -= 1;
   cell.selected_mesh.position.z += 1;

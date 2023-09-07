@@ -16,9 +16,9 @@ canvas {
 
 #menu {
   position: fixed;
-  left: 62.5%;
+  left: 52.5%;
   top: 2.5%;
-  width: 35%;
+  width: 45%;
   height: 95%;
 }
 
@@ -33,8 +33,8 @@ canvas {
 }
 
 .custom-button-scaled {
-  width: 90px;
-  height: 70px;
+  width: 110px;
+  height: 90px;
 }
 .custom-button {
   background-color: white;

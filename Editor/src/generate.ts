@@ -312,10 +312,41 @@ function generate_basic2d_chained(amplitude: number, width: number, data: string
   vertices[13] = -DEFAULT_SIZE/2.0;
   vertices[16] = -DEFAULT_SIZE/2.0;
   //vertices[16] = -DEFAULT_SIZE/2.0;
-  const w = vertices_width(vertices);
+  const wi = vertices_width(vertices);
   const w_flat = flatOffset;
   
-  return move_verticies((w_flat - w) / 2.0, 0, 0, vertices);
+  if (data[0] == "t8" && data[1] == "t9" && data.length == 2) {
+    const v = move_verticies((w_flat - wi) / 2.0, 0, 0, vertices);
+
+    const f = formula(amplitude, width, c1);
+
+    const b = f[1];
+    
+    // Add the 2DEFAULT_SIZE important for scale of left and right most rects 
+    // 2*Math.max(...)
+    
+    const min = vertices_min_x(v)/2;
+    
+
+    const vw = vertices_width(v);
+    const vh = vertices_height(v);
+
+    const h =  Math.max(vh, b + DEFAULT_SIZE);
+    const w = width + 4 + DEFAULT_SIZE*2;
+  
+    const x = w/2;
+    const y = h/2
+
+    v.push(
+      ...rect(vw + w, DEFAULT_SIZE, [-x + min, - y]),
+      ...rect(vw + w, DEFAULT_SIZE, [-x + min, vh + y]),
+      ...rect(DEFAULT_SIZE, vh + h - DEFAULT_SIZE, [-x + min, -y + DEFAULT_SIZE]),
+      ...rect(DEFAULT_SIZE, vh + h - DEFAULT_SIZE, [vw + x - DEFAULT_SIZE + min, -y + DEFAULT_SIZE])
+    );
+    return  v;
+  } else {
+    return move_verticies((w_flat - wi) / 2.0, 0, 0, vertices);
+  }
 }
 
 function generate_basic1d_chained_flat(amplitude: number, width: number, data: string[]): number[] {
@@ -529,10 +560,37 @@ function generate_basic1d_chained(amplitude: number, width: number, data: string
   vertices[1] = -DEFAULT_SIZE/2.0;
   vertices[7] = -DEFAULT_SIZE/2.0;
   vertices[16] = -DEFAULT_SIZE/2.0;
-  const w = vertices_width(vertices);
+  const wi = vertices_width(vertices);
   const w_flat = flatOffset;
   
-  return move_verticies((w_flat - w) / 2.0, 0, -yMove, vertices);
+  if (data[0] == "t1" && data[1] == "t2" && data.length == 2) {
+    const v = move_verticies((w_flat - wi) / 2.0, 0, -yMove, vertices);
+
+    const f = formula(amplitude, width, c1);
+
+    const b = f[1];
+    
+    // Add the 2DEFAULT_SIZE important for scale of left and right most rects 
+    // 2*Math.max(...)
+    const h =  b + DEFAULT_SIZE*2;
+    const w = width + 8 + DEFAULT_SIZE*2;
+    
+    const vw = vertices_width(v);
+    const vh = vertices_height(v);
+  
+    const x = w/2;
+    const y = h/2
+
+    v.push(
+      ...rect(vw + w, DEFAULT_SIZE, [-x, - y]),
+      ...rect(vw + w, DEFAULT_SIZE, [-x, vh + y]),
+      ...rect(DEFAULT_SIZE, vh + h - DEFAULT_SIZE, [-x, -y + DEFAULT_SIZE]),
+      ...rect(DEFAULT_SIZE, vh + h - DEFAULT_SIZE, [vw + x - DEFAULT_SIZE, -y + DEFAULT_SIZE])
+    );
+    return  v;
+  } else {
+    return move_verticies((w_flat - wi) / 2.0, 0, -yMove, vertices);
+  }
 }
 
 export const DEFAULT_SIZE = 2; // 2mm
@@ -1695,6 +1753,14 @@ function vertices_width(vertices: number[]): number {
   return max;
 }
 
+function vertices_height(vertices: number[]): number {
+  let max = 0;
+  for (var i = 2; i < vertices.length; i+=3) {
+    if (vertices[i] > 0) max = Math.max(max, vertices[i]);
+  }
+  return max;
+}
+
 function vertices_min_x(vertices: number[]): number {
   let min = 100000000;
   for (var i = 0; i < vertices.length; i+=3) {
@@ -2213,11 +2279,27 @@ export class Cell {
         break;
     }
   }
+  
+  get_width_mesh() {
+    var max = 0.0;
+    for (let i = 0; i < this.vertices.length; i += 3) {
+      max = Math.max(max, this.vertices[i]);
+    }
+    return max;
+  }
 
   get_width() {
     var max = 0.0;
     for (let i = 0; i < this.vertices_flat.length; i += 3) {
       max = Math.max(max, this.vertices_flat[i]);
+    }
+    return max;
+  }
+
+  get_height_mesh() {
+    var max = 0.0;
+    for (let i = 2; i < this.vertices.length; i += 3) {
+      max = Math.max(max, this.vertices[i]);
     }
     return max;
   }
@@ -2391,14 +2473,14 @@ export class Cell {
 //
 //
 function generate_elastic_1d_cell(cell: Cell): number[] {
-  return generate_elastic_1d(cell.get_width(), cell.get_height(), cell.amplitude, cell.width, cell.gap.d[2], cell.gap.d[3], cell.elastic ? cell.elastic_d : -1);
+  return generate_elastic_1d(cell.get_width(), cell.get_height(), cell.amplitude, cell.width, cell.gap.d[2], cell.gap.d[3], cell.elastic ? cell.elastic_d : -1, cell.type);
 }
 
 function generate_elastic_2d_cell(cell: Cell): number[] {
   return generate_elastic_2d(cell.get_width(), cell.get_height(), cell.amplitude, cell.width, cell.gap.d[2], cell.gap.d[3], cell.elastic ? cell.elastic_d : -1);
 }
 
-function generate_elastic_1d(cellW: number, cellH: number, amplitude: number, width: number, gapUp: number, gapBo: number, elastic_val: number): number[] {
+function generate_elastic_1d(cellW: number, cellH: number, amplitude: number, width: number, gapUp: number, gapBo: number, elastic_val: number, type: string): number[] {
   const f = formula(amplitude, width, c1);
 
   const b = f[1];
@@ -2406,11 +2488,16 @@ function generate_elastic_1d(cellW: number, cellH: number, amplitude: number, wi
   // Add the 2DEFAULT_SIZE important for scale of left and right most rects 
   // 2*Math.max(...)
   const h =  b + Math.max(gapBo, gapUp); // max of d on top and bottom.
-  const w = width + 4 + (14 - elastic_val) + DEFAULT_SIZE*2;
+  let w = width + 4 + (14 - elastic_val) + DEFAULT_SIZE*2;
   
-  const x = (w-cellW)/2.0;
-  const y = (h-cellH)/2.0;
+  let x = (w-cellW)/2.0;
+  let y = (h-cellH)/2.0;
   
+  if (type == "right1d") { 
+    x += 1.5*DEFAULT_SIZE;
+    cellW -= 3 *DEFAULT_SIZE;
+  }
+
   return [ 
     ...rect(w, DEFAULT_SIZE, [-x, -y]),
     ...rect(w, DEFAULT_SIZE, [-x, y + cellH]),
