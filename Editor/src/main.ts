@@ -741,7 +741,10 @@ function check_gap() {
   for (let c of cells) {
     c.update_gap(cells, current_object);
   }
-  if (cells.length <= 1) return;
+  if (cells.length <= 1) {
+    current_object.gap.boundingBox.visible = false;
+    return;
+  }
   for (let cell of cells) {
     cell.gap.boundingBox.visible = false;
     for (let other of cells) {
