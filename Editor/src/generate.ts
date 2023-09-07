@@ -325,20 +325,23 @@ function generate_basic2d_chained(amplitude: number, width: number, data: string
     // Add the 2DEFAULT_SIZE important for scale of left and right most rects 
     // 2*Math.max(...)
     
+    const min = vertices_min_x(v)/2;
+    
+
     const vw = vertices_width(v);
     const vh = vertices_height(v);
 
-    const h =  b + DEFAULT_SIZE;
+    const h =  Math.max(vh, b + DEFAULT_SIZE);
     const w = width + 4 + DEFAULT_SIZE*2;
   
     const x = w/2;
     const y = h/2
 
     v.push(
-      ...rect(vw + w, DEFAULT_SIZE, [-x, - y]),
-      ...rect(vw + w, DEFAULT_SIZE, [-x, vh + y]),
-      ...rect(DEFAULT_SIZE, vh + h - DEFAULT_SIZE, [-x, -y + DEFAULT_SIZE]),
-      ...rect(DEFAULT_SIZE, vh + h - DEFAULT_SIZE, [vw + x - DEFAULT_SIZE, -y + DEFAULT_SIZE])
+      ...rect(vw + w, DEFAULT_SIZE, [-x + min, - y]),
+      ...rect(vw + w, DEFAULT_SIZE, [-x + min, vh + y]),
+      ...rect(DEFAULT_SIZE, vh + h - DEFAULT_SIZE, [-x + min, -y + DEFAULT_SIZE]),
+      ...rect(DEFAULT_SIZE, vh + h - DEFAULT_SIZE, [vw + x - DEFAULT_SIZE + min, -y + DEFAULT_SIZE])
     );
     return  v;
   } else {

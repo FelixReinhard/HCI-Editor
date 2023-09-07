@@ -48,30 +48,114 @@ export function export_cells(cells: Cell[], format: string) {
   // fabric is stretched 200% for printing the flat ones. then relaxed and therefore the scalar must be applied for the elastic exportl.
   for (const cell of cells) {
     if (cell.elastic) { 
+
+
+      //cell.mesh.position.x = (cell.mesh.position.x + cell.get_width()/2) * PLANE_SCALAR - cell.get_width()/2;
+      // if (has_2d_cells) {
+      //   cell.mesh.position.z = (cell.mesh.position.z - cell.get_height()/2) * PLANE_SCALAR + cell.get_height()/2;
+      // }
       const pos = [
-        (cell.mesh_flat.position.x + (cell.elastic ? cell.elastic_offset[0]: 0)) * PLANE_SCALAR + DEF_SIZE[0]/2,
-        (cell.mesh_flat.position.z - (cell.elastic ? cell.elastic_offset[1]: 0)) * PLANE_SCALAR + DEF_SIZE[1]/2 - (cell.type.includes("2d") ? cell.dims_without_elastic[1]/2 : 0) 
+        (cell.mesh_flat.position.x + cell.elastic_offset[0]) * PLANE_SCALAR + DEF_SIZE[0]/2,
+        (cell.mesh_flat.position.z - cell.elastic_offset[1]) * PLANE_SCALAR + DEF_SIZE[1]/2 - (cell.type.includes("2d") ? cell.dims_without_elastic[1]/2 : 0) 
       ];
       if (cell.type.includes("1d"))
-        elastic_1D(writer, pos, cell.amplitude, cell.width, cell.gap.d, cell.dims_without_elastic[0], cell.dims_without_elastic[1], cell.elastic_d);
+        elastic_1D(writer, pos, cell.amplitude, cell.width, cell.gap.d, cell.dims_without_elastic[0], cell.dims_without_elastic[1], cell.elastic_d, cell.type);
       else 
         elastic_2D(writer, pos, cell.amplitude, cell.width, cell.type, cell.dims_without_elastic[0], cell.dims_without_elastic[1], cell.elastic_d);
+    } else if (cell.type.includes("chained_basic_2d") && cell.meta_data[0] == "t8" && cell.meta_data[1] == "t9" && cell.meta_data.length == 2) {
+      // special case,
+
+      const pos = [
+        (cell.mesh_flat.position.x + cell.elastic_offset[0]) * PLANE_SCALAR + DEF_SIZE[0]/2,
+        (cell.mesh_flat.position.z - cell.elastic_offset[1]) * PLANE_SCALAR + DEF_SIZE[1]/2 - (cell.type.includes("2d") ? cell.dims_without_elastic[1]/2 : 0) 
+      ];
+      const f = formula(cell.amplitude, cell.width, c1);
+
+      const b = f[1];
+      const a = f[0]; 
+      // Add the 2DEFAULT_SIZE important for scale of left and right most rects 
+      // 2*Math.max(...)
+      
+      const vw = 4*DEFAULT_SIZE + cell.width + b + a;
+      const vh = 5*DEFAULT_SIZE + b + 2*a;
+
+      const h =  b + DEFAULT_SIZE;
+      const w = cell.width + 4 + DEFAULT_SIZE*2;
+    
+      const x = w/2;
+      const y = h/2
+
+      // rect(vw + w, DEFAULT_SIZE, [-x, - y]),
+      // ...rect(vw + w, DEFAULT_SIZE, [-x, vh + y]),
+      // ...rect(DEFAULT_SIZE, vh + h - DEFAULT_SIZE, [-x, -y + DEFAULT_SIZE]),
+      // ...rect(DEFAULT_SIZE, vh + h - DEFAULT_SIZE, [vw + x - DEFAULT_SIZE, -y + DEFAULT_SIZE])
+      //
+      writer.rect(pos[0] - x, pos[1] - y, vw + w, DEFAULT_SIZE);
+      writer.rect(pos[0] - x, pos[1] + vh + y, vw + w, DEFAULT_SIZE);
+      writer.rect(pos[0] - x, pos[1] + vh + y, DEFAULT_SIZE, vh + h);
+      writer.rect(pos[0] + x + vw, pos[1] + vh + y, DEFAULT_SIZE, vh + h);
+    } else if (cell.type.includes("chained_basic_1d") && cell.meta_data[0] == "t1" && cell.meta_data[1] == "t2" && cell.meta_data.length == 2) {
+      
+      const pos = [
+        (cell.mesh_flat.position.x + cell.elastic_offset[0]) * PLANE_SCALAR + DEF_SIZE[0]/2,
+        (cell.mesh_flat.position.z - cell.elastic_offset[1]) * PLANE_SCALAR + DEF_SIZE[1]/2 - (cell.type.includes("2d") ? cell.dims_without_elastic[1]/2 : 0) 
+      ];
+      const f = formula(cell.amplitude, cell.width, c1);
+      const a = f[0];
+      const b = f[1];
+      
+      // Add the 2DEFAULT_SIZE important for scale of left and right most rects 
+      // 2*Math.max(...)
+      const h =  b + DEFAULT_SIZE*2;
+      const w = cell.width + 8 + DEFAULT_SIZE*2;
+      
+      const vw = 5*DEFAULT_SIZE +  cell.width + a;
+      const vh = b;
+    
+      const x = w/2;
+      const y = h/2
+
+      writer.rect(pos[0] - x, pos[1] - y, vw + w, DEFAULT_SIZE);
+      writer.rect(pos[0] - x, pos[1] + vh + y, vw + w, DEFAULT_SIZE);
+      writer.rect(pos[0] - x, pos[1] + vh + y, DEFAULT_SIZE, vh + h);
+      writer.rect(pos[0] + x + vw, pos[1] + vh + y, DEFAULT_SIZE, vh + h);
+      // v.push(
+      //   ...rect(vw + w, DEFAULT_SIZE, [-x, - y]),
+      //   ...rect(vw + w, DEFAULT_SIZE, [-x, vh + y]),
+      //   ...rect(DEFAULT_SIZE, vh + h - DEFAULT_SIZE, [-x, -y + DEFAULT_SIZE]),
+      //   ...rect(DEFAULT_SIZE, vh + h - DEFAULT_SIZE, [vw + x - DEFAULT_SIZE, -y + DEFAULT_SIZE])
+      // );
     }
+    console.log(cell.type, cell.meta_data)
   }
   writer.save("elastic");
 }
 
-function elastic_1D(writer: SvgWriter, pos: [number, number], amplitude: number, width: number, gap: number[], cellW: number, cellH: number, elastic_val: number) {
+function elastic_1D(writer: SvgWriter, pos: [number, number], amplitude: number, width: number, gap: number[], cellW: number, cellH: number, elastic_val: number, type: string) {
   const f = formula(amplitude, width, c1);
 
   const b = f[1];
 
-  const h = b + 2* Math.max(gap[2], gap[3]) + DEFAULT_SIZE*2 ; // max of d on top and bottom.D
-  // TODO formula wrong 
+  const h = b + 2* Math.max(gap[2], gap[3]); //+ DEFAULT_SIZE*2 ; // max of d on top and bottom.D
   const w = width + 4 + (14 - elastic_val) + DEFAULT_SIZE*2;
   
-  const x = (w-cellW)/2.0;
+
+
+  // const h =  b + Math.max(gapBo, gapUp); // max of d on top and bottom.
+  // let w = width + 4 + (14 - elastic_val) + DEFAULT_SIZE*2;
+  // 
+  // let x = (w-cellW)/2.0;
+  // let y = (h-cellH)/2.0;
+  // 
+
+  let x = (w-cellW)/2.0;
   const y = (h-cellH)/2.0;
+
+  if (type == "right1d") { 
+    x += 1.5*DEFAULT_SIZE;
+    cellW -= 3 *DEFAULT_SIZE;
+  }
+
   writer.rect(pos[0] - x, pos[1] + y, w, DEFAULT_SIZE, 0, 0xFF0000);
   writer.rect(pos[0] - x, pos[1] - y - cellH, w, DEFAULT_SIZE, 0, 0xFF0000);
   writer.rect(pos[0] - x, pos[1] + y - DEFAULT_SIZE, DEFAULT_SIZE, h - DEFAULT_SIZE, 0, 0xFF0000);
