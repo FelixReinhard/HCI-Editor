@@ -118,7 +118,7 @@ export function export_cells(cells: Cell[], format: string) {
       writer.rect(pos[0] - x, pos[1] - y, vw + w, DEFAULT_SIZE);
       writer.rect(pos[0] - x, pos[1] + vh + y, vw + w, DEFAULT_SIZE);
       writer.rect(pos[0] - x, pos[1] + vh + y, DEFAULT_SIZE, vh + h);
-      writer.rect(pos[0] + x + vw, pos[1] + vh + y, DEFAULT_SIZE, vh + h);
+      writer.rect(pos[0] + x + vw, pos[1] + vh + y, DEFAULT_SIZE, DEFAULT_SIZE + vh + h);
       // v.push(
       //   ...rect(vw + w, DEFAULT_SIZE, [-x, - y]),
       //   ...rect(vw + w, DEFAULT_SIZE, [-x, vh + y]),
