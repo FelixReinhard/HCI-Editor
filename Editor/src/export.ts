@@ -79,8 +79,8 @@ export function export_cells(cells: Cell[], format: string) {
       const vw = 4*DEFAULT_SIZE + cell.width + b + a;
       const vh = 5*DEFAULT_SIZE + b + 2*a;
 
-      const h =  b + DEFAULT_SIZE;
-      const w = cell.width + 4 + DEFAULT_SIZE*2;
+      const h = DEFAULT_SIZE*4;
+      const w = DEFAULT_SIZE*4;
     
       const x = w/2;
       const y = h/2
@@ -93,7 +93,7 @@ export function export_cells(cells: Cell[], format: string) {
       writer.rect(pos[0] - x, pos[1] - y, vw + w, DEFAULT_SIZE);
       writer.rect(pos[0] - x, pos[1] + vh + y, vw + w, DEFAULT_SIZE);
       writer.rect(pos[0] - x, pos[1] + vh + y, DEFAULT_SIZE, vh + h);
-      writer.rect(pos[0] + x + vw, pos[1] + vh + y, DEFAULT_SIZE, vh + h);
+      writer.rect(pos[0] + x + vw, pos[1] + vh + y, DEFAULT_SIZE, vh + h + DEFAULT_SIZE);
     } else if (cell.type.includes("chained_basic_1d") && cell.meta_data[0] == "t1" && cell.meta_data[1] == "t2" && cell.meta_data.length == 2) {
       
       const pos = [

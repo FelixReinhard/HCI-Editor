@@ -324,15 +324,13 @@ function generate_basic2d_chained(amplitude: number, width: number, data: string
     
     // Add the 2DEFAULT_SIZE important for scale of left and right most rects 
     // 2*Math.max(...)
+    const min = vertices_min_x(v);
     
-    const min = vertices_min_x(v)/2;
-    
-
-    const vw = vertices_width(v);
+    const vw = vertices_width(v) - min;
     const vh = vertices_height(v);
 
-    const h =  Math.max(vh, b + DEFAULT_SIZE);
-    const w = width + 4 + DEFAULT_SIZE*2;
+    const h = DEFAULT_SIZE*4; 
+    const w = DEFAULT_SIZE*4;
   
     const x = w/2;
     const y = h/2
