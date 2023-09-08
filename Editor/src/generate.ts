@@ -2450,8 +2450,6 @@ export class Cell {
   }
 }
 
-
-
 // Generate Elastic
 //
 //
