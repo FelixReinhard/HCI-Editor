@@ -2448,21 +2448,6 @@ export class Cell {
   set_selected_mesh(selected: boolean, ok: boolean) { 
     this.selected_mesh.visible = selected;
   }
-
-  reset_displacement() {
-   // this.mesh.position.copy(this.position);
-  }
-
-  add_displacement(cell: Cell) {
-    const distX = ((this.position.x + this.get_width() / 2.0) - (cell.position.x + cell.get_width()));
-    const distZ = ((this.position.z + this.get_height() / 2.0) - (cell.position.z + cell.get_height()));
-
-    const dir = [
-      this.position.x - cell.position.x, this.position.z - cell.position.z
-    ];
-
-    this.mesh.position.copy(this.mesh.position.add(new Three.Vector3(dir[0] * 1.0/distX * 50, 0, dir[1] * 1.0/distZ)));
-  }
 }
 
 

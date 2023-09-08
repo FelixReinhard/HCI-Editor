@@ -36,7 +36,7 @@ var current_object: Cell = null;// create_basic1d(amplitude_value, width_value, 
 // Setup three js scene 
 // ######################################################
 const scene = new Three.Scene();
-const camera = new Three.PerspectiveCamera(80, (window.innerWidth * 0.6) / window.innerHeight, 0.1, 1000);
+const camera = new Three.PerspectiveCamera(80, (window.innerWidth * 0.5) / window.innerHeight, 0.1, 1000);
 const renderer = new Three.WebGLRenderer({
     canvas: document.querySelector('#editor'),
 });
@@ -178,6 +178,7 @@ function update_cell_position(cell: Cell) {
   cell.selected_mesh.position.x -= 1;
   cell.selected_mesh.position.z += 1;
   cell.mesh.position.y = 0.1;
+  cell.mesh_flat.position.y = 0;
   // add offset of elastic to the 3d mesh so it is centered on the flat one first.
   if (cell.elastic) {
     cell.mesh.position.x += cell.elastic_offset[0];
@@ -221,7 +222,6 @@ function place_current_selected_cell(position: Three.Vector3) {
       has_2d_cells = true;
     }
     cells.push(current_object);
-    current_object.reset_displacement();
   }   
 }
 
@@ -741,7 +741,7 @@ function check_gap() {
   for (let c of cells) {
     c.update_gap(cells, current_object);
   }
-  if (cell.length == 0) return;
+  if (current_object.length == 0) return;
   if (cells.length == 1) {
     current_object.gap.boundingBox.visible = false;
     return;
