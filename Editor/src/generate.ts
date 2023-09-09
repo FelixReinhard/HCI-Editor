@@ -2088,9 +2088,9 @@ class GapBox {
         }
       } else {
         if (old != null && old.amplitude > c.amplitude) 
-          t.d[i] = Math.max(old.amplitude, t.cell.amplitude) + (has_2d_cells? .7: 0) + 1;
+          t.d[i] = Math.max(old.amplitude, t.cell.amplitude) * (has_2d_cells? 1.7: 1) + 1;
         else {
-          t.d[i] = Math.max(c.amplitude, t.cell.amplitude) + (has_2d_cells? .7: 0) + 1;
+          t.d[i] = Math.max(c.amplitude, t.cell.amplitude) * (has_2d_cells? 1.7: 1) + 1;
           old = c;
         }
       }
