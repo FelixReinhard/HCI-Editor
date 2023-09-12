@@ -316,6 +316,7 @@ function generate_basic2d_chained(amplitude: number, width: number, data: string
   const w_flat = flatOffset;
   
   if (data[0] == "t8" && data[1] == "t9" && data.length == 2) {
+    // special case
     const v = move_verticies((w_flat - wi) / 2.0, 0, 0, vertices);
 
     const f = formula(amplitude, width, c1);
@@ -562,6 +563,7 @@ function generate_basic1d_chained(amplitude: number, width: number, data: string
   const w_flat = flatOffset;
   
   if (data[0] == "t1" && data[1] == "t2" && data.length == 2) {
+    //special case
     const v = move_verticies((w_flat - wi) / 2.0, 0, -yMove, vertices);
 
     const f = formula(amplitude, width, c1);
@@ -570,8 +572,8 @@ function generate_basic1d_chained(amplitude: number, width: number, data: string
     
     // Add the 2DEFAULT_SIZE important for scale of left and right most rects 
     // 2*Math.max(...)
-    const h =  b + DEFAULT_SIZE*2;
-    const w = width + 8 + DEFAULT_SIZE*2;
+    const h = DEFAULT_SIZE*2; 
+    const w = DEFAULT_SIZE*2;
     
     const vw = vertices_width(v);
     const vh = vertices_height(v);
@@ -579,12 +581,12 @@ function generate_basic1d_chained(amplitude: number, width: number, data: string
     const x = w/2;
     const y = h/2
 
-    v.push(
+    v.push(...move_verticies(DEFAULT_SIZE, 0, -DEFAULT_SIZE/2 ,[ 
       ...rect(vw + w, DEFAULT_SIZE, [-x, - y]),
       ...rect(vw + w, DEFAULT_SIZE, [-x, vh + y]),
       ...rect(DEFAULT_SIZE, vh + h - DEFAULT_SIZE, [-x, -y + DEFAULT_SIZE]),
       ...rect(DEFAULT_SIZE, vh + h - DEFAULT_SIZE, [vw + x - DEFAULT_SIZE, -y + DEFAULT_SIZE])
-    );
+    ]));
     return  v;
   } else {
     return move_verticies((w_flat - wi) / 2.0, 0, -yMove, vertices);

@@ -106,8 +106,8 @@ export function export_cells(cells: Cell[], format: string) {
       
       // Add the 2DEFAULT_SIZE important for scale of left and right most rects 
       // 2*Math.max(...)
-      const h =  b + DEFAULT_SIZE*2;
-      const w = cell.width + 8 + DEFAULT_SIZE*2;
+      const h = DEFAULT_SIZE*2;
+      const w = DEFAULT_SIZE*2;
       
       const vw = 5*DEFAULT_SIZE +  cell.width + a;
       const vh = b;
