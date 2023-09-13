@@ -572,12 +572,13 @@ function generate_basic1d_chained(amplitude: number, width: number, data: string
     
     // Add the 2DEFAULT_SIZE important for scale of left and right most rects 
     // 2*Math.max(...)
-    const h = DEFAULT_SIZE*2; 
     const w = DEFAULT_SIZE*2;
     
     const vw = vertices_width(v);
     const vh = vertices_height(v);
   
+    const h = 2*a + b ;
+
     const x = w/2;
     const y = h/2
 
