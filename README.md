@@ -9,9 +9,9 @@ Node.js:
 - open your browser on localhost:5173
 
 Tauri:
-On windows you can download the [latest release](https://github.com/FelixReinhard/HCI-Editor/releases/latest)https://github.com/FelixReinhard/HCI-Editor/releases/latest)
+On windows you can download the [latest release](https://github.com/FelixReinhard/HCI-Editor/releases/latest)
 On Mac you need to compile yourself.
 - Make sure you have node.js and three.js installed on your system.
-- Install the rust [toolchain](https://www.rust-lang.org/) and tauri with ´cargo install tauri-cli´
+- Install the rust [toolchain](https://www.rust-lang.org/) and tauri with `cargo install tauri-cli`
 - Build: `cargo tauri build` (or `cargo tauri dev`)
-- navigate into src-tauri/target/release and find your executeble
+- navigate into `src-tauri/target/release` and find your executeble
